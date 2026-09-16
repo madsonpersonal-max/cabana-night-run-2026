@@ -351,12 +351,17 @@ function sendProofTest(){
   state.proofName = file.name;
   state.proofSize = file.size;
   state.proofSentAt = new Date().toISOString();
-  saveState(state);
 
-  document.getElementById("payStatus").textContent = state.status;
-  document.getElementById("paymentResult").innerHTML =
-    '<div class="notice success"><strong>Comprovante recebido para homologação</strong><span class="muted">Arquivo: '+
-    escapeHtml(file.name)+'<br>Status: COMPROVANTE ENVIADO<br>Na versão real, o comprovante será armazenado com segurança e encaminhado para validação do atendente.</span></div>';
+  var reader = new FileReader();
+  reader.onload = function(){
+    state.proofDataUrl = reader.result;
+    saveState(state);
+    document.getElementById("payStatus").textContent = state.status;
+    document.getElementById("paymentResult").innerHTML =
+      '<div class="notice success"><strong>Comprovante recebido para homologação</strong><span class="muted">Arquivo: '+
+      escapeHtml(file.name)+'<br>Status: COMPROVANTE ENVIADO<br>O atendente poderá visualizar este comprovante nesta homologação.</span></div>';
+  };
+  reader.readAsDataURL(file);
 }
 
 function consultRegistration(){
