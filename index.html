@@ -5,104 +5,133 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Cabana Night Run 2026</title>
 <style>
-:root{--bg:#0b0810;--card:#15101b;--card2:#1b1422;--text:#f7f5fa;--muted:#aaa2b3;--green:#a7ff19;--purple:#8b2cff;--line:#35263f}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 15%,#3a1555 0,#160d1f 35%,var(--bg) 70%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
-.wrap{max-width:920px;margin:auto;padding:20px}
-header{display:flex;align-items:center;justify-content:space-between;padding:10px 0 22px}
-.brand{font-weight:900;font-size:22px;letter-spacing:.3px}.brand span{color:var(--green)}
-.badge{font-size:13px;color:var(--muted)}
-.hero{border:1px solid #4a3157;background:linear-gradient(145deg,#18101f,#100c15 70%);border-radius:28px;padding:34px 28px;box-shadow:0 20px 60px #0008;position:relative;overflow:hidden}
-.hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-80px;top:-90px;background:#8b2cff38;filter:blur(8px)}
-.kicker{font-weight:700;color:#d6cedc;font-size:16px;text-transform:uppercase;letter-spacing:.5px}
-h1{font-size:clamp(40px,8vw,72px);line-height:.98;margin:18px 0 20px;max-width:720px}
-h1 span{color:var(--green)}p{font-size:18px;line-height:1.55;color:var(--muted);max-width:680px}
-.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
-button,a.btn{border:0;border-radius:14px;padding:15px 21px;font-weight:800;font-size:16px;text-decoration:none;cursor:pointer}
-.primary{background:var(--green);color:#090b06}.secondary{background:#24192d;color:#fff;border:1px solid #4a3653!important}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
-.card{background:#120d17;border:1px solid var(--line);border-radius:20px;padding:22px}
-.card h3{margin:0 0 8px;font-size:16px}.big{font-size:30px;font-weight:900}.muted{color:var(--muted)}
-.info{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.notice{background:#16111c;border:1px solid var(--line);border-radius:20px;padding:22px}
-.notice strong{display:block;font-size:18px;margin-bottom:8px}
-footer{padding:28px 0 10px;text-align:center;color:#82798b;font-size:13px}
-.modal{display:none;position:fixed;inset:0;background:#000b;align-items:center;justify-content:center;padding:20px;z-index:10}
-.modal.open{display:flex}.modalbox{max-width:620px;width:100%;background:#15101b;border:1px solid #493553;border-radius:24px;padding:26px;max-height:85vh;overflow:auto}
-.close{float:right;background:#251b2d;color:#fff;padding:8px 12px;border-radius:10px;border:1px solid #493553;cursor:pointer}
-input{width:100%;padding:13px;border-radius:12px;border:1px solid #493553;background:#0e0a12;color:#fff;margin:8px 0 14px}
-@media(max-width:700px){.wrap{padding:14px}.grid,.info{grid-template-columns:1fr}.hero{padding:28px 22px}.actions button,.actions a{width:100%;text-align:center}}
+:root{--bg:#0b0810;--card:#15101b;--card2:#1b1422;--text:#f7f5fa;--muted:#aaa2b3;--green:#a7ff19;--purple:#8b2cff;--line:#392840;--danger:#ff7188}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 10%,#3a1555 0,#160d1f 35%,var(--bg) 72%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}.wrap{max-width:900px;margin:auto;padding:18px}
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 0 18px}.brand{font-weight:900;font-size:21px}.brand span{color:var(--green)}.badge{font-size:13px;color:var(--muted)}
+.hero,.card{background:linear-gradient(145deg,#18101f,#100c15 72%);border:1px solid var(--line);border-radius:25px;box-shadow:0 18px 50px #0007}.hero{padding:30px 24px}.kicker{text-transform:uppercase;color:#d6cedc;font-size:14px;font-weight:750;letter-spacing:.4px}h1{font-size:clamp(39px,8vw,68px);line-height:.98;margin:16px 0}h1 span{color:var(--green)}p{font-size:17px;line-height:1.5;color:var(--muted)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}button{cursor:pointer;border:0;border-radius:13px;padding:14px 18px;font-size:16px;font-weight:850}.primary{background:var(--green);color:#090b06}.secondary{background:#24192d;color:#fff;border:1px solid #4b3655}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.card{padding:20px}.card h3{margin:0 0 7px;font-size:15px}.big{font-size:29px;font-weight:900}.muted{color:var(--muted)}.info{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.notice{padding:20px;border-radius:20px;border:1px solid var(--line);background:#120d17;margin-top:16px}.notice strong{display:block;font-size:18px;margin-bottom:7px}
+.modal{display:none;position:fixed;inset:0;background:#000c;z-index:20;align-items:center;justify-content:center;padding:14px}.modal.open{display:flex}.box{width:100%;max-width:680px;max-height:92vh;overflow:auto;background:#15101b;border:1px solid #4b3655;border-radius:23px;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px}.close{background:#271c30;color:#fff;padding:8px 12px}.steps{display:flex;gap:6px;margin:16px 0;overflow:auto}.step{font-size:12px;color:#82798b;border-bottom:2px solid #38273f;padding:8px 4px;white-space:nowrap}.step.active{color:var(--green);border-color:var(--green)}label{display:block;font-size:14px;font-weight:700;margin:13px 0 5px}input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554;background:#0e0a12;color:#fff;font-size:16px}input:focus,select:focus{outline:2px solid #a7ff1944;border-color:var(--green)}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{display:flex;gap:9px;align-items:flex-start;margin-top:15px;color:var(--muted);font-size:14px}.check input{width:auto;margin-top:3px}.hidden{display:none}.summary{background:#0e0a12;border:1px solid #392840;border-radius:15px;padding:15px;margin:12px 0}.summary div{display:flex;justify-content:space-between;gap:15px;border-bottom:1px solid #271c30;padding:8px 0}.summary div:last-child{border:0}.alert{padding:12px;border-radius:12px;background:#2a1820;border:1px solid #6b3343;color:#ffd8df;margin:12px 0}.success{background:#162414;border-color:#3f6938;color:#dfffd9}.pix{font-family:ui-monospace,monospace;word-break:break-all;background:#0a080d;border:1px dashed #5b4765;padding:12px;border-radius:10px;font-size:13px}.footer{padding:28px 0 8px;text-align:center;color:#82798b;font-size:13px}
+@media(max-width:700px){.grid,.info,.row{grid-template-columns:1fr}.wrap{padding:13px}.hero{padding:27px 20px}.actions button{width:100%}.box{padding:18px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header>
-  <div class="brand">CABANA <span>NIGHT RUN</span> 2026</div>
-  <div class="badge">Área do atleta</div>
-</header>
+<header><div class="brand">CABANA <span>NIGHT RUN</span> 2026</div><div class="badge">Área do atleta</div></header>
 
 <section class="hero">
-  <div class="kicker">14 de novembro • Cabana Clube • Barcarena/PA</div>
-  <h1>Cabana Night Run <span>2026</span></h1>
-  <p>Corrida noturna de 7 km. Faça sua inscrição, acompanhe seu protocolo e consulte as orientações da prova.</p>
-  <div class="actions">
-    <button class="primary" onclick="location.hash='inscricao';document.getElementById('inscricao').scrollIntoView({behavior:'smooth'})">Fazer inscrição</button>
-    <button class="secondary" onclick="openModal('consulta')">Consultar minha inscrição</button>
-    <button class="secondary" onclick="openModal('regulamento')">Regulamento</button>
-  </div>
+<div class="kicker">14 de novembro • Cabana Clube • Barcarena/PA</div>
+<h1>Cabana Night Run <span>2026</span></h1>
+<p>Corrida noturna de 7 km. Faça sua inscrição, gere seu protocolo e acompanhe o status da inscrição.</p>
+<div class="actions">
+<button class="primary" onclick="startRegistration()">Fazer inscrição</button>
+<button class="secondary" onclick="openModal('consulta')">Consultar minha inscrição</button>
+<button class="secondary" onclick="openModal('regulamento')">Regulamento</button>
+</div>
 </section>
 
 <section class="grid">
-  <div class="card"><h3>Modalidade</h3><div class="big">7 km</div><div class="muted">Corrida noturna</div></div>
-  <div class="card"><h3>Vagas</h3><div class="big">1.000</div><div class="muted">limite da corrida</div></div>
-  <div class="card"><h3>Concentração</h3><div class="big">18:00</div><div class="muted">largada às 19:00</div></div>
+<div class="card"><h3>Modalidade</h3><div class="big">7 km</div><div class="muted">Corrida noturna</div></div>
+<div class="card"><h3>Vagas</h3><div class="big" id="vacancies">1.000</div><div class="muted">limite da corrida</div></div>
+<div class="card"><h3>Concentração</h3><div class="big">18:00</div><div class="muted">largada às 19:00</div></div>
 </section>
 
 <section class="info">
-  <div class="notice">
-    <strong>PCD</strong>
-    <span class="muted">As inscrições destinadas a atletas PCD são gratuitas e realizadas exclusivamente de forma presencial, mediante apresentação da documentação exigida pela organização. 10 vagas disponíveis.</span>
-  </div>
-  <div class="notice">
-    <strong>Suporte</strong>
-    <span class="muted">Dúvidas sobre inscrição e atendimento pelo WhatsApp: <b>(91) 99163-3661</b></span>
-  </div>
+<div class="notice"><strong>PCD</strong><span class="muted">Inscrições PCD exclusivamente presenciais, mediante documentação exigida pela organização. 10 vagas disponíveis.</span></div>
+<div class="notice"><strong>Suporte</strong><span class="muted">WhatsApp: <b>(91) 99163-3661</b></span></div>
 </section>
 
-<section id="inscricao" class="notice" style="margin-top:18px">
-  <strong>Pronto para participar?</strong>
-  <span class="muted">No ambiente de homologação, o botão abaixo abre o fluxo de inscrição do protótipo. Nenhum pagamento real deve ser realizado neste ambiente.</span>
-  <div class="actions">
-    <button class="primary" onclick="alert('Fluxo de inscrição de homologação: próxima etapa será integrar este botão ao formulário do atleta.')">Iniciar inscrição</button>
-  </div>
-</section>
-
-<footer>Cabana Night Run 2026 • Ambiente de homologação/teste</footer>
+<section class="notice"><strong>Ambiente de homologação</strong><span class="muted">Este é um teste do fluxo do atleta. Não realize pagamento real nem envie documentos reais neste ambiente.</span></section>
+<div class="footer">Cabana Night Run 2026 • Ambiente de homologação/teste</div>
 </div>
 
-<div id="consulta" class="modal" onclick="if(event.target===this)closeModal('consulta')">
-  <div class="modalbox">
-    <button class="close" onclick="closeModal('consulta')">Fechar</button>
-    <h2>Consultar minha inscrição</h2>
-    <p class="muted">Informe o protocolo e o CPF usados no cadastro. Esta tela é demonstrativa no ambiente de teste.</p>
-    <label>Protocolo</label><input placeholder="CNR26-000001">
-    <label>CPF</label><input placeholder="000.000.000-00">
-    <button class="primary" onclick="alert('Consulta demonstrativa. A consulta real será ligada ao banco de dados na versão de homologação.')">Consultar</button>
-  </div>
+<!-- INSCRIÇÃO -->
+<div id="inscricao" class="modal">
+<div class="box">
+<div class="top"><h2>Fazer inscrição</h2><button class="close" onclick="closeModal('inscricao')">Fechar</button></div>
+<div class="steps"><div class="step active" id="s1">1 Dados</div><div class="step" id="s2">2 Modalidade</div><div class="step" id="s3">3 Camisa</div><div class="step" id="s4">4 Revisão</div><div class="step" id="s5">5 Protocolo</div></div>
+
+<form id="form">
+<div id="p1">
+<h3>Dados do atleta</h3>
+<div class="row"><div><label>Nome completo *</label><input id="nome" required></div><div><label>CPF *</label><input id="cpf" placeholder="000.000.000-00" required></div></div>
+<div class="row"><div><label>Data de nascimento *</label><input id="nascimento" type="date" required></div><div><label>Sexo *</label><select id="sexo" required><option value="">Selecione</option><option>Feminino</option><option>Masculino</option><option>Outro</option></select></div></div>
+<div class="row"><div><label>WhatsApp *</label><input id="whatsapp" placeholder="(91) 99999-9999" required></div><div><label>E-mail</label><input id="email" type="email"></div></div>
+<label>Cidade *</label><input id="cidade" value="Barcarena/PA" required>
+<div class="check"><input id="reg" type="checkbox" required><span>Li e aceito o regulamento da Cabana Night Run 2026.</span></div>
+<div class="actions"><button type="button" class="primary" onclick="next(1)">Continuar</button></div>
 </div>
 
-<div id="regulamento" class="modal" onclick="if(event.target===this)closeModal('regulamento')">
-  <div class="modalbox">
-    <button class="close" onclick="closeModal('regulamento')">Fechar</button>
-    <h2>Regulamento</h2>
-    <p class="muted">Cabana Night Run 2026 — 14/11/2026, Cabana Clube, Vila dos Cabanos, Barcarena/PA. Concentração às 18:00 e largada às 19:00. Percurso de 7 km.</p>
-    <p class="muted">Valores de referência do regulamento: R$ 110 corrida individual; R$ 100 equipe/sócio; R$ 60 corridinha infantil. A inscrição somente é efetivada após o pagamento.</p>
-    <p class="muted">Atenção: o regulamento vigente prevê regras específicas para a Corridinha Infantil e para PCD. A organização deve homologar qualquer alteração antes da publicação definitiva.</p>
-  </div>
+<div id="p2" class="hidden">
+<h3>Modalidade e origem</h3>
+<label>Modalidade *</label><select id="modalidade"><option value="corrida">Corrida 7 km — R$ 110,00</option><option value="socio">Sócio/equipe — R$ 100,00</option></select>
+<label>Origem da inscrição *</label><select id="origem"><option>Online individual</option><option>Sócio/equipe</option><option>Empresa</option><option>Bonificação</option></select>
+<label>Equipe (opcional)</label><input id="equipe">
+<p class="muted">PCD não aparece neste fluxo. As inscrições PCD são exclusivamente presenciais.</p>
+<div class="actions"><button type="button" class="secondary" onclick="next(0)">Voltar</button><button type="button" class="primary" onclick="next(2)">Continuar</button></div>
 </div>
+
+<div id="p3" class="hidden">
+<h3>Tamanho da camisa</h3>
+<label>Tamanho *</label><select id="camisa"><option value="">Selecione</option><option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option></select>
+<div class="notice"><strong>Atenção</strong><span class="muted">O tamanho escolhido ficará registrado na inscrição. Conforme o regulamento, após o encerramento das inscrições não haverá alteração e não haverá escolha de tamanho na retirada do kit.</span></div>
+<div class="actions"><button type="button" class="secondary" onclick="next(1)">Voltar</button><button type="button" class="primary" onclick="next(3)">Revisar inscrição</button></div>
+</div>
+
+<div id="p4" class="hidden">
+<h3>Revise seus dados</h3><div class="summary" id="review"></div>
+<div class="actions"><button type="button" class="secondary" onclick="next(2)">Voltar</button><button type="button" class="primary" onclick="confirmRegistration()">Confirmar e gerar protocolo</button></div>
+</div>
+
+<div id="p5" class="hidden">
+<h3>Inscrição registrada para homologação</h3>
+<div class="summary"><div><span>Protocolo</span><b id="protocol"></b></div><div><span>Status</span><b>AGUARDANDO PAGAMENTO</b></div><div><span>Valor</span><b id="valor"></b></div></div>
+<div class="notice"><strong>Próxima etapa</strong><span class="muted">Na versão conectada ao backend, esta etapa exibirá o QR Code PIX oficial e permitirá o envio do comprovante. Nesta homologação, nenhum pagamento real deve ser feito.</span></div>
+<div class="actions"><button type="button" class="primary" onclick="showPaymentDemo()">Ir para pagamento (teste)</button><button type="button" class="secondary" onclick="closeModal('inscricao')">Concluir</button></div>
+</div>
+</form>
+</div>
+</div>
+
+<!-- PAGAMENTO DEMO -->
+<div id="pagamento" class="modal"><div class="box">
+<div class="top"><h2>Pagamento — teste</h2><button class="close" onclick="closeModal('pagamento')">Fechar</button></div>
+<div class="alert">Ambiente de homologação: não faça PIX real e não envie comprovante real.</div>
+<h3>PIX oficial — integração futura</h3><p class="muted">A chave definida para o projeto é o CNPJ da organização. O QR Code dinâmico será integrado no backend.</p>
+<div class="pix">63.886.204/0001-91</div>
+<label>Comprovante (simulação)</label><input type="file" accept="image/*,.pdf">
+<button class="primary" onclick="alert('Simulação registrada. No sistema real, o arquivo será armazenado com segurança e enviado para validação antifraude.')">Enviar comprovante (teste)</button>
+</div></div>
+
+<!-- CONSULTA -->
+<div id="consulta" class="modal"><div class="box">
+<div class="top"><h2>Consultar minha inscrição</h2><button class="close" onclick="closeModal('consulta')">Fechar</button></div>
+<p class="muted">No sistema real, a consulta será limitada ao próprio atleta mediante protocolo + CPF.</p>
+<label>Protocolo</label><input id="qprot" placeholder="CNR26-000001"><label>CPF</label><input id="qcpf" placeholder="000.000.000-00">
+<button class="primary" onclick="consultar()">Consultar</button><div id="qresult"></div>
+</div></div>
+
+<!-- REGULAMENTO -->
+<div id="regulamento" class="modal"><div class="box">
+<div class="top"><h2>Regulamento — resumo</h2><button class="close" onclick="closeModal('regulamento')">Fechar</button></div>
+<p class="muted"><b>Cabana Night Run 2026:</b> 14/11/2026, sábado, Cabana Clube, Vila dos Cabanos, Barcarena/PA. Concentração às 18:00 e largada às 19:00. Percurso de 7 km.</p>
+<p class="muted"><b>Valores:</b> R$ 110 corrida individual; R$ 100 sócio/equipe; R$ 60 corridinha infantil.</p>
+<p class="muted"><b>PCD:</b> 10 vagas gratuitas, exclusivamente presenciais, com documentação exigida pela organização.</p>
+<p class="muted"><b>Kit/camisa:</b> tamanho selecionado na inscrição; não há escolha de tamanho na retirada.</p>
+<p class="muted"><b>Importante:</b> este resumo não substitui o regulamento oficial.</p>
+</div></div>
 
 <script>
+const KEY='cnr26_homologacao';
+let state=JSON.parse(localStorage.getItem(KEY)||'{}');
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
+function startRegistration(){document.getElementById('form').reset(); document.getElementById('cidade').value='Barcarena/PA'; for(let i=1;i<=5;i++)document.getElementById('p'+i).classList.toggle('hidden',i!==1); for(let i=1;i<=5;i++)document.getElementById('s'+i).classList.toggle('active',i===1); openModal('inscricao')}
+function next(step){if(step===1&&!document.getElementById('form').checkValidity()){document.getElementById('form').reportValidity();return} if(step===2&&!document.getElementById('camisa').value){alert('Selecione o tamanho da camisa.');return} for(let i=1;i<=5;i++)document.getElementById('p'+i).classList.toggle('hidden',i!==step+1); for(let i=1;i<=5;i++)document.getElementById('s'+i).classList.toggle('active',i===step+1); if(step===3)renderReview()}
+function renderReview(){let modalidade=document.getElementById('modalidade').value;let valor=modalidade==='socio'?'R$ 100,00':'R$ 110,00';document.getElementById('review').innerHTML=`<div><span>Nome</span><b>${esc(nome.value)}</b></div><div><span>CPF</span><b>${esc(cpf.value)}</b></div><div><span>WhatsApp</span><b>${esc(whatsapp.value)}</b></div><div><span>Modalidade</span><b>${modalidade==='socio'?'Sócio/equipe':'Corrida 7 km'}</b></div><div><span>Origem</span><b>${esc(origem.value)}</b></div><div><span>Camisa</span><b>${esc(camisa.value)}</b></div><div><span>Valor</span><b>${valor}</b></div>`}
+function confirmRegistration(){let prot='CNR26-'+String(Math.floor(100000+Math.random()*900000));let modalidade=document.getElementById('modalidade').value;state={protocol:prot,cpf:cpf.value.replace(/\D/g,''),nome:nome.value,status:'AGUARDANDO PAGAMENTO',valor:modalidade==='socio'?100:110,camisa:camisa.value};save();document.getElementById('protocol').textContent=prot;document.getElementById('valor').textContent=modalidade==='socio'?'R$ 100,00':'R$ 110,00';for(let i=1;i<=5;i++)document.getElementById('p'+i).classList.toggle('hidden',i!==5);for(let i=1;i<=5;i++)document.getElementById('s'+i).classList.toggle('active',i===5)}
+function showPaymentDemo(){closeModal('inscricao');openModal('pagamento')}
+function consultar(){let p=document.getElementById('qprot').value.trim();let c=document.getElementById('qcpf').value.replace(/\D/g,'');let r=document.getElementById('qresult');if(state.protocol===p&&state.cpf===c)r.innerHTML='<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">Protocolo: '+state.protocol+'<br>Status: '+state.status+'<br>Camisa: '+state.camisa+'</span></div>';else r.innerHTML='<div class="alert">Nenhuma inscrição de homologação encontrada para os dados informados.</div>'}
+function esc(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 </script>
 </body>
 </html>
