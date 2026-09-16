@@ -169,13 +169,30 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 
 <div id="pagamento" class="modal">
 <div class="box">
-<div class="top"><h2>Pagamento — teste</h2><button class="close" onclick="closeModal('pagamento')">Fechar</button></div>
-<div class="alert">Ambiente de homologação: não faça PIX real e não envie comprovante real.</div>
-<h3>PIX oficial — integração futura</h3>
-<p class="muted">A chave definida para o projeto é o CNPJ da organização. O QR Code dinâmico será integrado no backend.</p>
+<div class="top"><h2>Pagamento da inscrição</h2><button class="close" onclick="closeModal('pagamento')">Fechar</button></div>
+
+<div class="alert">AMBIENTE DE HOMOLOGAÇÃO: não faça PIX real e não envie comprovante real.</div>
+
+<div class="summary">
+  <div><span>Protocolo</span><b id="payProtocol">-</b></div>
+  <div><span>Valor</span><b id="payValue">-</b></div>
+  <div><span>Status</span><b id="payStatus">AGUARDANDO PAGAMENTO</b></div>
+</div>
+
+<h3>Pagamento via PIX</h3>
+<p class="muted">Na versão real, esta área receberá o QR Code PIX oficial/dinâmico. Para o teste, a chave abaixo é apenas informativa.</p>
 <div class="pix">63.886.204/0001-91</div>
-<label for="comprovante">Comprovante (simulação)</label><input id="comprovante" type="file" accept="image/*,.pdf">
-<button class="primary" onclick="alert('Simulação registrada. Na versão real, o arquivo será armazenado com segurança e enviado para validação.')">Enviar comprovante (teste)</button>
+
+<label for="comprovante">Comprovante de pagamento *</label>
+<input id="comprovante" type="file" accept="image/*,.pdf">
+<p class="muted">Formatos de teste: imagem ou PDF. Nenhum arquivo real deve ser enviado neste ambiente.</p>
+
+<div class="actions">
+  <button type="button" class="primary" onclick="sendProofTest()">Enviar comprovante (teste)</button>
+</div>
+
+<div id="paymentResult"></div>
+</div>
 </div>
 </div>
 
@@ -294,8 +311,54 @@ function confirmRegistration(){
 }
 
 function showPaymentDemo(){
+  var state = loadState();
+  if(!state.protocol){
+    alert("Nenhuma inscrição de homologação encontrada.");
+    return;
+  }
+  openPayment(state);
+}
+
+function openPayment(state){
+  document.getElementById("payProtocol").textContent = state.protocol || "-";
+  document.getElementById("payValue").textContent = state.valor === 100 ? "R$ 100,00" : "R$ 110,00";
+  document.getElementById("payStatus").textContent = state.status || "AGUARDANDO PAGAMENTO";
+  document.getElementById("comprovante").value = "";
+  document.getElementById("paymentResult").innerHTML = "";
   closeModal("inscricao");
+  closeModal("consulta");
   openModal("pagamento");
+}
+
+function openPaymentForSaved(){
+  var state = loadState();
+  if(state.protocol) openPayment(state);
+}
+
+function sendProofTest(){
+  var state = loadState();
+  var file = document.getElementById("comprovante").files[0];
+
+  if(!state.protocol){
+    alert("Nenhuma inscrição salva para pagamento.");
+    return;
+  }
+
+  if(!file){
+    alert("Selecione um comprovante de teste antes de enviar.");
+    return;
+  }
+
+  state.status = "COMPROVANTE ENVIADO";
+  state.proofName = file.name;
+  state.proofSize = file.size;
+  state.proofSentAt = new Date().toISOString();
+  saveState(state);
+
+  document.getElementById("payStatus").textContent = state.status;
+  document.getElementById("paymentResult").innerHTML =
+    '<div class="notice success"><strong>Comprovante recebido para homologação</strong><span class="muted">Arquivo: '+
+    escapeHtml(file.name)+'<br>Status: COMPROVANTE ENVIADO<br>Na versão real, o comprovante será armazenado com segurança e encaminhado para validação do atendente.</span></div>';
 }
 
 function consultRegistration(){
@@ -305,10 +368,13 @@ function consultRegistration(){
   var result = document.getElementById("qresult");
 
   if(state.protocol === protocol && state.cpf === cpf){
+    var paymentButton = state.status === "AGUARDANDO PAGAMENTO"
+      ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>'
+      : '';
     result.innerHTML =
       '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">Protocolo: '+
       escapeHtml(state.protocol)+'<br>Status: '+escapeHtml(state.status)+
-      '<br>Camisa: '+escapeHtml(state.camisa)+'</span></div>';
+      '<br>Camisa: '+escapeHtml(state.camisa)+'</span><div class="actions">'+paymentButton+'</div></div>';
   }else{
     result.innerHTML = '<div class="alert">Nenhuma inscrição de homologação encontrada para os dados informados.</div>';
   }
