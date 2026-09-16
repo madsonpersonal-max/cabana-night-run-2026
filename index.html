@@ -125,9 +125,52 @@ let state=JSON.parse(localStorage.getItem(KEY)||'{}');
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-function startRegistration(){document.getElementById('form').reset(); document.getElementById('cidade').value='Barcarena/PA'; for(let i=1;i<=5;i++)document.getElementById('p'+i).classList.toggle('hidden',i!==1); for(let i=1;i<=5;i++)document.getElementById('s'+i).classList.toggle('active',i===1); openModal('inscricao')}
-function next(step){if(step===1&&!document.getElementById('form').checkValidity()){document.getElementById('form').reportValidity();return} if(step===2&&!document.getElementById('camisa').value){alert('Selecione o tamanho da camisa.');return} for(let i=1;i<=5;i++)document.getElementById('p'+i).classList.toggle('hidden',i!==step+1); for(let i=1;i<=5;i++)document.getElementById('s'+i).classList.toggle('active',i===step+1); if(step===3)renderReview()}
-function renderReview(){let modalidade=document.getElementById('modalidade').value;let valor=modalidade==='socio'?'R$ 100,00':'R$ 110,00';document.getElementById('review').innerHTML=`<div><span>Nome</span><b>${esc(nome.value)}</b></div><div><span>CPF</span><b>${esc(cpf.value)}</b></div><div><span>WhatsApp</span><b>${esc(whatsapp.value)}</b></div><div><span>Modalidade</span><b>${modalidade==='socio'?'Sócio/equipe':'Corrida 7 km'}</b></div><div><span>Origem</span><b>${esc(origem.value)}</b></div><div><span>Camisa</span><b>${esc(camisa.value)}</b></div><div><span>Valor</span><b>${valor}</b></div>`}
+function startRegistration(){
+  document.getElementById('form').reset();
+  document.getElementById('cidade').value='Barcarena/PA';
+  goToStep(1);
+  openModal('inscricao');
+}
+function goToStep(n){
+  for(let i=1;i<=5;i++){
+    const panel=document.getElementById('p'+i);
+    const tab=document.getElementById('s'+i);
+    if(panel) panel.classList.toggle('hidden', i!==n);
+    if(tab) tab.classList.toggle('active', i===n);
+  }
+  const box=document.querySelector('#inscricao .box');
+  if(box) box.scrollTop=0;
+}
+function next(step){
+  if(step===1){
+    const form=document.getElementById('form');
+    if(!form.checkValidity()){form.reportValidity();return;}
+  }
+  if(step===2 && !document.getElementById('camisa').value){
+    alert('Selecione o tamanho da camisa.');
+    return;
+  }
+  const target=step+1;
+  if(target===4) renderReview();
+  goToStep(target);
+} if(step===2&&!document.getElementById('camisa').value){alert('Selecione o tamanho da camisa.');return} for(let i=1;i<=5;i++)document.getElementById('p'+i).classList.toggle('hidden',i!==step+1); for(let i=1;i<=5;i++)document.getElementById('s'+i).classList.toggle('active',i===step+1); if(step===3)renderReview()}
+function renderReview(){
+  const modalidade=document.getElementById('modalidade').value;
+  const valor=modalidade==='socio'?'R$ 100,00':'R$ 110,00';
+  const nomeV=document.getElementById('nome').value;
+  const cpfV=document.getElementById('cpf').value;
+  const whatsappV=document.getElementById('whatsapp').value;
+  const origemV=document.getElementById('origem').value;
+  const camisaV=document.getElementById('camisa').value;
+  document.getElementById('review').innerHTML=
+    `<div><span>Nome</span><b>${esc(nomeV)}</b></div>
+     <div><span>CPF</span><b>${esc(cpfV)}</b></div>
+     <div><span>WhatsApp</span><b>${esc(whatsappV)}</b></div>
+     <div><span>Modalidade</span><b>${modalidade==='socio'?'Sócio/equipe':'Corrida 7 km'}</b></div>
+     <div><span>Origem</span><b>${esc(origemV)}</b></div>
+     <div><span>Camisa</span><b>${esc(camisaV)}</b></div>
+     <div><span>Valor</span><b>${valor}</b></div>`;
+}
 function confirmRegistration(){let prot='CNR26-'+String(Math.floor(100000+Math.random()*900000));let modalidade=document.getElementById('modalidade').value;state={protocol:prot,cpf:cpf.value.replace(/\D/g,''),nome:nome.value,status:'AGUARDANDO PAGAMENTO',valor:modalidade==='socio'?100:110,camisa:camisa.value};save();document.getElementById('protocol').textContent=prot;document.getElementById('valor').textContent=modalidade==='socio'?'R$ 100,00':'R$ 110,00';for(let i=1;i<=5;i++)document.getElementById('p'+i).classList.toggle('hidden',i!==5);for(let i=1;i<=5;i++)document.getElementById('s'+i).classList.toggle('active',i===5)}
 function showPaymentDemo(){closeModal('inscricao');openModal('pagamento')}
 function consultar(){let p=document.getElementById('qprot').value.trim();let c=document.getElementById('qcpf').value.replace(/\D/g,'');let r=document.getElementById('qresult');if(state.protocol===p&&state.cpf===c)r.innerHTML='<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">Protocolo: '+state.protocol+'<br>Status: '+state.status+'<br>Camisa: '+state.camisa+'</span></div>';else r.innerHTML='<div class="alert">Nenhuma inscrição de homologação encontrada para os dados informados.</div>'}
