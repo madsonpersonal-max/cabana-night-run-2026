@@ -30,9 +30,14 @@ h1,h2{margin:0 0 8px}.muted{color:var(--muted)}.status{display:inline-block;padd
 <main>
   <div class="grid">
     <section class="card">
-      <h1>Fila de validação</h1>
-      <p class="muted">Este painel lê a mesma inscrição de homologação criada no site público neste navegador.</p>
-      <div id="registration"></div>
+      <h1>Buscar inscrição pelo CPF</h1>
+      <p class="muted">Digite o CPF do atleta para localizar a inscrição.</p>
+      <div class="actions" style="margin-top:12px">
+        <input id="cpfSearch" inputmode="numeric" placeholder="000.000.000-00"
+          style="flex:1;min-width:240px;background:#120d18;color:#fff;border:1px solid #3b2a49;border-radius:11px;padding:12px">
+        <button class="primary" onclick="searchByCpf()">Buscar</button>
+      </div>
+      <div id="registration" style="margin-top:18px"></div>
     </section>
 
     <aside class="card">
@@ -74,16 +79,16 @@ function statusClass(st){
   return "s-wait";
 }
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function refresh(){
+function refresh(clearSearch=false){
   const s=load();
   const box=document.getElementById("registration");
-  if(!s.protocol){
+  if(clearSearch || !s.cpf){
     box.innerHTML='<div class="empty">Nenhuma inscrição de homologação encontrada.<br><br>Abra o site público, faça uma inscrição de teste e envie um comprovante.</div>';
   }else{
     const canAnalyze=["COMPROVANTE ENVIADO","EM VALIDAÇÃO","PAGAMENTO NÃO IDENTIFICADO","SOLICITAR CORREÇÃO"].includes(s.status);
     box.innerHTML=`
       <div class="notice">
-        <strong>Protocolo ${esc(s.protocol)}</strong>
+        <strong>CPF ${esc(formatCpf(s.cpf))}</strong>
         <span class="status ${statusClass(s.status)}">${esc(s.status||"AGUARDANDO PAGAMENTO")}</span>
       </div>
       <div class="row">
@@ -105,44 +110,65 @@ function refresh(){
         <span class="muted">A aprovação simula: pagamento confirmado → inscrição confirmada → registro de auditoria → preparação da mensagem de WhatsApp. Na versão real, a mensagem será enviada pela API oficial do WhatsApp/Meta.</span>
       </div>`;
   }
-  document.getElementById("mIns").textContent=s.protocol?1:0;
+  document.getElementById("mIns").textContent=s.cpf?1:0;
   document.getElementById("mProof").textContent=s.proofName?1:0;
   document.getElementById("mOk").textContent=s.status==="INSCRIÇÃO CONFIRMADA"?1:0;
   document.getElementById("mCorrection").textContent=s.status==="SOLICITAR CORREÇÃO"?1:0;
   document.getElementById("audit").textContent=(s.audit||[]).join("\\n")||"Nenhum evento registrado.";
 }
 function approve(){
-  const s=load(); if(!s.protocol)return;
+  const s=load(); if(!s.cpf)return;
   s.status="INSCRIÇÃO CONFIRMADA";
   s.paymentStatus="PAGAMENTO CONFIRMADO";
   s.approvedAt=new Date().toISOString();
-  s.whatsappSimulation={event:"CONFIRMACAO_INSCRICAO",status:"PENDENTE_API",to:s.whatsapp||"",message:"Sua inscrição na Cabana Night Run 2026 foi confirmada. Protocolo "+s.protocol+"."};
-  audit(s,"ATENDENTE — pagamento aprovado e inscrição confirmada — "+s.protocol);
+  s.whatsappSimulation={event:"CONFIRMACAO_INSCRICAO",status:"PENDENTE_API",to:s.whatsapp||"",message:"Sua inscrição na Cabana Night Run 2026 foi confirmada. CPF "+s.cpf+"."};
+  audit(s,"ATENDENTE — pagamento aprovado e inscrição confirmada — "+s.cpf);
   refresh();
   alert("Homologação: inscrição confirmada. A integração real com WhatsApp será feita pela API oficial.");
 }
 function requestCorrection(){
-  const s=load(); if(!s.protocol)return;
+  const s=load(); if(!s.cpf)return;
   const note=prompt("Informe o motivo da correção:");
   if(note===null)return;
   s.status="SOLICITAR CORREÇÃO"; s.paymentNote=note||"Comprovante precisa ser reenviado/ajustado.";
-  audit(s,"ATENDENTE — solicitou correção — "+s.protocol);
+  audit(s,"ATENDENTE — solicitou correção — "+s.cpf);
   refresh();
 }
 function notIdentified(){
-  const s=load(); if(!s.protocol)return;
+  const s=load(); if(!s.cpf)return;
   const note=prompt("Informe o motivo do pagamento não identificado:");
   if(note===null)return;
   s.status="PAGAMENTO NÃO IDENTIFICADO"; s.paymentNote=note||"Pagamento não identificado.";
-  audit(s,"ATENDENTE — pagamento não identificado — "+s.protocol);
+  audit(s,"ATENDENTE — pagamento não identificado — "+s.cpf);
   refresh();
 }
+
+function formatCpf(v){
+  v=String(v||"").replace(/\D/g,"");
+  if(v.length!==11)return v;
+  return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,"$1.$2.$3-$4");
+}
+function searchByCpf(){
+  const typed=document.getElementById("cpfSearch").value.replace(/\D/g,"");
+  const s=load();
+  const box=document.getElementById("registration");
+  if(!typed){
+    box.innerHTML='<div class="empty">Digite o CPF do atleta.</div>';
+    return;
+  }
+  if(s.cpf===typed){
+    refresh(false);
+  }else{
+    box.innerHTML='<div class="empty">Nenhuma inscrição encontrada para o CPF informado.</div>';
+  }
+}
+
 function resetDemo(){
   if(confirm("Zerar somente os dados de homologação deste navegador?")){
     localStorage.removeItem(KEY); refresh();
   }
 }
-refresh();
+refresh(true);
 </script>
 </body>
 </html>
