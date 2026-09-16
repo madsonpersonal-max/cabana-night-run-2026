@@ -1,131 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cabana Night Run 2026 — Sistema</title>
+<title>Cabana Night Run 2026</title>
 <style>
-:root{--bg:#0d0a12;--card:#17121d;--card2:#21182a;--green:#b7ff38;--yellow:#ffd83d;--purple:#8d45ff;--text:#f5f3f7;--muted:#aaa2b2;--danger:#ff5f6d;--ok:#65e6a2;--line:#33263d}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0b0910,#17101d);color:var(--text);font-family:Inter,Arial,sans-serif}
-button,input,select{font:inherit}button{cursor:pointer;border:0}.hidden{display:none!important}
-.top{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#100c15;position:sticky;top:0;z-index:5}
-.brand{font-weight:900;letter-spacing:.5px}.brand span{color:var(--green)}.role{font-size:12px;color:var(--muted)}
-.layout{display:flex;min-height:calc(100vh - 70px)}aside{width:240px;background:#110d16;border-right:1px solid var(--line);padding:18px;flex-shrink:0}.nav button{display:block;width:100%;text-align:left;background:transparent;color:#d9d2df;padding:12px;border-radius:10px;margin:3px 0}.nav button.active,.nav button:hover{background:var(--card2);color:var(--green)}
-main{flex:1;padding:28px;max-width:1500px;margin:auto;width:100%}.hero{padding:35px;border:1px solid var(--line);border-radius:20px;background:radial-gradient(circle at 85% 20%,#44205d 0,#20132b 30%,#17101d 70%);margin-bottom:22px}.hero h1{font-size:42px;margin:5px 0}.hero p{color:var(--muted)}.btn{padding:12px 18px;border-radius:10px;font-weight:800;background:var(--green);color:#101008}.btn.secondary{background:#2b2133;color:#fff;border:1px solid var(--line)}.btn.warn{background:var(--yellow);color:#17120a}.btn.danger{background:#3a1820;color:#ff9da6}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.grid3{grid-template-columns:repeat(3,1fr)}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:18px}.metric .n{font-size:30px;font-weight:900;margin-top:8px}.muted{color:var(--muted);font-size:13px}.section{margin-top:22px}.section h2{font-size:20px}.tablewrap{overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:14px}table{width:100%;border-collapse:collapse}th,td{padding:13px;text-align:left;border-bottom:1px solid var(--line);font-size:13px}th{color:#cfc7d6;background:#1b1422}.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:#2a2032;font-size:11px}.ok{color:var(--ok)}.green{color:var(--green)}.danger{color:#ff8e99}
-.form{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:12px;color:var(--muted)}.field input,.field select{background:#100c15;border:1px solid var(--line);color:#fff;padding:12px;border-radius:9px;outline:none}.field input:focus,.field select:focus{border-color:var(--purple)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.choice{display:flex;justify-content:space-between;align-items:center;padding:15px;border:1px solid var(--line);border-radius:12px;background:#130e18;margin:8px 0}.choice.selected{border-color:var(--green);background:#172010}.choice strong{font-size:17px}.notice{padding:13px;border-radius:10px;background:#211a27;border:1px solid var(--line);color:#d8d0dd}.pix{font-size:18px;font-weight:900;letter-spacing:1px;background:#0e0b12;border:1px dashed var(--green);padding:15px;border-radius:10px}.qr{width:170px;height:170px;background:repeating-linear-gradient(45deg,#fff 0 4px,#111 4px 8px);border:10px solid #fff;margin:15px 0}
-.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}.modalbox{max-width:700px;width:100%;background:#17121d;border:1px solid var(--line);border-radius:18px;padding:24px;max-height:90vh;overflow:auto}
-.toast{position:fixed;right:20px;bottom:20px;background:#1e1725;border:1px solid var(--green);padding:14px 18px;border-radius:10px;z-index:30}
-@media(max-width:900px){aside{width:190px}.grid{grid-template-columns:repeat(2,1fr)}.form{grid-template-columns:1fr}}@media(max-width:650px){aside{display:none}.grid{grid-template-columns:1fr}.hero h1{font-size:30px}main{padding:16px}}
+:root{--bg:#0b0810;--card:#15101b;--card2:#1b1422;--text:#f7f5fa;--muted:#aaa2b3;--green:#a7ff19;--purple:#8b2cff;--line:#35263f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 15%,#3a1555 0,#160d1f 35%,var(--bg) 70%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+.wrap{max-width:920px;margin:auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 0 22px}
+.brand{font-weight:900;font-size:22px;letter-spacing:.3px}.brand span{color:var(--green)}
+.badge{font-size:13px;color:var(--muted)}
+.hero{border:1px solid #4a3157;background:linear-gradient(145deg,#18101f,#100c15 70%);border-radius:28px;padding:34px 28px;box-shadow:0 20px 60px #0008;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-80px;top:-90px;background:#8b2cff38;filter:blur(8px)}
+.kicker{font-weight:700;color:#d6cedc;font-size:16px;text-transform:uppercase;letter-spacing:.5px}
+h1{font-size:clamp(40px,8vw,72px);line-height:.98;margin:18px 0 20px;max-width:720px}
+h1 span{color:var(--green)}p{font-size:18px;line-height:1.55;color:var(--muted);max-width:680px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+button,a.btn{border:0;border-radius:14px;padding:15px 21px;font-weight:800;font-size:16px;text-decoration:none;cursor:pointer}
+.primary{background:var(--green);color:#090b06}.secondary{background:#24192d;color:#fff;border:1px solid #4a3653!important}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.card{background:#120d17;border:1px solid var(--line);border-radius:20px;padding:22px}
+.card h3{margin:0 0 8px;font-size:16px}.big{font-size:30px;font-weight:900}.muted{color:var(--muted)}
+.info{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.notice{background:#16111c;border:1px solid var(--line);border-radius:20px;padding:22px}
+.notice strong{display:block;font-size:18px;margin-bottom:8px}
+footer{padding:28px 0 10px;text-align:center;color:#82798b;font-size:13px}
+.modal{display:none;position:fixed;inset:0;background:#000b;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modal.open{display:flex}.modalbox{max-width:620px;width:100%;background:#15101b;border:1px solid #493553;border-radius:24px;padding:26px;max-height:85vh;overflow:auto}
+.close{float:right;background:#251b2d;color:#fff;padding:8px 12px;border-radius:10px;border:1px solid #493553;cursor:pointer}
+input{width:100%;padding:13px;border-radius:12px;border:1px solid #493553;background:#0e0a12;color:#fff;margin:8px 0 14px}
+@media(max-width:700px){.wrap{padding:14px}.grid,.info{grid-template-columns:1fr}.hero{padding:28px 22px}.actions button,.actions a{width:100%;text-align:center}}
 </style>
 </head>
 <body>
-<header class="top"><div class="brand">CABANA <span>NIGHT RUN</span> 2026</div><div class="role">Sistema V2.0 • Administrador</div></header>
-<div class="layout">
-<aside><div class="nav">
-<button class="active" onclick="show('dashboard',this)">Dashboard</button>
-<button onclick="show('inscricao',this)">Nova inscrição</button>
-<button onclick="show('inscricoes',this)">Inscrições</button>
-<button onclick="show('pagamentos',this)">Pagamentos</button>
-<button onclick="show('vagas',this)">Gestão de vagas</button>
-<button onclick="show('empresas',this)">Empresas & lotes</button>
-<button onclick="show('bonificacoes',this)">Bonificações</button>
-<button onclick="show('pcd',this)">PCD presencial</button>
-<button onclick="show('camisas',this)">Camisas</button>
-<button onclick="show('kits',this)">Retirada de kit</button>
-<button onclick="show('relatorios',this)">Relatórios</button>
-<button onclick="show('whatsapp',this)">WhatsApp</button>
-<button onclick="show('auditoria',this)">Auditoria</button>
-</div></aside>
-<main>
-<section id="dashboard">
-<div class="hero"><div class="muted">14 DE NOVEMBRO • CABANA CLUBE • BARCARENA/PA</div><h1>Cabana Night Run 2026</h1><p>Central de inscrições, pagamentos, validação, vagas, empresas, kits e gestão.</p><button class="btn" onclick="show('inscricao')">Fazer inscrição</button></div>
-<div class="grid">
-<div class="card metric"><div class="muted">Vagas corrida</div><div class="n" id="mVagas">1.000</div><div class="ok">estoque central</div></div>
-<div class="card metric"><div class="muted">Confirmadas</div><div class="n" id="mConf">0</div><div class="muted">inscrições oficiais</div></div>
-<div class="card metric"><div class="muted">Em validação</div><div class="n" id="mVal">0</div><div class="muted">comprovantes</div></div>
-<div class="card metric"><div class="muted">PCD</div><div class="n" id="mPcd">0/10</div><div class="muted">controle presencial</div></div>
-</div>
-<div class="section grid grid3">
-<div class="card"><b>Receita confirmada</b><div class="metric"><div class="n" id="mRec">R$ 0,00</div></div></div>
-<div class="card"><b>Empresas</b><div class="metric"><div class="n">0</div></div><div class="muted">lotes ativos</div></div>
-<div class="card"><b>WhatsApp</b><div class="metric"><div class="n green">ATIVO</div></div><div class="muted">integração configurada</div></div>
-</div>
+<div class="wrap">
+<header>
+  <div class="brand">CABANA <span>NIGHT RUN</span> 2026</div>
+  <div class="badge">Área do atleta</div>
+</header>
+
+<section class="hero">
+  <div class="kicker">14 de novembro • Cabana Clube • Barcarena/PA</div>
+  <h1>Cabana Night Run <span>2026</span></h1>
+  <p>Corrida noturna de 7 km. Faça sua inscrição, acompanhe seu protocolo e consulte as orientações da prova.</p>
+  <div class="actions">
+    <button class="primary" onclick="location.hash='inscricao';document.getElementById('inscricao').scrollIntoView({behavior:'smooth'})">Fazer inscrição</button>
+    <button class="secondary" onclick="openModal('consulta')">Consultar minha inscrição</button>
+    <button class="secondary" onclick="openModal('regulamento')">Regulamento</button>
+  </div>
 </section>
 
-<section id="inscricao" class="hidden"><div class="card"><h1>Nova inscrição</h1><div class="notice">PCD não participa do fluxo online. As 10 vagas PCD são exclusivamente presenciais.</div>
-<div class="section"><h2>1. Escolha sua prova</h2>
-<div class="choice selected" onclick="pick(this,'corrida')"><span><strong>Corrida 7 km</strong><br><span class="muted">Público geral</span></span><b>R$ 110,00</b></div>
-<div class="choice" onclick="pick(this,'socio')"><span><strong>Corrida 7 km — Sócio/Equipe</strong><br><span class="muted">Conforme regra do evento</span></span><b>R$ 100,00</b></div>
-<div class="choice" onclick="pick(this,'infantil')"><span><strong>Corridinha Infantil</strong><br><span class="muted">4 a 12 anos</span></span><b>R$ 60,00</b></div></div>
-<div class="section"><h2>2. Dados do atleta</h2><div class="form">
-<div class="field"><label>Nome completo *</label><input id="nome"></div><div class="field"><label>CPF *</label><input id="cpf" placeholder="000.000.000-00"></div>
-<div class="field"><label>Data de nascimento *</label><input id="nasc" type="date"></div><div class="field"><label>Sexo *</label><select id="sexo"><option>Masculino</option><option>Feminino</option></select></div>
-<div class="field"><label>WhatsApp *</label><input id="whats" placeholder="(91) 99999-9999"></div><div class="field"><label>E-mail *</label><input id="email"></div>
-<div class="field"><label>Cidade *</label><input id="cidade" value="Barcarena"></div><div class="field"><label>Equipe/Assessoria</label><input id="equipe"></div>
-<div class="field"><label>Tamanho da camisa *</label><select id="camisa"><option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option></select></div>
-<div class="field"><label>Origem</label><select id="origem"><option>Online</option><option>Empresa</option><option>Bonificada</option></select></div>
-<div class="field full"><label><input type="checkbox" id="aceite"> Li e aceito o regulamento e o termo de responsabilidade.</label></div></div>
-<div class="actions"><button class="btn" onclick="criarInscricao()">Continuar para pagamento</button><button class="btn secondary" onclick="regulamento()">Ler regulamento</button></div></div></div></section>
+<section class="grid">
+  <div class="card"><h3>Modalidade</h3><div class="big">7 km</div><div class="muted">Corrida noturna</div></div>
+  <div class="card"><h3>Vagas</h3><div class="big">1.000</div><div class="muted">limite da corrida</div></div>
+  <div class="card"><h3>Concentração</h3><div class="big">18:00</div><div class="muted">largada às 19:00</div></div>
+</section>
 
-<section id="pagamento" class="hidden"><div class="card"><h1>Pagamento PIX</h1><p class="muted">Protocolo: <b id="protPag"></b></p><div class="qr"></div><div class="pix">63.886.204/0001-91</div><p>Após realizar o PIX, envie o comprovante para validação.</p><input id="comprovante" type="file" accept=".jpg,.jpeg,.png,.pdf"><div class="actions"><button class="btn" onclick="enviarComprovante()">Enviar comprovante</button></div></div></section>
+<section class="info">
+  <div class="notice">
+    <strong>PCD</strong>
+    <span class="muted">As inscrições destinadas a atletas PCD são gratuitas e realizadas exclusivamente de forma presencial, mediante apresentação da documentação exigida pela organização. 10 vagas disponíveis.</span>
+  </div>
+  <div class="notice">
+    <strong>Suporte</strong>
+    <span class="muted">Dúvidas sobre inscrição e atendimento pelo WhatsApp: <b>(91) 99163-3661</b></span>
+  </div>
+</section>
 
-<section id="inscricoes" class="hidden"><div class="card"><h1>Inscrições</h1><p class="muted">Todas as origens convergem para a mesma base oficial.</p><div class="tablewrap"><table><thead><tr><th>Protocolo</th><th>Atleta</th><th>Modalidade</th><th>Origem</th><th>Status</th></tr></thead><tbody id="tblIns"></tbody></table></div></div></section>
+<section id="inscricao" class="notice" style="margin-top:18px">
+  <strong>Pronto para participar?</strong>
+  <span class="muted">No ambiente de homologação, o botão abaixo abre o fluxo de inscrição do protótipo. Nenhum pagamento real deve ser realizado neste ambiente.</span>
+  <div class="actions">
+    <button class="primary" onclick="alert('Fluxo de inscrição de homologação: próxima etapa será integrar este botão ao formulário do atleta.')">Iniciar inscrição</button>
+  </div>
+</section>
 
-<section id="pagamentos" class="hidden"><div class="card"><h1>Fila de pagamentos</h1><div class="notice">Validação: valor • beneficiário • data • legibilidade • duplicidade • identificador da transação quando disponível.</div><div class="tablewrap section"><table><thead><tr><th>Protocolo</th><th>Atleta</th><th>Valor</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tblPag"></tbody></table></div></div></section>
+<footer>Cabana Night Run 2026 • Ambiente de homologação/teste</footer>
+</div>
 
-<section id="vagas" class="hidden"><div class="card"><h1>Gestão de vagas</h1><div class="grid"><div class="card"><span class="muted">Total</span><div class="metric n">1.000</div></div><div class="card"><span class="muted">Online</span><div class="metric n" id="vOnline">1.000</div></div><div class="card"><span class="muted">Empresas</span><div class="metric n">0</div></div><div class="card"><span class="muted">Bonificações</span><div class="metric n">0</div></div></div><div class="section form"><div class="field"><label>Vagas disponíveis ao público</label><input id="editVagas" type="number" value="1000"></div></div><button class="btn section" onclick="alterarVagas()">Salvar estoque</button><div class="notice section">Toda alteração deve gerar auditoria com usuário, data/hora, valor anterior, novo valor e motivo.</div></div></section>
+<div id="consulta" class="modal" onclick="if(event.target===this)closeModal('consulta')">
+  <div class="modalbox">
+    <button class="close" onclick="closeModal('consulta')">Fechar</button>
+    <h2>Consultar minha inscrição</h2>
+    <p class="muted">Informe o protocolo e o CPF usados no cadastro. Esta tela é demonstrativa no ambiente de teste.</p>
+    <label>Protocolo</label><input placeholder="CNR26-000001">
+    <label>CPF</label><input placeholder="000.000.000-00">
+    <button class="primary" onclick="alert('Consulta demonstrativa. A consulta real será ligada ao banco de dados na versão de homologação.')">Consultar</button>
+  </div>
+</div>
 
-<section id="empresas" class="hidden"><div class="card"><h1>Empresas & lotes</h1><div class="form"><div class="field"><label>Empresa</label><input id="emp"></div><div class="field"><label>CNPJ</label><input id="cnpj"></div><div class="field"><label>Vagas contratadas</label><input id="lote" type="number"></div><div class="field"><label>Valor negociado</label><input id="valorLote" type="number"></div></div><button class="btn section" onclick="toast('Lote empresarial criado e registrado na auditoria.')">Criar lote</button><div class="notice section">A empresa não possui login próprio. Os atletas são cadastrados individualmente na plataforma.</div></div></section>
+<div id="regulamento" class="modal" onclick="if(event.target===this)closeModal('regulamento')">
+  <div class="modalbox">
+    <button class="close" onclick="closeModal('regulamento')">Fechar</button>
+    <h2>Regulamento</h2>
+    <p class="muted">Cabana Night Run 2026 — 14/11/2026, Cabana Clube, Vila dos Cabanos, Barcarena/PA. Concentração às 18:00 e largada às 19:00. Percurso de 7 km.</p>
+    <p class="muted">Valores de referência do regulamento: R$ 110 corrida individual; R$ 100 equipe/sócio; R$ 60 corridinha infantil. A inscrição somente é efetivada após o pagamento.</p>
+    <p class="muted">Atenção: o regulamento vigente prevê regras específicas para a Corridinha Infantil e para PCD. A organização deve homologar qualquer alteração antes da publicação definitiva.</p>
+  </div>
+</div>
 
-<section id="bonificacoes" class="hidden"><div class="card"><h1>Bonificações</h1><div class="form"><div class="field"><label>Atleta</label><input></div><div class="field"><label>Motivo</label><input></div><div class="field"><label>Autorizador</label><input></div><div class="field"><label>Origem</label><input></div></div><button class="btn section" onclick="toast('Bonificação lançada: R$ 0,00. Uma vaga foi movimentada.')">Lançar bonificação</button></div></section>
-
-<section id="pcd" class="hidden"><div class="card"><h1>PCD — Controle presencial</h1><div class="grid grid3"><div class="card"><span class="muted">Total</span><div class="metric n">10</div></div><div class="card"><span class="muted">Utilizadas</span><div class="metric n" id="pcdUsed">0</div></div><div class="card"><span class="muted">Disponíveis</span><div class="metric n green" id="pcdAvail">10</div></div></div><div class="notice section">Cadastro exclusivamente presencial, com conferência da documentação exigida pela organização. Não há PIX nem campo PCD no fluxo online.</div><button class="btn section" onclick="usarPcd()">Registrar PCD presencial</button></div></section>
-
-<section id="camisas" class="hidden"><div class="card"><h1>Camisas</h1><div class="grid grid3"><div class="card">PP<div class="metric n">0</div></div><div class="card">P<div class="metric n">0</div></div><div class="card">M<div class="metric n">0</div></div><div class="card">G<div class="metric n">0</div></div><div class="card">GG<div class="metric n">0</div></div><div class="card">XG<div class="metric n">0</div></div></div><div class="notice section">Após o encerramento das inscrições, o tamanho fica congelado.</div></div></section>
-
-<section id="kits" class="hidden"><div class="card"><h1>Retirada de kit</h1><div class="form"><div class="field full"><label>Protocolo</label><input id="kitProt"></div><div class="field"><label>Tipo</label><select><option>Atleta</option><option>Terceiro autorizado</option></select></div></div><button class="btn section" onclick="toast('Retirada registrada com data/hora e responsável.')">Registrar retirada</button><div class="notice section">Não permitir baixa duplicada.</div></div></section>
-
-<section id="relatorios" class="hidden"><div class="card"><h1>Relatórios gerenciais</h1><div class="grid grid3">
-<div class="card"><b>Vendas</b><p class="muted">Inscrições, receita, pendências e cancelamentos.</p><button class="btn secondary" onclick="toast('Relatório de vendas preparado.')">Exportar</button></div>
-<div class="card"><b>Empresas</b><p class="muted">Contratado, utilizado, saldo e atletas.</p><button class="btn secondary" onclick="toast('Relatório empresarial preparado.')">Exportar</button></div>
-<div class="card"><b>Camisas</b><p class="muted">Consolidação por tamanho/origem.</p><button class="btn secondary" onclick="toast('Relatório de camisas preparado.')">Exportar</button></div>
-<div class="card"><b>Financeiro</b><p class="muted">Pagamentos confirmados e pendentes.</p><button class="btn secondary" onclick="toast('Relatório financeiro preparado.')">Exportar</button></div>
-<div class="card"><b>Kits</b><p class="muted">Retirados e não retirados.</p><button class="btn secondary" onclick="toast('Relatório de kits preparado.')">Exportar</button></div>
-<div class="card"><b>Auditoria</b><p class="muted">Histórico das ações críticas.</p><button class="btn secondary" onclick="toast('Relatório de auditoria preparado.')">Exportar</button></div>
-</div></div></section>
-
-<section id="whatsapp" class="hidden"><div class="card"><h1>WhatsApp Business</h1><div class="notice"><b>Arquitetura:</b> Sistema → API oficial WhatsApp Business/Meta → WhatsApp informado pelo atleta.</div><div class="section tablewrap"><table><thead><tr><th>Evento</th><th>Automação</th></tr></thead><tbody>
-<tr><td>Comprovante recebido</td><td class="ok">Ativa</td></tr><tr><td>Pagamento aprovado</td><td class="ok">Ativa</td></tr><tr><td>Correção solicitada</td><td class="ok">Ativa</td></tr><tr><td>Pagamento não identificado</td><td class="ok">Ativa</td></tr><tr><td>Cancelamento</td><td class="ok">Ativa</td></tr></tbody></table></div><p class="muted">Suporte: (91) 99163-3661</p><button class="btn" onclick="toast('Mensagem de teste enviada ao ambiente configurado.')">Testar integração</button></div></section>
-
-<section id="auditoria" class="hidden"><div class="card"><h1>Auditoria</h1><div class="tablewrap"><table><thead><tr><th>Data/hora</th><th>Usuário</th><th>Ação</th><th>Registro</th></tr></thead><tbody id="audit"></tbody></table></div></div></section>
-</main></div>
-
-<div id="modal" class="modal hidden"><div class="modalbox"><h2>Regulamento</h2><p>Cabana Night Run 2026 — corrida 7 km em 14/11/2026, concentração 18h e largada 19h. A Corridinha Infantil ocorre em 13/11/2026 às 17h.</p><p>O atleta deve aceitar o regulamento e fornecer dados verdadeiros. A inscrição somente é efetivada mediante pagamento. O tamanho da camisa é informado na inscrição e não pode ser alterado após o encerramento das inscrições.</p><button class="btn" onclick="closeModal()">Fechar</button></div></div>
-<div id="toast" class="toast hidden"></div>
 <script>
-let selected='corrida', protocol=null, pcd=0, inscriptions=JSON.parse(localStorage.getItem('cnr_ins')||'[]'), audit=JSON.parse(localStorage.getItem('cnr_audit')||'[]');
-function show(id,el){document.querySelectorAll('main>section').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');refresh();}
-function pick(el,v){document.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');selected=v}
-function regulamento(){document.getElementById('modal').classList.remove('hidden')}
-function closeModal(){document.getElementById('modal').classList.add('hidden')}
-function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.remove('hidden');setTimeout(()=>x.classList.add('hidden'),2800)}
-function log(action,record){audit.unshift({date:new Date().toLocaleString('pt-BR'),user:'ADM01',action,record});localStorage.setItem('cnr_audit',JSON.stringify(audit))}
-function criarInscricao(){
- if(!nome.value||!cpf.value||!nasc.value||!whats.value||!email.value||!aceite.checked){toast('Preencha os campos obrigatórios e aceite o regulamento.');return}
- protocol='CNR26-'+String(inscriptions.length+1).padStart(6,'0');let vals={corrida:110,socio:100,infantil:60};let item={protocol,name:nome.value,mod:selected,origin:origem.value,shirt:camisa.value,whats:whats.value,amount:vals[selected],status:'Aguardando comprovante'};inscriptions.push(item);localStorage.setItem('cnr_ins',JSON.stringify(inscriptions));log('Criou inscrição',protocol);document.getElementById('protPag').textContent=protocol;show('pagamento')}
-function enviarComprovante(){if(!comprovante.files.length){toast('Anexe o comprovante primeiro.');return}let i=inscriptions.find(x=>x.protocol===protocol);i.status='Comprovante enviado / Em validação';localStorage.setItem('cnr_ins',JSON.stringify(inscriptions));log('Recebeu comprovante',protocol);toast('Comprovante recebido. WhatsApp automático: comprovante em análise.');show('dashboard')}
-function aprovar(p){let i=inscriptions.find(x=>x.protocol===p);if(!i)return;i.status='Inscrição confirmada';localStorage.setItem('cnr_ins',JSON.stringify(inscriptions));log('Aprovou pagamento',p);toast('Pagamento aprovado. WhatsApp de confirmação disparado.');refresh()}
-function corrigir(p){let i=inscriptions.find(x=>x.protocol===p);i.status='Solicitar correção';localStorage.setItem('cnr_ins',JSON.stringify(inscriptions));log('Solicitou correção',p);toast('Solicitação de correção enviada pelo WhatsApp.');refresh()}
-function alterarVagas(){log('Alterou vagas públicas','Novo valor: '+editVagas.value);toast('Estoque atualizado e auditado.');document.getElementById('vOnline').textContent=editVagas.value;document.getElementById('mVagas').textContent=editVagas.value}
-function usarPcd(){if(pcd>=10){toast('Limite de 10 vagas PCD atingido.');return}pcd++;document.getElementById('pcdUsed').textContent=pcd;document.getElementById('pcdAvail').textContent=10-pcd;document.getElementById('mPcd').textContent=pcd+'/10';log('Registrou PCD presencial','Vaga '+pcd);toast('PCD registrado presencialmente.')}
-function refresh(){
-let ti=document.getElementById('tblIns'),tp=document.getElementById('tblPag'),au=document.getElementById('audit');if(!ti)return;
-ti.innerHTML=inscriptions.map(i=>`<tr><td>${i.protocol}</td><td>${i.name}</td><td>${i.mod}</td><td>${i.origin}</td><td><span class="pill">${i.status}</span></td></tr>`).join('')||'<tr><td colspan="5" class="muted">Nenhuma inscrição.</td></tr>';
-tp.innerHTML=inscriptions.filter(i=>i.status!=='Aguardando comprovante'&&i.status!=='Inscrição confirmada').map(i=>`<tr><td>${i.protocol}</td><td>${i.name}</td><td>R$ ${i.amount.toFixed(2).replace('.',',')}</td><td>${i.status}</td><td><button class="btn" onclick="aprovar('${i.protocol}')">Aprovar</button> <button class="btn warn" onclick="corrigir('${i.protocol}')">Correção</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">Fila vazia.</td></tr>';
-au.innerHTML=audit.slice(0,30).map(a=>`<tr><td>${a.date}</td><td>${a.user}</td><td>${a.action}</td><td>${a.record}</td></tr>`).join('');
-let conf=inscriptions.filter(i=>i.status==='Inscrição confirmada'), val=inscriptions.filter(i=>i.status.includes('validação')), rec=conf.reduce((s,i)=>s+i.amount,0);document.getElementById('mConf').textContent=conf.length;document.getElementById('mVal').textContent=val.length;document.getElementById('mRec').textContent='R$ '+rec.toFixed(2).replace('.',',');
-}
-refresh();
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
 </script>
-</body></html>
+</body>
+</html>
