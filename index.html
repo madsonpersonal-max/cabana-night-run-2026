@@ -115,7 +115,8 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
   <div><label for="email">E-mail</label><input id="email" type="email"></div>
 </div>
 <label for="cidade">Cidade *</label><input id="cidade" value="Barcarena/PA" required>
-<div class="check"><input id="reg" type="checkbox" required><span>Li e aceito o regulamento da Cabana Night Run 2026.</span></div>
+<div class="notice"><strong>Regulamento oficial</strong><span class="muted">Leia o regulamento completo antes de confirmar sua inscrição.</span><button type="button" class="secondary" onclick="openModal('regulamento')">Ler regulamento completo</button></div>
+<div class="check"><input id="reg" type="checkbox" required><span>Li e aceito integralmente o regulamento da Cabana Night Run 2026.</span></div>
 <div class="actions"><button type="button" class="primary" onclick="nextStep(2)">Continuar</button></div>
 </div>
 
@@ -208,13 +209,11 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </div>
 
 <div id="regulamento" class="modal">
-<div class="box">
-<div class="top"><h2>Regulamento — resumo</h2><button class="close" onclick="closeModal('regulamento')">Fechar</button></div>
-<p class="muted"><b>Cabana Night Run 2026:</b> 14/11/2026, sábado, Cabana Clube, Vila dos Cabanos, Barcarena/PA. Concentração às 18:00 e largada às 19:00. Percurso de 7 km.</p>
-<p class="muted"><b>Valores:</b> R$ 110 corrida individual; R$ 100 sócio/equipe; R$ 60 corridinha infantil.</p>
-<p class="muted"><b>PCD:</b> 10 vagas gratuitas, exclusivamente presenciais, com documentação exigida pela organização.</p>
-<p class="muted"><b>Camisa:</b> tamanho selecionado na inscrição; não há escolha de tamanho na retirada.</p>
-<p class="muted"><b>Importante:</b> este resumo não substitui o regulamento oficial.</p>
+<div class="box" style="max-width:1000px">
+<div class="top"><h2>Regulamento Oficial — Cabana Night Run 2026</h2><button class="close" onclick="closeModal('regulamento')">Fechar</button></div>
+<div class="notice"><strong>Documento oficial</strong><span class="muted">Este documento é a reprodução em PDF do regulamento oficial fornecido pela organização. O sistema não altera o conteúdo do regulamento.</span><a class="secondary" href="regulamento-cabana-night-run-2026.pdf" target="_blank" rel="noopener">Abrir em nova aba</a></div>
+<iframe src="regulamento-cabana-night-run-2026.pdf" title="Regulamento Oficial Cabana Night Run 2026" style="width:100%;height:68vh;border:1px solid #4b3655;border-radius:14px;background:#fff"></iframe>
+<p class="muted" style="margin-top:12px">Ao prosseguir com a inscrição, o atleta declara que leu e aceita integralmente o regulamento oficial.</p>
 </div>
 </div>
 
