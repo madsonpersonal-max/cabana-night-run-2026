@@ -72,9 +72,29 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <div class="card"><b>PCD presencial</b><div class="formgrid"><div class="field"><label>Total</label><input id="vPcd" type="number" min="0" value="10"></div></div><p>Utilizadas: <strong id="uPcd">0</strong> · Disponíveis: <strong id="aPcd">10</strong></p></div>
 </div><div class="actions"><button class="primary" onclick="saveStock()">Salvar limites</button></div></section>
 
-<section id="empresas" class="view"><h1>Empresas</h1><div class="sub">Controle de lotes corporativos sem login de empresa.</div>
-<div class="actions"><button class="primary" onclick="addDemoCompany()">+ Nova empresa</button></div>
-<div class="section tablewrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>Vagas contratadas</th><th>Utilizadas</th><th>Restantes</th><th>Status</th></tr></thead><tbody id="tblEmpresas"></tbody></table></div></section>
+<section id="empresas" class="view">
+<h1>Empresas e Lotes</h1><div class="sub">Cadastro administrativo de empresas e reserva controlada de vagas corporativas.</div>
+<div class="card"><h2>Nova empresa / novo lote</h2>
+<div class="formgrid">
+<div class="field"><label>Empresa *</label><input id="empNome" placeholder="Nome da empresa"></div>
+<div class="field"><label>CNPJ *</label><input id="empCnpj" placeholder="00.000.000/0000-00"></div>
+<div class="field"><label>Responsável *</label><input id="empResp" placeholder="Nome do responsável"></div>
+<div class="field"><label>WhatsApp *</label><input id="empWhats" placeholder="(91) 99999-9999"></div>
+<div class="field"><label>E-mail</label><input id="empEmail" type="email"></div>
+<div class="field"><label>Modalidade *</label><select id="loteMod"><option>Corrida 7 km</option><option>Corridinha Infantil</option></select></div>
+<div class="field"><label>Vagas contratadas *</label><input id="loteQtd" type="number" min="1" value="10"></div>
+<div class="field"><label>Valor negociado (R$)</label><input id="loteValor" type="number" min="0" step="0.01" value="0"></div>
+<div class="field"><label>Validade</label><input id="loteValidade" type="date"></div>
+</div>
+<div class="actions"><button class="primary" onclick="saveCompanyLot()">Cadastrar empresa + lote</button><button class="secondary" onclick="clearCompanyForm()">Limpar</button></div></div>
+<div class="section grid">
+<div class="card"><div class="label">Empresas cadastradas</div><div class="metric" id="empCount">0</div></div>
+<div class="card"><div class="label">Vagas contratadas</div><div class="metric" id="lotCount">0</div></div>
+<div class="card"><div class="label">Vagas utilizadas</div><div class="metric" id="lotUsed">0</div></div>
+<div class="card"><div class="label">Vagas restantes</div><div class="metric ok" id="lotAvail">0</div></div></div>
+<div class="section tablewrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>Modalidade</th><th>Contratadas</th><th>Utilizadas</th><th>Restantes</th><th>Valor</th><th>Status</th></tr></thead><tbody id="tblEmpresas"></tbody></table></div>
+<div class="section notice"><strong>Regra:</strong> empresa sem login. O Administrador cadastra o lote e os atletas vinculados serão registrados no sistema. Vagas não utilizadas permanecem reservadas até liberação administrativa com auditoria.</div>
+</section>
 
 <section id="bonificacoes" class="view"><h1>Bonificações</h1><div class="sub">Concessões controladas exclusivamente pelo Administrador.</div><div class="notice">Toda bonificação deve possuir origem, justificativa, autorizador e movimentação de estoque. Valor da inscrição: R$ 0,00.</div></section>
 
@@ -128,9 +148,21 @@ function counts(){let rows=loadRegs().map(normalize),c={corrida:0,infantil:0,pcd
  ['Corrida','Infantil','Pcd'].forEach((x,i)=>{let k=['corrida','infantil','pcd'][i],u=c[k.toLowerCase()]||0;document.getElementById('u'+x).textContent=u;document.getElementById('a'+x).textContent=t(k,[1000,100,10][i])-u});
 }
 function saveStock(){let s={corrida:{label:'Corrida 7 km',total:+vCorrida.value,used:0},infantil:{label:'Corridinha Infantil',total:+vInfantil.value,used:0},pcd:{label:'PCD presencial',total:+vPcd.value,used:0}};localStorage.setItem('cnr26_central_vagas_v24',JSON.stringify(s));counts();alert('Limites salvos.');}
-function renderCompanies(){document.getElementById('tblEmpresas').innerHTML='<tr><td colspan="7">Nenhuma empresa cadastrada nesta homologação.</td></tr>'}
-function addDemoCompany(){alert('Na próxima etapa será aberto o cadastro de empresa + lote de vagas.')}
+const COMPANY_KEY='cnr26_empresas_lotes_v2';
+function getCompanies(){try{return JSON.parse(localStorage.getItem(COMPANY_KEY)||'[]')}catch(e){return []}}
+function setCompanies(v){localStorage.setItem(COMPANY_KEY,JSON.stringify(v));renderCompanies()}
+function saveCompanyLot(){
+ const nome=empNome.value.trim(),cnpj=empCnpj.value.trim(),resp=empResp.value.trim(),whats=empWhats.value.trim();
+ if(!nome||!cnpj||!resp||!whats){alert('Preencha os campos obrigatórios.');return}
+ const v=getCompanies(); v.push({id:'EMP-'+Date.now(),empresa:nome,cnpj,responsavel:resp,whatsapp:whats,email:empEmail.value.trim(),modalidade:loteMod.value,contratadas:Math.max(1,Number(loteQtd.value)||1),utilizadas:0,valor:Math.max(0,Number(loteValor.value)||0),validade:loteValidade.value,status:'ATIVO',criadoEm:new Date().toISOString()});
+ setCompanies(v);clearCompanyForm();alert('Empresa e lote cadastrados.')
+}
+function clearCompanyForm(){['empNome','empCnpj','empResp','empWhats','empEmail','loteValidade'].forEach(id=>document.getElementById(id).value='');loteQtd.value=10;loteValor.value=0}
+function renderCompanies(){
+ const v=getCompanies();tblEmpresas.innerHTML=v.map(x=>`<tr><td>${x.empresa}</td><td>${x.cnpj}</td><td>${x.responsavel}</td><td>${x.modalidade}</td><td>${x.contratadas}</td><td>${x.utilizadas}</td><td>${Math.max(0,x.contratadas-x.utilizadas)}</td><td>R$ ${Number(x.valor||0).toFixed(2).replace('.',',')}</td><td><span class="badge">${x.status}</span></td></tr>`).join('')||'<tr><td colspan="9">Nenhuma empresa cadastrada.</td></tr>';
+ empCount.textContent=v.length;lotCount.textContent=v.reduce((a,x)=>a+Number(x.contratadas||0),0);lotUsed.textContent=v.reduce((a,x)=>a+Number(x.utilizadas||0),0);lotAvail.textContent=v.reduce((a,x)=>a+Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),0)
+}
 function logout(){alert('Logout de homologação. Em produção haverá autenticação e sessão segura.')}
-window.addEventListener('storage',counts);window.addEventListener('DOMContentLoaded',counts);
+window.addEventListener('storage',counts);window.addEventListener('DOMContentLoaded',()=>{counts();renderCompanies();});
 </script>
 </body></html>
