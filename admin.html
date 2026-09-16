@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Administrador — Cabana Night Run 2026</title>
+<style>
+:root{--bg:#0d0914;--panel:#171022;--panel2:#211630;--text:#f7f4fb;--muted:#b9acc7;--line:#342343;--accent:#b9ff39;--purple:#a45cff;--danger:#ff667d}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0b0811,#160d21);color:var(--text);font-family:Inter,Arial,sans-serif}
+header{padding:20px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:20px;position:sticky;top:0;background:rgba(13,9,20,.94);backdrop-filter:blur(10px);z-index:5}
+.brand{font-weight:800;font-size:20px}.brand span{color:var(--accent)}button{border:0;border-radius:10px;padding:10px 15px;font-weight:700;cursor:pointer}
+.primary{background:var(--accent);color:#10120a}.secondary{background:#2a1c38;color:white;border:1px solid var(--line)}
+.layout{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 75px)}
+aside{border-right:1px solid var(--line);padding:18px}.nav{display:block;width:100%;text-align:left;margin:6px 0;background:transparent;color:var(--muted)}.nav.active,.nav:hover{background:var(--panel2);color:white}
+main{padding:25px;max-width:1400px;width:100%;margin:auto}.view{display:none}.view.active{display:block}
+h1{margin:0 0 6px;font-size:28px}h2{margin:0 0 15px}.sub{color:var(--muted);margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px}.metric{font-size:28px;font-weight:800;margin-top:8px}.label{font-size:13px;color:var(--muted)}
+.section{margin-top:22px}.tablewrap{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:15px}
+table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}th{color:var(--muted);font-weight:600}
+.badge{display:inline-block;padding:5px 8px;border-radius:999px;background:#2a1c38;font-size:11px}.ok{color:var(--accent)}.warn{color:#ffd166}.bad{color:var(--danger)}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.field input,.field select{width:100%;padding:11px;border-radius:9px;border:1px solid var(--line);background:#0f0b16;color:white}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.notice{padding:14px;border-radius:12px;background:#211630;border:1px solid var(--line);color:var(--muted);font-size:13px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line);display:flex;overflow:auto;gap:6px}.nav{white-space:nowrap;width:auto}.layout main{padding:16px}}
+</style>
+</head>
+<body>
+<header><div class="brand">CABANA <span>NIGHT RUN 2026</span> — ADMIN</div><button class="secondary" onclick="logout()">Sair</button></header>
+<div class="layout">
+<aside>
+<button class="nav active" data-view="dashboard">Dashboard</button>
+<button class="nav" data-view="inscricoes">Inscrições</button>
+<button class="nav" data-view="vagas">Central de vagas</button>
+<button class="nav" data-view="empresas">Empresas</button>
+<button class="nav" data-view="bonificacoes">Bonificações</button>
+<button class="nav" data-view="pcd">PCD presencial</button>
+<button class="nav" data-view="pagamentos">Pagamentos</button>
+<button class="nav" data-view="relatorios">Relatórios</button>
+<button class="nav" data-view="usuarios">Usuários</button>
+<button class="nav" data-view="auditoria">Auditoria</button>
+</aside>
+<main>
+<section id="dashboard" class="view active">
+<h1>Dashboard</h1><div class="sub">Visão administrativa da operação da Cabana Night Run 2026.</div>
+<div class="grid">
+<div class="card"><div class="label">Corrida 7 km — total</div><div class="metric">1.000</div></div>
+<div class="card"><div class="label">Corrida — utilizadas</div><div class="metric" id="mCorrida">0</div></div>
+<div class="card"><div class="label">Corrida — disponíveis</div><div class="metric ok" id="dCorrida">1.000</div></div>
+<div class="card"><div class="label">Corridinha — utilizadas</div><div class="metric" id="mInfantil">0</div></div>
+<div class="card"><div class="label">Corridinha — disponíveis</div><div class="metric ok" id="dInfantil">100</div></div>
+<div class="card"><div class="label">PCD — utilizadas</div><div class="metric" id="mPcd">0</div></div>
+<div class="card"><div class="label">PCD — disponíveis</div><div class="metric ok" id="dPcd">10</div></div>
+<div class="card"><div class="label">Em validação</div><div class="metric warn" id="mValidacao">0</div></div>
+</div>
+<div class="section notice"><strong>Regra de segurança:</strong> o Atendente realiza inscrições e operações autorizadas, mas não altera limites críticos, permissões ou configurações administrativas.</div>
+</section>
+
+<section id="inscricoes" class="view">
+<h1>Inscrições</h1><div class="sub">Consulta administrativa por CPF, nome, modalidade, origem e status.</div>
+<div class="formgrid">
+<div class="field"><label>Buscar CPF ou nome</label><input id="fBusca" placeholder="Digite para pesquisar"></div>
+<div class="field"><label>Modalidade</label><select id="fMod"><option value="">Todas</option><option>Corrida 7 km</option><option>Corridinha Infantil</option><option>PCD presencial</option></select></div>
+<div class="field"><label>Status</label><select id="fStatus"><option value="">Todos</option><option>INSCRIÇÃO CONFIRMADA</option><option>EM VALIDAÇÃO</option><option>SOLICITAR CORREÇÃO</option></select></div>
+</div>
+<div class="section tablewrap"><table><thead><tr><th>CPF</th><th>Atleta</th><th>Modalidade</th><th>Origem</th><th>Pagamento</th><th>Status</th></tr></thead><tbody id="tblInscricoes"></tbody></table></div>
+</section>
+
+<section id="vagas" class="view"><h1>Central de vagas</h1><div class="sub">Somente o Administrador altera limites. Em produção, utilização será calculada pelo banco.</div>
+<div class="grid">
+<div class="card"><b>Corrida 7 km</b><div class="formgrid"><div class="field"><label>Total</label><input id="vCorrida" type="number" min="0" value="1000"></div></div><p>Utilizadas: <strong id="uCorrida">0</strong> · Disponíveis: <strong id="aCorrida">1000</strong></p></div>
+<div class="card"><b>Corridinha Infantil</b><div class="formgrid"><div class="field"><label>Total</label><input id="vInfantil" type="number" min="0" value="100"></div></div><p>Utilizadas: <strong id="uInfantil">0</strong> · Disponíveis: <strong id="aInfantil">100</strong></p></div>
+<div class="card"><b>PCD presencial</b><div class="formgrid"><div class="field"><label>Total</label><input id="vPcd" type="number" min="0" value="10"></div></div><p>Utilizadas: <strong id="uPcd">0</strong> · Disponíveis: <strong id="aPcd">10</strong></p></div>
+</div><div class="actions"><button class="primary" onclick="saveStock()">Salvar limites</button></div></section>
+
+<section id="empresas" class="view"><h1>Empresas</h1><div class="sub">Controle de lotes corporativos sem login de empresa.</div>
+<div class="actions"><button class="primary" onclick="addDemoCompany()">+ Nova empresa</button></div>
+<div class="section tablewrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>Vagas contratadas</th><th>Utilizadas</th><th>Restantes</th><th>Status</th></tr></thead><tbody id="tblEmpresas"></tbody></table></div></section>
+
+<section id="bonificacoes" class="view"><h1>Bonificações</h1><div class="sub">Concessões controladas exclusivamente pelo Administrador.</div><div class="notice">Toda bonificação deve possuir origem, justificativa, autorizador e movimentação de estoque. Valor da inscrição: R$ 0,00.</div></section>
+
+<section id="pcd" class="view"><h1>PCD presencial</h1><div class="sub">Controle interno da quota presencial.</div><div class="grid"><div class="card"><div class="label">Limite</div><div class="metric">10</div></div><div class="card"><div class="label">Utilizadas</div><div class="metric" id="pcdUsed2">0</div></div><div class="card"><div class="label">Disponíveis</div><div class="metric ok" id="pcdAvail2">10</div></div></div><div class="section notice">A inscrição PCD permanece presencial e requer conferência da documentação pela organização.</div></section>
+
+<section id="pagamentos" class="view"><h1>Pagamentos</h1><div class="sub">Fila administrativa de validação e acompanhamento.</div><div class="grid"><div class="card"><div class="label">Em validação</div><div class="metric warn" id="payValid">0</div></div><div class="card"><div class="label">Confirmados</div><div class="metric ok" id="payOk">0</div></div><div class="card"><div class="label">Correção solicitada</div><div class="metric" id="payCorr">0</div></div></div></section>
+
+<section id="relatorios" class="view"><h1>Relatórios</h1><div class="sub">Exportações previstas para a versão com banco de dados.</div><div class="grid">
+<div class="card"><b>Inscritos</b><p class="label">Lista completa com filtros.</p><button class="secondary" onclick="alert('Na produção: exportação Excel/CSV/PDF.')">Exportar</button></div>
+<div class="card"><b>Camisetas</b><p class="label">Grade por modalidade e tamanho.</p><button class="secondary" onclick="alert('Na produção: relatório de camisetas.')">Exportar</button></div>
+<div class="card"><b>Financeiro</b><p class="label">Valores confirmados e pagamentos.</p><button class="secondary" onclick="alert('Na produção: relatório financeiro.')">Exportar</button></div>
+<div class="card"><b>Auditoria</b><p class="label">Ações administrativas.</p><button class="secondary" onclick="alert('Na produção: relatório de auditoria.')">Exportar</button></div>
+</div></section>
+
+<section id="usuarios" class="view"><h1>Usuários</h1><div class="sub">Apenas dois perfis operacionais: Atendente e Administrador.</div><div class="tablewrap"><table><thead><tr><th>Perfil</th><th>Acesso</th><th>Observação</th></tr></thead><tbody><tr><td>ATENDENTE</td><td>Operacional</td><td>Sem alteração de limites críticos, permissões ou configurações.</td></tr><tr><td>ADMINISTRADOR</td><td>Total</td><td>Vagas, lotes, bonificações, PCD, pagamentos, relatórios, usuários e configurações.</td></tr></tbody></table></div></section>
+
+<section id="auditoria" class="view"><h1>Auditoria</h1><div class="sub">Histórico das ações administrativas.</div><div class="tablewrap"><table><thead><tr><th>Data/hora</th><th>Usuário</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody id="tblAudit"><tr><td>—</td><td>ADMIN</td><td>SISTEMA</td><td>Painel administrativo inicializado.</td></tr></tbody></table></div></section>
+</main></div>
+<script>
+const demo=[
+ {cpf:'222222222',nome:'ANTONINA CARVALHO SILVA',mod:'Corrida 7 km',origem:'PRESENCIAL',pag:'Confirmado',status:'INSCRIÇÃO CONFIRMADA'},
+ {cpf:'333333333',nome:'ATLETA TESTE INFANTIL',mod:'Corridinha Infantil',origem:'PRESENCIAL',pag:'Confirmado',status:'INSCRIÇÃO CONFIRMADA'}
+];
+function loadRegs(){
+ for(const k of ['cnr26_registrations','cnr26_inscricoes','cnr26_atletas','inscricoes_cnr26']){
+  try{let v=JSON.parse(localStorage.getItem(k)||'null');if(Array.isArray(v))return v}catch(e){}
+ }
+ return demo;
+}
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='inscricoes')renderRegs();if(v==='empresas')renderCompanies();}
+document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>show(b.dataset.view));
+function normalize(r){
+ let m=String(r.modality||r.modalidade||'Corrida 7 km'); if(/infantil|corridinha/i.test(m))m='Corridinha Infantil'; else if(/pcd/i.test(m))m='PCD presencial'; else m='Corrida 7 km';
+ return {cpf:r.cpf||r.CPF||'',nome:r.nome||r.name||'',mod:m,origem:r.origin||r.origem||'ONLINE',pag:r.paymentStatus||r.pagamento||r.payment||'',status:r.status||''};
+}
+function confirmed(s){return /CONFIRMADA|PAGAMENTO CONFIRMADO|APROVAD/i.test(s)}
+function renderRegs(){
+ let rows=loadRegs().map(normalize);let q=(document.getElementById('fBusca').value||'').toLowerCase(),m=document.getElementById('fMod').value,s=document.getElementById('fStatus').value;
+ rows=rows.filter(r=>(!q||r.cpf.toLowerCase().includes(q)||r.nome.toLowerCase().includes(q))&&(!m||r.mod===m)&&(!s||r.status===s));
+ document.getElementById('tblInscricoes').innerHTML=rows.map(r=>`<tr><td>${r.cpf}</td><td>${r.nome}</td><td>${r.mod}</td><td>${r.origem}</td><td>${r.pag}</td><td><span class="badge">${r.status||'—'}</span></td></tr>`).join('')||'<tr><td colspan="6">Nenhum registro encontrado.</td></tr>';
+}
+['fBusca','fMod','fStatus'].forEach(id=>document.getElementById(id).addEventListener('input',renderRegs));
+function counts(){let rows=loadRegs().map(normalize),c={corrida:0,infantil:0,pcd:0,valid:0,ok:0,corr:0};rows.forEach(r=>{if(confirmed(r.status)){if(r.mod==='Corridinha Infantil')c.infantil++;else if(r.mod==='PCD presencial')c.pcd++;else c.corrida++;c.ok++}if(/VALIDA/i.test(r.status))c.valid++;if(/CORREÇÃO/i.test(r.status))c.corr++});
+ let stock=JSON.parse(localStorage.getItem('cnr26_central_vagas_v24')||'{"corrida":{"total":1000},"infantil":{"total":100},"pcd":{"total":10}}');
+ const t=(k,d)=>Number(stock[k]?.total??d);
+ document.getElementById('mCorrida').textContent=c.corrida;document.getElementById('dCorrida').textContent=t('corrida',1000)-c.corrida;
+ document.getElementById('mInfantil').textContent=c.infantil;document.getElementById('dInfantil').textContent=t('infantil',100)-c.infantil;
+ document.getElementById('mPcd').textContent=c.pcd;document.getElementById('dPcd').textContent=t('pcd',10)-c.pcd;
+ document.getElementById('mValidacao').textContent=c.valid;document.getElementById('payValid').textContent=c.valid;document.getElementById('payOk').textContent=c.ok;document.getElementById('payCorr').textContent=c.corr;
+ document.getElementById('pcdUsed2').textContent=c.pcd;document.getElementById('pcdAvail2').textContent=t('pcd',10)-c.pcd;
+ ['Corrida','Infantil','Pcd'].forEach((x,i)=>{let k=['corrida','infantil','pcd'][i],u=c[k.toLowerCase()]||0;document.getElementById('u'+x).textContent=u;document.getElementById('a'+x).textContent=t(k,[1000,100,10][i])-u});
+}
+function saveStock(){let s={corrida:{label:'Corrida 7 km',total:+vCorrida.value,used:0},infantil:{label:'Corridinha Infantil',total:+vInfantil.value,used:0},pcd:{label:'PCD presencial',total:+vPcd.value,used:0}};localStorage.setItem('cnr26_central_vagas_v24',JSON.stringify(s));counts();alert('Limites salvos.');}
+function renderCompanies(){document.getElementById('tblEmpresas').innerHTML='<tr><td colspan="7">Nenhuma empresa cadastrada nesta homologação.</td></tr>'}
+function addDemoCompany(){alert('Na próxima etapa será aberto o cadastro de empresa + lote de vagas.')}
+function logout(){alert('Logout de homologação. Em produção haverá autenticação e sessão segura.')}
+window.addEventListener('storage',counts);window.addEventListener('DOMContentLoaded',counts);
+</script>
+</body></html>
