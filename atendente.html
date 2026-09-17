@@ -614,5 +614,65 @@ window.CNR26_V8={
  }
 };
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8.2 CPF</div></body>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8.3 INTEGRAÇÃO CPF</div>
+<script>
+/* V8.3 — ponte de homologação entre área pública e atendente.
+   Em produção, ambos usarão a mesma API/banco; não haverá sincronização por localStorage. */
+(function(){
+  const PUBLIC_KEY="cnr26_state";
+  const ATT_KEY="cnr26_homologacao";
+  function read(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}
+  function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
+  function cpf(v){return String(v||"").replace(/\D/g,"")}
+  function sync(){
+    const pub=read(PUBLIC_KEY), att=read(ATT_KEY);
+    if(!pub && !att)return;
+    if(pub && pub.cpf){
+      const merged=Object.assign({},pub,att||{});
+      merged.cpf=pub.cpf;
+      // The public area remains the source for athlete-facing identity data.
+      if(pub.name) merged.name=pub.name;
+      if(pub.modality) merged.modality=pub.modality;
+      if(pub.shirt) merged.shirt=pub.shirt;
+      write(ATT_KEY,merged);
+    }
+    const latest=read(ATT_KEY);
+    if(latest && latest.cpf){
+      const current=read(PUBLIC_KEY)||{};
+      // Push only workflow state and payment/proof metadata back to the public view.
+      const out=Object.assign({},current,{
+        cpf:latest.cpf,
+        name:latest.name||current.name,
+        modality:latest.modality||current.modality,
+        shirt:latest.shirt||current.shirt,
+        value:latest.value||current.value,
+        status:latest.status||current.status,
+        proofName:latest.proofName||current.proofName,
+        proofSentAt:latest.proofSentAt||current.proofSentAt
+      });
+      write(PUBLIC_KEY,out);
+    }
+  }
+  sync();
+  window.CNR26_SYNC_PUBLIC=sync;
+})();
+</script>
+
+<script>
+(function(){
+  function hookApproval(){
+    if(typeof window.CNR26_SYNC_PUBLIC!=="function") return;
+    window.CNR26_SYNC_PUBLIC();
+  }
+  // Existing prototype buttons invoke functions; wrap common approval names if present.
+  ["aprovar","approve","aprovarPagamento","confirmarInscricao","confirmarPagamento"].forEach(function(n){
+    if(typeof window[n]==="function" && !window[n].__cnr83){
+      const old=window[n];
+      const wrapped=function(){const r=old.apply(this,arguments);hookApproval();return r};
+      wrapped.__cnr83=true; window[n]=wrapped;
+    }
+  });
+})();
+</script>
+</body>
 </html>
