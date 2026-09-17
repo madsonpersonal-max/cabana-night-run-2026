@@ -413,4 +413,49 @@ window.addEventListener('storage',counts);window.addEventListener('DOMContentLoa
 });
 
 </script>
-</body></html>
+
+<script>
+window.CNR26_V8={
+ modalities:{
+  "CORRIDA 7KM":{total:1000,values:{"INDIVIDUAL":110,"SOCIO":100,"BONIFICACAO":0,"PCD":0}},
+  "CORRIDINHA INFANTIL":{total:100,values:{"INDIVIDUAL":60,"BONIFICACAO":0,"PCD":0}}
+ },
+ normalizeCPF:v=>String(v||"").replace(/\D/g,""),
+ confirmedStatuses:["INSCRIÇÃO CONFIRMADA","INSCRICAO CONFIRMADA","PAGAMENTO CONFIRMADO","CONFIRMADA","CONFIRMADO"],
+ isConfirmed:s=>["INSCRIÇÃO CONFIRMADA","INSCRICAO CONFIRMADA","PAGAMENTO CONFIRMADO","CONFIRMADA","CONFIRMADO"].includes(String(s||"").toUpperCase()),
+ ageAtCutoff(dob){
+  if(!dob)return null; const d=new Date(dob+"T00:00:00"),c=new Date("2026-12-31T23:59:59");
+  let a=c.getFullYear()-d.getFullYear(),m=c.getMonth()-d.getMonth();
+  if(m<0||(m===0&&c.getDate()<d.getDate()))a--; return a;
+ },
+ validateAthlete(r){
+  const e=[],cpf=this.normalizeCPF(r.cpf);
+  if(cpf.length!==11)e.push("CPF deve conter 11 dígitos.");
+  if(!r.name)e.push("Nome completo obrigatório.");
+  if(!r.dob)e.push("Data de nascimento obrigatória.");
+  if(String(r.modality||"").toUpperCase().includes("CORRIDINHA")){
+   const age=this.ageAtCutoff(r.dob);
+   if(age===null||age<4||age>12)e.push("Corridinha: idade de 4 a 12 anos em 31/12/2026.");
+   if(!r.responsibleName||!r.responsibleCPF||!r.responsibleWhatsApp)e.push("Corridinha: responsável, CPF e WhatsApp obrigatórios.");
+  }
+  return e;
+ }
+};
+</script>
+
+<div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
+<b>V8 — Integridade das inscrições</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+</div>
+<script>
+(function(){
+ function read(k){try{return JSON.parse(localStorage.getItem(k)||"[]")}catch(e){return[]}}
+ const regs=read("cnr26_registrations"), seen=new Set(), dup=[];
+ regs.forEach(r=>{const c=String(r.cpf||r.CPF||"").replace(/\D/g,"");if(c){if(seen.has(c))dup.push(c);seen.add(c)}});
+ const ok=regs.filter(r=>CNR26_V8.isConfirmed(r.status||r.situacao)).length;
+ const el=document.getElementById("v8IntegrityText");
+ if(el)el.innerHTML="Registros: <b>"+regs.length+"</b> &nbsp;|&nbsp; Confirmados: <b>"+ok+
+  "</b> &nbsp;|&nbsp; CPFs duplicados: <b>"+dup.length+"</b>"+
+  (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
+})();
+</script>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8 HOMOLOGAÇÃO</div></body></html>

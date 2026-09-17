@@ -60,6 +60,7 @@ h1,h2{margin:0 0 8px}.muted{color:var(--muted)}.status{display:inline-block;padd
   <div class="actions">
     <button class="secondary" onclick="renderFilaInscricoes()">Atualizar lista</button>
 <button type="button" onclick="abrirCheckin()">Check-in / Kits</button>
+<button type="button" onclick="abrirNumeracao()">Número de peito / QR</button>
 
   </div>
   <div style="overflow:auto;margin-top:12px">
@@ -473,5 +474,139 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
-</body>
+
+<!-- V7: Número de peito + QR Code -->
+<style>
+#bibModal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:10000}
+#bibModal .bib-box{width:min(980px,95vw);max-height:92vh;overflow:auto;background:#17131d;color:#fff;border:1px solid #6d4aff;border-radius:18px;padding:22px}
+.bib-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.bib-head h2{margin:0}
+.bib-close{background:#30283d;color:#fff;border:0;border-radius:9px;padding:8px 12px}
+.bib-search{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}.bib-search input{flex:1;min-width:220px;padding:12px;border-radius:9px;border:1px solid #51465e;background:#0f0c13;color:#fff}
+.bib-btn{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer}.bib-primary{background:#9cff00;color:#111}.bib-secondary{background:#6d4aff;color:#fff}.bib-muted{background:#30283d;color:#fff}
+.bib-card{background:#211b28;border-radius:14px;padding:17px;margin-top:12px}.bib-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.bib-item small{display:block;color:#aaa}.bib-item strong{display:block;margin-top:3px}
+.bib-ok{background:#18351d;padding:11px;border-radius:9px;margin:10px 0}.bib-warn{background:#3b2919;padding:11px;border-radius:9px;margin:10px 0}
+.bib-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.bib-number{font-size:58px;font-weight:900;letter-spacing:4px;text-align:center;padding:15px;border:2px dashed #9cff00;border-radius:14px;margin-top:12px}
+.bib-qr{display:flex;justify-content:center;margin:18px 0}.bib-qr img{width:220px;height:220px;background:#fff;padding:10px;border-radius:10px}
+</style>
+
+<div id="bibModal">
+ <div class="bib-box">
+  <div class="bib-head">
+   <h2>Número de Peito + QR Code</h2>
+   <button class="bib-close" onclick="fecharNumeracao()">Fechar</button>
+  </div>
+  <div class="bib-search">
+   <input id="bibCpf" placeholder="Buscar atleta pelo CPF" inputmode="numeric">
+   <button class="bib-btn bib-primary" onclick="buscarNumeracao()">Buscar</button>
+  </div>
+  <div id="bibResult"></div>
+ </div>
+</div>
+
+<script>
+(function(){
+ const REGKEY='cnr26_registrations';
+ const BIBKEY='cnr26_bibs';
+ const normalize=v=>String(v||'').replace(/\D/g,'');
+ const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+ const get=(o,ks)=>{for(const k of ks)if(o&&o[k]!=null&&o[k]!=='')return o[k];return ''};
+ const regs=()=>{try{return JSON.parse(localStorage.getItem(REGKEY)||'[]')}catch(e){return[]}};
+ const bibs=()=>{try{return JSON.parse(localStorage.getItem(BIBKEY)||'[]')}catch(e){return[]}};
+ const save=v=>localStorage.setItem(BIBKEY,JSON.stringify(v));
+ const confirmed=r=>['INSCRIÇÃO CONFIRMADA','INSCRICAO CONFIRMADA','PAGAMENTO CONFIRMADO','CONFIRMADA','CONFIRMADO'].includes(String(get(r,['status','situacao'])).toUpperCase());
+
+ window.abrirNumeracao=function(){
+   document.getElementById('bibModal').style.display='flex';
+   document.getElementById('bibCpf').focus();
+ };
+ window.fecharNumeracao=function(){document.getElementById('bibModal').style.display='none'};
+ window.buscarNumeracao=function(){
+   const cpf=normalize(document.getElementById('bibCpf').value), out=document.getElementById('bibResult');
+   const r=regs().find(x=>normalize(get(x,['cpf','CPF']))===cpf);
+   if(!r){out.innerHTML='<div class="bib-warn">Atleta não encontrado.</div>';return;}
+   render(r);
+ };
+ function render(r){
+   const cpf=normalize(get(r,['cpf','CPF']));
+   const b=bibs().find(x=>normalize(x.cpf)===cpf);
+   let h='<div class="bib-card"><div class="bib-grid">';
+   h+='<div class="bib-item"><small>Atleta</small><strong>'+esc(get(r,['name','nome']))+'</strong></div>';
+   h+='<div class="bib-item"><small>CPF</small><strong>'+esc(get(r,['cpf','CPF']))+'</strong></div>';
+   h+='<div class="bib-item"><small>Modalidade</small><strong>'+esc(get(r,['modality','modalidade']))+'</strong></div>';
+   h+='<div class="bib-item"><small>Camisa</small><strong>'+esc(get(r,['shirt','camisa','shirtSize','tamanho']))+'</strong></div>';
+   h+='</div>';
+   if(!confirmed(r)){
+     h+='<div class="bib-warn">NUMERAÇÃO BLOQUEADA: a inscrição ainda não está confirmada.</div></div>';
+     document.getElementById('bibResult').innerHTML=h;return;
+   }
+   if(b){
+     h+='<div class="bib-ok">Número já atribuído. A numeração não será alterada.</div>';
+     h+='<div class="bib-number">'+esc(b.number)+'</div>';
+     h+='<div class="bib-qr"><img alt="QR Code do atleta" src="'+qrUrl(b.payload)+'"></div>';
+     h+='<div class="bib-item"><small>Identificador QR</small><strong>'+esc(b.payload)+'</strong></div>';
+     h+='<div class="bib-actions"><button class="bib-btn bib-secondary" onclick="window.open('+JSON.stringify(qrUrl(b.payload))+',\\'_blank\\')">Abrir QR</button></div>';
+   }else{
+     h+='<div class="bib-warn">Este atleta ainda não possui número de peito.</div>';
+     h+='<div class="bib-actions"><button class="bib-btn bib-primary" onclick="gerarNumeracao('+JSON.stringify(cpf)+')">Gerar número de peito</button></div>';
+   }
+   h+='</div>';
+   document.getElementById('bibResult').innerHTML=h;
+ }
+ function nextNumber(){
+   const arr=bibs().map(x=>Number(x.number)).filter(n=>Number.isFinite(n));
+   let n=1;
+   while(arr.includes(n))n++;
+   return String(n).padStart(4,'0');
+ }
+ function qrUrl(payload){
+   return 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data='+encodeURIComponent(payload);
+ }
+ window.gerarNumeracao=function(cpf){
+   const r=regs().find(x=>normalize(get(x,['cpf','CPF']))===cpf);
+   if(!r)return;
+   if(!confirmed(r)){alert('Inscrição não confirmada.');return;}
+   const arr=bibs();
+   if(arr.some(x=>normalize(x.cpf)===cpf)){buscarNumeracao();return;}
+   const number=nextNumber();
+   const payload='CNR26|CPF|'+cpf+'|NPEITO|'+number;
+   arr.push({cpf,number,payload,assignedAt:new Date().toISOString(),assignedBy:'ATENDENTE'});
+   save(arr);
+   alert('Número de peito '+number+' atribuído com sucesso.');
+   buscarNumeracao();
+ };
+})();
+</script>
+
+
+<script>
+window.CNR26_V8={
+ modalities:{
+  "CORRIDA 7KM":{total:1000,values:{"INDIVIDUAL":110,"SOCIO":100,"BONIFICACAO":0,"PCD":0}},
+  "CORRIDINHA INFANTIL":{total:100,values:{"INDIVIDUAL":60,"BONIFICACAO":0,"PCD":0}}
+ },
+ normalizeCPF:v=>String(v||"").replace(/\D/g,""),
+ confirmedStatuses:["INSCRIÇÃO CONFIRMADA","INSCRICAO CONFIRMADA","PAGAMENTO CONFIRMADO","CONFIRMADA","CONFIRMADO"],
+ isConfirmed:s=>["INSCRIÇÃO CONFIRMADA","INSCRICAO CONFIRMADA","PAGAMENTO CONFIRMADO","CONFIRMADA","CONFIRMADO"].includes(String(s||"").toUpperCase()),
+ ageAtCutoff(dob){
+  if(!dob)return null; const d=new Date(dob+"T00:00:00"),c=new Date("2026-12-31T23:59:59");
+  let a=c.getFullYear()-d.getFullYear(),m=c.getMonth()-d.getMonth();
+  if(m<0||(m===0&&c.getDate()<d.getDate()))a--; return a;
+ },
+ validateAthlete(r){
+  const e=[],cpf=this.normalizeCPF(r.cpf);
+  if(cpf.length!==11)e.push("CPF deve conter 11 dígitos.");
+  if(!r.name)e.push("Nome completo obrigatório.");
+  if(!r.dob)e.push("Data de nascimento obrigatória.");
+  if(String(r.modality||"").toUpperCase().includes("CORRIDINHA")){
+   const age=this.ageAtCutoff(r.dob);
+   if(age===null||age<4||age>12)e.push("Corridinha: idade de 4 a 12 anos em 31/12/2026.");
+   if(!r.responsibleName||!r.responsibleCPF||!r.responsibleWhatsApp)e.push("Corridinha: responsável, CPF e WhatsApp obrigatórios.");
+  }
+  return e;
+ }
+};
+</script>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8 HOMOLOGAÇÃO</div></body>
 </html>
