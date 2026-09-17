@@ -34,7 +34,7 @@ h1,h2{margin:0 0 8px}.muted{color:var(--muted)}.status{display:inline-block;padd
       <p class="muted">Consulta por CPF e cadastro de inscrições presenciais.</p>
       <div class="actions"><button class="primary" onclick="openPresencial()">+ Nova inscrição presencial</button></div>
       <div id="registration"></div>
-    <div style="margin-top:12px;padding:12px;border-radius:10px;background:rgba(100,255,150,.08);font-size:13px"><strong>V2.5:</strong> vagas utilizadas devem ser calculadas pelas inscrições confirmadas; o atendente não altera esse número manualmente.</div></section>
+    </section>
 
     <aside class="card">
       <h2>Resumo</h2>
@@ -168,6 +168,17 @@ function updatePresencialValue(){
   if(mod==="pcd" || pag==="Isento PCD" || pag==="Bonificação") value=0;
   document.getElementById("pValor").value="R$ "+value.toFixed(2).replace(".",",");
 }
+
+function toggleEmpresaLote(){
+ const origem=document.getElementById("pOrigem").value;
+ const wrap=document.getElementById("empresaWrap");
+ if(wrap) wrap.style.display=origem==="EMPRESA"?"block":"none";
+ if(origem!=="EMPRESA"){document.getElementById("pLote").innerHTML='<option value="">Não se aplica</option>';return}
+ let lotes=[];try{lotes=JSON.parse(localStorage.getItem("cnr26_empresas_lotes_v2")||"[]")}catch(e){}
+ const mod=document.getElementById("pMod").value;
+ document.getElementById("pLote").innerHTML=lotes.filter(x=>x.status==="ATIVO"&&Number(x.contratadas||0)>Number(x.utilizadas||0)&&(!mod||x.modalidade==="Corrida 7 km"&&mod!=="infantil"||x.modalidade==="Corridinha Infantil"&&mod==="infantil")).map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${Math.max(0,x.contratadas-x.utilizadas)} vagas</option>`).join('')||'<option value="">Nenhum lote disponível</option>';
+}
+
 function savePresencial(){
   const cpf=document.getElementById("pCpf").value.replace(/\D/g,"");
   const nome=document.getElementById("pNome").value.trim();
@@ -179,6 +190,8 @@ function savePresencial(){
   const mod=document.getElementById("pMod").value;
   const camisa=document.getElementById("pCamisa").value;
   const pag=document.getElementById("pPag").value;
+  const origem=document.getElementById("pOrigem").value;
+  const loteId=document.getElementById("pLote").value;
   const respNome=document.getElementById("pRespNome").value.trim();
   const respCpf=document.getElementById("pRespCpf").value.replace(/\D/g,"");
   const respWhats=document.getElementById("pRespWhats").value.trim();
@@ -186,6 +199,7 @@ function savePresencial(){
     alert("Preencha todos os campos obrigatórios.");
     return;
   }
+  if(origem==="EMPRESA" && !loteId){ alert("Selecione o lote da empresa."); return; }
   if(mod==="infantil" && (!respNome || respCpf.length!==11 || !respWhats)){
     alert("Na Corridinha Infantil, o nome, CPF e WhatsApp do responsável são obrigatórios.");
     return;
@@ -199,6 +213,9 @@ function savePresencial(){
     if(age<4 || age>12){ alert("A Corridinha Infantil aceita atletas de 4 a 12 anos até 31/12/2026."); return; }
   }
   const state=load();
+  let lotes=[]; try{lotes=JSON.parse(localStorage.getItem("cnr26_empresas_lotes_v2")||"[]")}catch(e){}
+  const lote=origem==="EMPRESA"?lotes.find(x=>x.id===loteId):null;
+  if(origem==="EMPRESA" && (!lote || lote.status!=="ATIVO" || Number(lote.utilizadas||0)>=Number(lote.contratadas||0))){alert("Lote inválido ou sem vagas disponíveis.");return;}
   if(state.cpf===cpf){
     alert("Este CPF já possui uma inscrição nesta homologação.");
     return;
@@ -211,13 +228,14 @@ function savePresencial(){
   const newState={
     cpf, nome, nascimento:nasc, sexo, whatsapp:whats, email, cidade,
     equipe:document.getElementById("pEquipe").value.trim(),
-    modalidade:mod, camisa, valor:value, paymentMethod:pag,
+    modalidade:mod, camisa, valor:origem==="EMPRESA"?0:value, paymentMethod:pag, origem, empresa:lote?lote.empresa:null, loteId:lote?lote.id:null,
     responsavel: mod==="infantil" ? {nome:respNome, cpf:respCpf, whatsapp:respWhats} : null,
-    origin:"PRESENCIAL", status:value===0?"INSCRIÇÃO CONFIRMADA":"PAGAMENTO CONFIRMADO",
+    origin:"PRESENCIAL", status:(origem==="EMPRESA"||value===0)?"INSCRIÇÃO CONFIRMADA":"PAGAMENTO CONFIRMADO",
     proofName:"—", proofSentAt:null, paymentStatus:value===0?"ISENTO":"REGISTRADO NO ATENDIMENTO",
     audit: state.audit||[]
   };
   newState.audit.unshift(new Date().toLocaleString("pt-BR")+" — ATENDENTE — inscrição presencial criada — CPF "+cpf);
+  if(lote){ lote.utilizadas=Number(lote.utilizadas||0)+1; localStorage.setItem("cnr26_empresas_lotes_v2",JSON.stringify(lotes)); }
   if(mod==="pcd"){
     newState.pcd={presencial:true,documentacao:"CONFERIR PRESENCIALMENTE"};
   }
@@ -242,7 +260,9 @@ function savePresencial(){
       <div class="modalfield"><label>E-mail</label><input id="pEmail" type="email" placeholder="Opcional"></div>
       <div class="modalfield"><label>Cidade *</label><input id="pCidade" value="Barcarena"></div>
       <div class="modalfield"><label>Equipe/Assessoria</label><input id="pEquipe" placeholder="Opcional"></div>
-      <div class="modalfield"><label>Modalidade *</label><select id="pMod" onchange="toggleResponsavel();updatePresencialValue()"><option value="">Selecione</option><option value="individual">Corrida 7 km — Público geral</option><option value="socio">Corrida 7 km — Sócio/Equipe</option><option value="infantil">Corridinha Infantil</option><option value="pcd">PCD presencial</option></select></div>
+      <div class="modalfield"><label>Origem *</label><select id="pOrigem" onchange="toggleEmpresaLote()"><option value="PRESENCIAL">Presencial</option><option value="EMPRESA">Empresa</option><option value="BONIFICACAO">Bonificação</option></select></div>
+      <div class="modalfield" id="empresaWrap" style="display:none"><label>Empresa / lote *</label><select id="pLote"></select></div>
+      <div class="modalfield"><label>Modalidade *</label><select id="pMod" onchange="toggleResponsavel();updatePresencialValue();toggleEmpresaLote()"><option value="">Selecione</option><option value="individual">Corrida 7 km — Público geral</option><option value="socio">Corrida 7 km — Sócio/Equipe</option><option value="infantil">Corridinha Infantil</option><option value="pcd">PCD presencial</option></select></div>
       <div class="modalfield" id="respNomeWrap" style="display:none"><label>Nome completo do responsável *</label><input id="pRespNome" placeholder="Responsável pelo atleta"></div>
       <div class="modalfield" id="respCpfWrap" style="display:none"><label>CPF do responsável *</label><input id="pRespCpf" inputmode="numeric" placeholder="000.000.000-00"></div>
       <div class="modalfield" id="respWhatsWrap" style="display:none"><label>WhatsApp do responsável *</label><input id="pRespWhats" inputmode="tel" placeholder="(91) 99999-9999"></div>
@@ -250,127 +270,12 @@ function savePresencial(){
       <div class="modalfield"><label>Forma de pagamento *</label><select id="pPag" onchange="updatePresencialValue()"><option value="">Selecione</option><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Isento PCD</option><option>Bonificação</option></select></div>
       <div class="modalfield"><label>Valor</label><input id="pValor" readonly value="R$ 0,00"></div>
     </div>
-    <div class="modalhint">Corridinha Infantil: nome, CPF e WhatsApp do responsável são obrigatórios. PCD: somente presencial, sujeito à conferência da documentação e disponibilidade das 10 vagas.</div>
+    <div class="modalhint">Corridinha Infantil: nome, CPF e WhatsApp do responsável são obrigatórios. Empresa: selecione o lote para consumir uma vaga corporativa. PCD: somente presencial, sujeito à conferência da documentação e disponibilidade das 10 vagas.</div>
     <div class="actions">
       <button class="primary" onclick="savePresencial()">Registrar inscrição</button>
       <button class="secondary" onclick="closePresencial()">Cancelar</button>
     </div>
   </div>
 </div>
-
-<section id="central-vagas-cnr" style="margin:24px 0;padding:20px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:#151022;color:#fff">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <div>
-      <h2 style="margin:0 0 6px">Central de Vagas</h2>
-      <div style="opacity:.75;font-size:13px">Controle interno da disponibilidade por modalidade.</div>
-    </div>
-    <button type="button" id="btnSalvarVagasCNR" style="padding:10px 16px;border:0;border-radius:10px;cursor:pointer">Salvar alterações</button>
-  </div>
-  <div id="cardsVagasCNR" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:18px"></div>
-  <div style="margin-top:18px;padding:14px;border-radius:12px;background:rgba(255,255,255,.05);font-size:13px">
-    <strong>Regra:</strong> Online, Presencial, Empresas e Bonificações utilizam o estoque central da modalidade.
-    PCD presencial possui controle separado de 10 vagas.
-  </div>
-</section>
-
-<script>
-(function(){
-  const KEY='cnr26_central_vagas_v24';
-  const DEFAULTS={
-    corrida:{label:'Corrida 7 km',total:1000,used:0},
-    infantil:{label:'Corridinha Infantil',total:100,used:0},
-    pcd:{label:'PCD presencial',total:10,used:0}
-  };
-  function load(){
-    try{
-      const saved=JSON.parse(localStorage.getItem(KEY)||'null');
-      return saved ? {...DEFAULTS,...saved} : JSON.parse(JSON.stringify(DEFAULTS));
-    }catch(e){ return JSON.parse(JSON.stringify(DEFAULTS)); }
-  }
-  function render(v){
-    const el=document.getElementById('cardsVagasCNR'); if(!el)return;
-    el.innerHTML='';
-    Object.entries(v).forEach(([k,x])=>{
-      const total=Math.max(0,Number(x.total)||0);
-      const used=Math.min(total,Math.max(0,Number(x.used)||0));
-      const available=total-used;
-      const card=document.createElement('div');
-      card.style.cssText='padding:16px;border-radius:14px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)';
-      card.innerHTML=
-        '<div style="font-weight:700;margin-bottom:10px">'+x.label+'</div>'+
-        '<label style="display:block;font-size:12px;opacity:.75">Total de vagas</label>'+
-        '<input data-k="'+k+'" data-f="total" type="number" min="0" value="'+total+'" style="width:100%;box-sizing:border-box;margin:4px 0 10px;padding:9px;border-radius:8px;border:1px solid #555;background:#0f0b18;color:#fff">'+
-        '<label style="display:block;font-size:12px;opacity:.75">Vagas utilizadas</label>'+
-        '<input data-k="'+k+'" data-f="used" type="number" min="0" value="'+used+'" style="width:100%;box-sizing:border-box;margin:4px 0 10px;padding:9px;border-radius:8px;border:1px solid #555;background:#0f0b18;color:#fff">'+
-        '<div style="font-size:13px"><strong>Disponíveis: '+available+'</strong></div>';
-      el.appendChild(card);
-    });
-  }
-  function save(v){
-    localStorage.setItem(KEY,JSON.stringify(v));
-    render(v);
-  }
-  document.addEventListener('DOMContentLoaded',function(){
-    let v=load();
-    render(v);
-    const btn=document.getElementById('btnSalvarVagasCNR');
-    if(btn) btn.addEventListener('click',function(){
-      document.querySelectorAll('#cardsVagasCNR input').forEach(function(i){
-        const k=i.dataset.k, f=i.dataset.f;
-        v[k][f]=Math.max(0,Number(i.value)||0);
-      });
-      Object.values(v).forEach(function(x){
-        if(x.used>x.total) x.used=x.total;
-      });
-      save(v);
-      alert('Central de vagas atualizada.');
-    });
-  });
-})();
-</script>
-
-
-<script>
-(function(){
-  const STOCK_KEY='cnr26_central_vagas_v24';
-  const REG_KEYS=['cnr26_registrations','cnr26_inscricoes','cnr26_atletas','inscricoes_cnr26'];
-  const norm=s=>String(s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  function regs(){
-    for(const k of REG_KEYS){
-      try{
-        const v=JSON.parse(localStorage.getItem(k)||'null');
-        if(Array.isArray(v)) return v;
-        if(v&&Array.isArray(v.registrations)) return v.registrations;
-        if(v&&Array.isArray(v.inscricoes)) return v.inscricoes;
-      }catch(e){}
-    }
-    return [];
-  }
-  function confirmed(r){
-    const s=norm(r.status||r.situacao||r.paymentStatus||'');
-    return ['INSCRICAO CONFIRMADA','CONFIRMADA','PAGAMENTO CONFIRMADO','APROVADA','APROVADO'].some(x=>s.includes(x));
-  }
-  function mod(r){
-    const m=norm(r.modality||r.modalidade||'');
-    if(m.includes('INFANTIL')||m.includes('CORRIDINHA')) return 'infantil';
-    if(m.includes('PCD')) return 'pcd';
-    return 'corrida';
-  }
-  function sync(){
-    let stock;
-    try{stock=JSON.parse(localStorage.getItem(STOCK_KEY)||'null')}catch(e){}
-    if(!stock) return;
-    const c={corrida:0,infantil:0,pcd:0};
-    regs().forEach(r=>{if(confirmed(r)) c[mod(r)]++});
-    Object.keys(c).forEach(k=>{if(stock[k]) stock[k].used=Math.min(Number(stock[k].total)||0,c[k])});
-    localStorage.setItem(STOCK_KEY,JSON.stringify(stock));
-    window.dispatchEvent(new CustomEvent('cnr26:stock-updated',{detail:stock}));
-  }
-  window.CNR26Stock={sync,registrations:regs};
-  document.addEventListener('DOMContentLoaded',sync);
-  window.addEventListener('storage',sync);
-})();
-</script>
-
 </body>
 </html>
