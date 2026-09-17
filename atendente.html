@@ -127,7 +127,7 @@ function refresh(){
         <div class="field"><small>Comprovante</small><b>${esc(s.proofName||"Não enviado")}</b></div>
         <div class="field"><small>Enviado em</small><b>${s.proofSentAt?new Date(s.proofSentAt).toLocaleString("pt-BR"):"—"}</b></div>
       </div>
-      ${s.status==="SOLICITAR CORREÇÃO" && s.paymentNote?'<div class="notice"><strong>Motivo da correção</strong><span class="muted">'+esc(s.paymentNote)+'</span></div>':''}
+      ${(s.status==="SOLICITAR CORREÇÃO" || s.status==="PAGAMENTO NÃO IDENTIFICADO") && s.paymentNote?'<div class="notice"><strong>Motivo da correção</strong><span class="muted">'+esc(s.paymentNote)+'</span></div>':''}
       <div class="actions">
         ${canAnalyze?'<button class="primary" onclick="approve()">Aprovar pagamento e confirmar inscrição</button>':''}
         ${canAnalyze?'<button class="yellow" onclick="requestCorrection()">Solicitar correção</button>':''}
@@ -172,10 +172,15 @@ function requestCorrection(){
 }
 function notIdentified(){
   const s=load(); if(!s.cpf)return;
-  const note=prompt("Informe o motivo do pagamento não identificado:");
+  const note=prompt("Informe o motivo do pagamento não identificado (obrigatório):");
   if(note===null)return;
-  s.status="PAGAMENTO NÃO IDENTIFICADO"; s.paymentNote=note||"Pagamento não identificado.";
-  audit(s,"ATENDENTE — pagamento não identificado — CPF "+s.cpf);
+  const reason=String(note).trim();
+  if(!reason){ alert("O motivo é obrigatório."); return; }
+  s.status="PAGAMENTO NÃO IDENTIFICADO";
+  s.paymentNote=reason;
+  s.paymentIssue="PAGAMENTO NÃO IDENTIFICADO";
+  s.paymentIssueAt=new Date().toISOString();
+  audit(s,"ATENDENTE — pagamento não identificado — CPF "+s.cpf+" — Motivo: "+reason);
   refresh();
 }
 function resetDemo(){

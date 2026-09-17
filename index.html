@@ -341,7 +341,7 @@ function openPayment(state){
   document.getElementById("comprovante").value = "";
   document.getElementById("paymentResult").innerHTML = "";
   document.getElementById("paymentCorrectionNotice").innerHTML =
-    state.status === "SOLICITAR CORREÇÃO" && state.paymentNote
+    (state.status === "SOLICITAR CORREÇÃO" || state.status === "PAGAMENTO NÃO IDENTIFICADO") && state.paymentNote
       ? '<div class="notice warning"><strong>Motivo da correção</strong><span class="muted">'+
         escapeHtml(state.paymentNote)+'</span></div>'
       : "";
@@ -364,6 +364,7 @@ function sendProofTest(){
   state.previousProofName = state.proofName || null;
   state.status = "COMPROVANTE ENVIADO";
   state.paymentNote = "";
+  state.paymentIssue = "";
   state.proofName = file.name;
   state.proofSize = file.size;
   state.proofSentAt = new Date().toISOString();
@@ -380,11 +381,11 @@ function consultRegistration(){
   var cpf = document.getElementById("qcpf").value.replace(/\D/g,"");
   var result = document.getElementById("qresult");
   if(state && state.cpf === cpf){
-    var paymentButton = (state.status === "AGUARDANDO PAGAMENTO" || state.status === "SOLICITAR CORREÇÃO")
+    var paymentButton = (state.status === "AGUARDANDO PAGAMENTO" || state.status === "SOLICITAR CORREÇÃO" || state.status === "PAGAMENTO NÃO IDENTIFICADO")
       ? '<button type="button" class="primary" onclick="openPaymentForSaved()">'+
-        (state.status === "SOLICITAR CORREÇÃO" ? "Corrigir / enviar novo comprovante" : "Enviar comprovante de pagamento")+
+        (state.status === "SOLICITAR CORREÇÃO" || state.status === "PAGAMENTO NÃO IDENTIFICADO" ? "Corrigir / enviar novo comprovante" : "Enviar comprovante de pagamento")+
         '</button>' : '';
-    var correction = state.status === "SOLICITAR CORREÇÃO" && state.paymentNote
+    var correction = (state.status === "SOLICITAR CORREÇÃO" || state.status === "PAGAMENTO NÃO IDENTIFICADO") && state.paymentNote
       ? '<div class="notice warning"><strong>Motivo da correção</strong><span class="muted">'+escapeHtml(state.paymentNote)+
         '</span></div>' : '';
     result.innerHTML =
