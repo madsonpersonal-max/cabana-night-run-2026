@@ -123,6 +123,18 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
   <div class="actions"><button class="primary" onclick="executarAcaoLote()">Executar ação</button></div>
   <div class="notice">A liberação de vagas só pode ocorrer sobre vagas não utilizadas. Em produção, toda movimentação deverá registrar usuário, data/hora, quantidade anterior, quantidade liberada e motivo.</div>
 </div>
+
+<div class="section card">
+  <h2>Atletas por empresa/lote</h2>
+  <div class="formgrid">
+    <div class="field"><label>Empresa/lote</label><select id="filtroLoteAtletas"><option value="">Todos</option></select></div>
+    <div class="field"><label>Buscar CPF ou nome</label><input id="filtroAtletaEmpresa" placeholder="CPF ou nome"></div>
+  </div>
+  <div class="section tablewrap">
+    <table><thead><tr><th>Empresa</th><th>Lote</th><th>Modalidade</th><th>CPF</th><th>Atleta</th><th>Data</th></tr></thead>
+    <tbody id="tblAtletasEmpresa"></tbody></table>
+  </div>
+</div>
 <div class="section notice"><strong>Regra:</strong> empresa sem login. O Administrador cadastra o lote e os atletas vinculados serão registrados no sistema. Vagas não utilizadas permanecem reservadas até liberação administrativa com auditoria.</div>
 </section>
 
@@ -196,7 +208,9 @@ function renderCompanies(){
  if(sel) sel.innerHTML=v.filter(x=>x.status==='ATIVO'&&Number(x.contratadas||0)>Number(x.utilizadas||0)).map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${Math.max(0,x.contratadas-x.utilizadas)} vagas</option>`).join('')||'<option value="">Nenhum lote com vaga disponível</option>';
  const gs=document.getElementById('gestLote');
  if(gs) gs.innerHTML=v.map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${x.status} — ${Math.max(0,x.contratadas-x.utilizadas)} restantes</option>`).join('')||'<option value="">Nenhum lote</option>';
- renderVinculos();
+ const fa=document.getElementById('filtroLoteAtletas');
+ if(fa) fa.innerHTML='<option value="">Todos</option>'+v.map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade}</option>`).join('');
+ renderVinculos(); renderAtletasEmpresa();
 }
 
 const LINK_KEY='cnr26_empresa_atletas_v3';
@@ -243,7 +257,24 @@ function executarAcaoLote(){
  localStorage.setItem('cnr26_empresas_lotes_v2',JSON.stringify(v)); renderCompanies(); counts();
  alert('Ação aplicada ao lote.');
 }
+
+function getCorporateRegistrations(){
+  try{
+    const a=JSON.parse(localStorage.getItem('cnr26_inscricoes_v5')||'[]');
+    return Array.isArray(a)?a.filter(x=>x.empresa||x.loteId||x.origem==='EMPRESA'):[];
+  }catch(e){return []}
+}
+function renderAtletasEmpresa(){
+  const body=document.getElementById('tblAtletasEmpresa'); if(!body)return;
+  const lote=(document.getElementById('filtroLoteAtletas')||{}).value||'';
+  const q=((document.getElementById('filtroAtletaEmpresa')||{}).value||'').toLowerCase();
+  const rows=getCorporateRegistrations().filter(x=>
+    (!lote||x.loteId===lote) &&
+    (!q||String(x.cpf||'').toLowerCase().includes(q)||String(x.nome||'').toLowerCase().includes(q))
+  );
+  body.innerHTML=rows.map(x=>`<tr><td>${x.empresa||'—'}</td><td>${x.loteId||'—'}</td><td>${x.modalidade||'—'}</td><td>${x.cpf||'—'}</td><td>${x.nome||'—'}</td><td>${x.criadoEm?new Date(x.criadoEm).toLocaleString('pt-BR'):'—'}</td></tr>`).join('')||'<tr><td colspan="6">Nenhum atleta corporativo encontrado.</td></tr>';
+}
 function logout(){alert('Logout de homologação. Em produção haverá autenticação e sessão segura.')}
-window.addEventListener('storage',counts);window.addEventListener('DOMContentLoaded',()=>{counts();renderCompanies();});
+window.addEventListener('storage',counts);window.addEventListener('DOMContentLoaded',()=>{counts();renderCompanies();document.getElementById('filtroLoteAtletas')?.addEventListener('change',renderAtletasEmpresa);document.getElementById('filtroAtletaEmpresa')?.addEventListener('input',renderAtletasEmpresa);});
 </script>
 </body></html>
