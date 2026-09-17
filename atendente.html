@@ -115,7 +115,7 @@ function refresh(){
     const canAnalyze=["COMPROVANTE ENVIADO","EM VALIDAÇÃO","PAGAMENTO NÃO IDENTIFICADO","SOLICITAR CORREÇÃO"].includes(s.status);
     box.innerHTML=`
       <div class="notice">
-        <strong>Protocolo ${esc(s.protocol)}</strong>
+        <strong>CPF ${esc(s.cpf)}</strong>
         <span class="status ${statusClass(s.status)}">${esc(s.status||"AGUARDANDO PAGAMENTO")}</span>
       </div>
       <div class="row">
@@ -135,7 +135,7 @@ function refresh(){
       </div>
       <div class="notice">
         <strong>Regra do teste</strong>
-        <span class="muted">A aprovação simula: pagamento confirmado → inscrição confirmada → registro de auditoria → preparação da mensagem de WhatsApp. A consulta do atleta é feita pelo CPF, sem protocolo. Na versão real, a mensagem será enviada pela API oficial do WhatsApp/Meta.</span>
+        <span class="muted">A aprovação simula: pagamento confirmado → inscrição confirmada → registro de auditoria → preparação da mensagem de WhatsApp. A consulta e identificação do atleta são feitas exclusivamente pelo CPF. Não há protocolo visível. Na versão real, a mensagem será enviada pela API oficial do WhatsApp/Meta.</span>
       </div>`;
   }
   document.getElementById("mIns").textContent=s.protocol?1:0;
@@ -614,5 +614,5 @@ window.CNR26_V8={
  }
 };
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8.1 CPF</div></body>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8.2 CPF</div></body>
 </html>
