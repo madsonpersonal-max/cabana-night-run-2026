@@ -203,6 +203,10 @@ function closePresencial(){
 function toggleResponsavel(){
   const show=document.getElementById("pMod").value==="infantil";
   ["respNomeWrap","respCpfWrap","respWhatsWrap"].forEach(id=>document.getElementById(id).style.display=show?"block":"none");
+  const cpfLabel=document.getElementById("pCpfLabel");
+  const whatsLabel=document.getElementById("pWhatsLabel");
+  if(cpfLabel) cpfLabel.textContent=show?"CPF do atleta (opcional)":"CPF *";
+  if(whatsLabel) whatsLabel.textContent=show?"WhatsApp do atleta (opcional)":"WhatsApp *";
 }
 function updatePresencialValue(){
   const mod=document.getElementById("pMod").value;
@@ -241,13 +245,22 @@ function savePresencial(){
   const respNome=document.getElementById("pRespNome").value.trim();
   const respCpf=document.getElementById("pRespCpf").value.replace(/\D/g,"");
   const respWhats=document.getElementById("pRespWhats").value.trim();
-  if(!cpf || cpf.length!==11 || !nome || !nasc || !sexo || !whats || !cidade || !mod || !camisa || !pag){
+  const isInfantil = mod==="infantil";
+  if(!nome || !nasc || !sexo || !cidade || !mod || !camisa || !pag){
     alert("Preencha todos os campos obrigatórios.");
+    return;
+  }
+  if(!isInfantil && (!cpf || cpf.length!==11 || !whats)){
+    alert("Para a Corrida 7 km, CPF e WhatsApp do atleta são obrigatórios.");
+    return;
+  }
+  if(isInfantil && cpf && cpf.length!==11){
+    alert("Se informar o CPF do atleta infantil, ele deve conter 11 dígitos.");
     return;
   }
   if(origem==="EMPRESA" && !loteId){ alert("Selecione o lote da empresa."); return; }
   if(mod==="infantil" && (!respNome || respCpf.length!==11 || !respWhats)){
-    alert("Na Corridinha Infantil, o nome, CPF e WhatsApp do responsável são obrigatórios.");
+    alert("Na Corridinha Infantil, o nome, CPF e WhatsApp do responsável são obrigatórios. O CPF e o WhatsApp da criança são opcionais.");
     return;
   }
   if(mod==="infantil"){
@@ -262,8 +275,12 @@ function savePresencial(){
   let lotes=[]; try{lotes=JSON.parse(localStorage.getItem("cnr26_empresas_lotes_v2")||"[]")}catch(e){}
   const lote=origem==="EMPRESA"?lotes.find(x=>x.id===loteId):null;
   if(origem==="EMPRESA" && (!lote || lote.status!=="ATIVO" || Number(lote.utilizadas||0)>=Number(lote.contratadas||0))){alert("Lote inválido ou sem vagas disponíveis.");return;}
-  if(state.cpf===cpf){
+  if(cpf && state.cpf===cpf){
     alert("Este CPF já possui uma inscrição nesta homologação.");
+    return;
+  }
+  if(isInfantil && !cpf && state.nome && state.nascimento && state.nome.trim().toUpperCase()===nome.trim().toUpperCase() && state.nascimento===nasc){
+    alert("Já existe uma inscrição infantil com este nome e data de nascimento nesta homologação.");
     return;
   }
   const value=mod==="individual"?110:mod==="socio"?100:mod==="infantil"?60:0;
@@ -330,11 +347,11 @@ function savePresencial(){
     <h2>Nova inscrição presencial</h2>
     <p class="muted">Cadastro realizado pelo Atendente. Todos os dados ficam na homologação local.</p>
     <div class="modalgrid">
-      <div class="modalfield"><label>CPF *</label><input id="pCpf" inputmode="numeric" placeholder="000.000.000-00"></div>
+      <div class="modalfield"><label id="pCpfLabel">CPF *</label><input id="pCpf" inputmode="numeric" placeholder="000.000.000-00"></div>
       <div class="modalfield"><label>Nome completo *</label><input id="pNome" placeholder="Nome do atleta"></div>
       <div class="modalfield"><label>Data de nascimento *</label><input id="pNasc" type="date"></div>
       <div class="modalfield"><label>Sexo *</label><select id="pSexo"><option value="">Selecione</option><option>Masculino</option><option>Feminino</option></select></div>
-      <div class="modalfield"><label>WhatsApp *</label><input id="pWhats" inputmode="tel" placeholder="(91) 99999-9999"></div>
+      <div class="modalfield"><label id="pWhatsLabel">WhatsApp *</label><input id="pWhats" inputmode="tel" placeholder="(91) 99999-9999"></div>
       <div class="modalfield"><label>E-mail</label><input id="pEmail" type="email" placeholder="Opcional"></div>
       <div class="modalfield"><label>Cidade *</label><input id="pCidade" value="Barcarena"></div>
       <div class="modalfield"><label>Equipe/Assessoria</label><input id="pEquipe" placeholder="Opcional"></div>
@@ -348,7 +365,7 @@ function savePresencial(){
       <div class="modalfield"><label>Forma de pagamento *</label><select id="pPag" onchange="updatePresencialValue()"><option value="">Selecione</option><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Isento PCD</option><option>Bonificação</option></select></div>
       <div class="modalfield"><label>Valor</label><input id="pValor" readonly value="R$ 0,00"></div>
     </div>
-    <div class="modalhint">Corridinha Infantil: nome, CPF e WhatsApp do responsável são obrigatórios. Empresa: selecione o lote para consumir uma vaga corporativa. PCD: somente presencial, sujeito à conferência da documentação e disponibilidade das 10 vagas.</div>
+    <div class="modalhint">Corridinha Infantil: CPF e WhatsApp da criança são opcionais; nome, CPF e WhatsApp do responsável são obrigatórios. Empresa: selecione o lote para consumir uma vaga corporativa. PCD: somente presencial, sujeito à conferência da documentação e disponibilidade das 10 vagas.</div>
     <div class="actions">
       <button class="primary" onclick="savePresencial()">Registrar inscrição</button>
       <button class="secondary" onclick="closePresencial()">Cancelar</button>
@@ -713,5 +730,53 @@ window.CNR26_V8={
   });
 })();
 </script>
+
+<script>
+(function(){
+  function ajustarTamanhosCorridinha(){
+    const selects = Array.from(document.querySelectorAll('select'));
+    const modalidade = selects.find(s => {
+      const label = s.previousElementSibling;
+      return label && /modalidade/i.test(label.textContent || '');
+    });
+    if(!modalidade) return;
+
+    const camisa = selects.find(s => {
+      const label = s.previousElementSibling;
+      return label && /camisa|tamanho.*camisa/i.test(label.textContent || '');
+    });
+    if(!camisa) return;
+
+    const isCorridinha = /corridinha/i.test(modalidade.value || '');
+    const atual = camisa.value;
+    const opcoes = isCorridinha
+      ? [
+          ['4','4 anos'], ['6','6 anos'], ['8','8 anos'],
+          ['10','10 anos'], ['12','12 anos'], ['PP','PP'], ['P','P']
+        ]
+      : [
+          ['PP','PP'], ['P','P'], ['M','M'], ['G','G'],
+          ['GG','GG'], ['XG','XG']
+        ];
+
+    camisa.innerHTML = '';
+    opcoes.forEach(([value,label]) => {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = label;
+      camisa.appendChild(opt);
+    });
+
+    if(opcoes.some(([v]) => v === atual)) camisa.value = atual;
+  }
+
+  document.addEventListener('change', function(e){
+    if(e.target.tagName === 'SELECT') ajustarTamanhosCorridinha();
+  });
+  document.addEventListener('DOMContentLoaded', ajustarTamanhosCorridinha);
+  setTimeout(ajustarTamanhosCorridinha, 300);
+})();
+</script>
+
 </body>
 </html>
