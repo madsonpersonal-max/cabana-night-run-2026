@@ -93,6 +93,20 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <div class="card"><div class="label">Vagas utilizadas</div><div class="metric" id="lotUsed">0</div></div>
 <div class="card"><div class="label">Vagas restantes</div><div class="metric ok" id="lotAvail">0</div></div></div>
 <div class="section tablewrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>Modalidade</th><th>Contratadas</th><th>Utilizadas</th><th>Restantes</th><th>Valor</th><th>Status</th></tr></thead><tbody id="tblEmpresas"></tbody></table></div>
+
+<div class="section card">
+  <h2>Vincular atleta ao lote</h2>
+  <div class="formgrid">
+    <div class="field"><label>Lote / empresa *</label><select id="vincLote"></select></div>
+    <div class="field"><label>CPF do atleta *</label><input id="vincCpf" placeholder="CPF"></div>
+    <div class="field"><label>Nome do atleta *</label><input id="vincNome" placeholder="Nome completo"></div>
+  </div>
+  <div class="actions"><button class="primary" onclick="vincularAtleta()">Vincular atleta</button></div>
+  <div class="section tablewrap">
+    <table><thead><tr><th>Empresa</th><th>Modalidade</th><th>CPF</th><th>Atleta</th><th>Data</th></tr></thead>
+    <tbody id="tblVinculos"></tbody></table>
+  </div>
+</div>
 <div class="section notice"><strong>Regra:</strong> empresa sem login. O Administrador cadastra o lote e os atletas vinculados serão registrados no sistema. Vagas não utilizadas permanecem reservadas até liberação administrativa com auditoria.</div>
 </section>
 
@@ -159,8 +173,42 @@ function saveCompanyLot(){
 }
 function clearCompanyForm(){['empNome','empCnpj','empResp','empWhats','empEmail','loteValidade'].forEach(id=>document.getElementById(id).value='');loteQtd.value=10;loteValor.value=0}
 function renderCompanies(){
- const v=getCompanies();tblEmpresas.innerHTML=v.map(x=>`<tr><td>${x.empresa}</td><td>${x.cnpj}</td><td>${x.responsavel}</td><td>${x.modalidade}</td><td>${x.contratadas}</td><td>${x.utilizadas}</td><td>${Math.max(0,x.contratadas-x.utilizadas)}</td><td>R$ ${Number(x.valor||0).toFixed(2).replace('.',',')}</td><td><span class="badge">${x.status}</span></td></tr>`).join('')||'<tr><td colspan="9">Nenhuma empresa cadastrada.</td></tr>';
- empCount.textContent=v.length;lotCount.textContent=v.reduce((a,x)=>a+Number(x.contratadas||0),0);lotUsed.textContent=v.reduce((a,x)=>a+Number(x.utilizadas||0),0);lotAvail.textContent=v.reduce((a,x)=>a+Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),0)
+ const v=getCompanies();
+ tblEmpresas.innerHTML=v.map(x=>`<tr><td>${x.empresa}</td><td>${x.cnpj}</td><td>${x.responsavel}</td><td>${x.modalidade}</td><td>${x.contratadas}</td><td>${x.utilizadas}</td><td>${Math.max(0,x.contratadas-x.utilizadas)}</td><td>R$ ${Number(x.valor||0).toFixed(2).replace('.',',')}</td><td><span class="badge">${x.status}</span></td></tr>`).join('')||'<tr><td colspan="9">Nenhuma empresa cadastrada.</td></tr>';
+ empCount.textContent=v.length;
+ lotCount.textContent=v.reduce((a,x)=>a+Number(x.contratadas||0),0);
+ lotUsed.textContent=v.reduce((a,x)=>a+Number(x.utilizadas||0),0);
+ lotAvail.textContent=v.reduce((a,x)=>a+Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),0);
+ const sel=document.getElementById('vincLote');
+ if(sel) sel.innerHTML=v.filter(x=>x.status==='ATIVO' && Number(x.contratadas||0)>Number(x.utilizadas||0)).map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${Math.max(0,x.contratadas-x.utilizadas)} vagas</option>`).join('')||'<option value="">Nenhum lote com vaga disponível</option>';
+ renderVinculos();
+}
+
+const LINK_KEY='cnr26_empresa_atletas_v3';
+function getLinks(){try{return JSON.parse(localStorage.getItem(LINK_KEY)||'[]')}catch(e){return []}}
+function setLinks(v){localStorage.setItem(LINK_KEY,JSON.stringify(v));renderVinculos();renderCompanies();counts()}
+function vincularAtleta(){
+ const loteId=document.getElementById('vincLote').value;
+ const cpf=document.getElementById('vincCpf').value.trim();
+ const nome=document.getElementById('vincNome').value.trim();
+ if(!loteId||!cpf||!nome){alert('Preencha lote, CPF e nome do atleta.');return}
+ const companies=getCompanies(), lote=companies.find(x=>x.id===loteId);
+ if(!lote){alert('Lote não encontrado.');return}
+ if(Number(lote.utilizadas||0)>=Number(lote.contratadas||0)){alert('Este lote não possui vagas disponíveis.');return}
+ const links=getLinks();
+ if(links.some(x=>x.cpf===cpf)){alert('Este CPF já está vinculado a um lote.');return}
+ links.push({id:'VINC-'+Date.now(),loteId,empresa:lote.empresa,modalidade:lote.modalidade,cpf,nome,data:new Date().toISOString()});
+ lote.utilizadas=Number(lote.utilizadas||0)+1;
+ localStorage.setItem('cnr26_empresas_lotes_v2',JSON.stringify(companies));
+ setLinks(links);
+ document.getElementById('vincCpf').value='';
+ document.getElementById('vincNome').value='';
+ alert('Atleta vinculado ao lote. 1 vaga foi consumida.');
+}
+function renderVinculos(){
+ const body=document.getElementById('tblVinculos'); if(!body)return;
+ const links=getLinks();
+ body.innerHTML=links.map(x=>`<tr><td>${x.empresa}</td><td>${x.modalidade}</td><td>${x.cpf}</td><td>${x.nome}</td><td>${new Date(x.data).toLocaleString('pt-BR')}</td></tr>`).join('')||'<tr><td colspan="5">Nenhum atleta vinculado.</td></tr>';
 }
 function logout(){alert('Logout de homologação. Em produção haverá autenticação e sessão segura.')}
 window.addEventListener('storage',counts);window.addEventListener('DOMContentLoaded',()=>{counts();renderCompanies();});
