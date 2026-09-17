@@ -127,7 +127,7 @@ function refresh(){
         <div class="field"><small>Comprovante</small><b>${esc(s.proofName||"Não enviado")}</b></div>
         <div class="field"><small>Enviado em</small><b>${s.proofSentAt?new Date(s.proofSentAt).toLocaleString("pt-BR"):"—"}</b></div>
       </div>
-      ${s.paymentNote?'<div class="notice"><strong>Observação</strong><span class="muted">'+esc(s.paymentNote)+'</span></div>':''}
+      ${s.status==="SOLICITAR CORREÇÃO" && s.paymentNote?'<div class="notice"><strong>Motivo da correção</strong><span class="muted">'+esc(s.paymentNote)+'</span></div>':''}
       <div class="actions">
         ${canAnalyze?'<button class="primary" onclick="approve()">Aprovar pagamento e confirmar inscrição</button>':''}
         ${canAnalyze?'<button class="yellow" onclick="requestCorrection()">Solicitar correção</button>':''}
@@ -156,10 +156,18 @@ function approve(){
 }
 function requestCorrection(){
   const s=load(); if(!s.cpf)return;
-  const note=prompt("Informe o motivo da correção:");
+  const note=prompt("Informe o motivo da correção (obrigatório):");
   if(note===null)return;
-  s.status="SOLICITAR CORREÇÃO"; s.paymentNote=note||"Comprovante precisa ser reenviado/ajustado.";
-  audit(s,"ATENDENTE — solicitou correção — CPF "+s.cpf);
+  const reason=String(note).trim();
+  if(!reason){
+    alert("O motivo da correção é obrigatório.");
+    return;
+  }
+  s.status="SOLICITAR CORREÇÃO";
+  s.paymentNote=reason;
+  s.correctionRequestedAt=new Date().toISOString();
+  s.correctionCount=Number(s.correctionCount||0)+1;
+  audit(s,"ATENDENTE — solicitou correção — CPF "+s.cpf+" — Motivo: "+reason);
   refresh();
 }
 function notIdentified(){
@@ -614,7 +622,7 @@ window.CNR26_V8={
  }
 };
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8.4 INTEGRAÇÃO CPF</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8.5 CORREÇÃO DE COMPROVANTE</div>
 <script>
 /* V8.3 — ponte de homologação entre área pública e atendente.
    Em produção, ambos usarão a mesma API/banco; não haverá sincronização por localStorage. */

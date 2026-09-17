@@ -179,6 +179,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
   <div><span>Valor</span><b id="payValue">-</b></div>
   <div><span>Status</span><b id="payStatus">AGUARDANDO PAGAMENTO</b></div>
 </div>
+<div id="paymentCorrectionNotice"></div>
 
 <h3>Pagamento via PIX</h3>
 <p class="muted">Na versão real, esta área receberá o QR Code PIX oficial/dinâmico. Para o teste, a chave abaixo é apenas informativa.</p>
@@ -187,6 +188,10 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 <label for="comprovante">Comprovante de pagamento *</label>
 <input id="comprovante" type="file" accept="image/*,.pdf">
 <p class="muted">Formatos de teste: imagem ou PDF. Nenhum arquivo real deve ser enviado neste ambiente.</p>
+<div class="notice" style="margin-top:10px">
+  <strong>Se a inscrição estiver em correção</strong>
+  <span class="muted">Selecione o novo comprovante e envie novamente. O novo arquivo substituirá o comprovante pendente na homologação.</span>
+</div>
 
 <div class="actions">
   <button type="button" class="primary" onclick="sendProofTest()">Enviar comprovante (teste)</button>
@@ -335,6 +340,11 @@ function openPayment(state){
   document.getElementById("payStatus").textContent = state.status || "AGUARDANDO PAGAMENTO";
   document.getElementById("comprovante").value = "";
   document.getElementById("paymentResult").innerHTML = "";
+  document.getElementById("paymentCorrectionNotice").innerHTML =
+    state.status === "SOLICITAR CORREÇÃO" && state.paymentNote
+      ? '<div class="notice warning"><strong>Motivo da correção</strong><span class="muted">'+
+        escapeHtml(state.paymentNote)+'</span></div>'
+      : "";
   closeModal("inscricao");
   closeModal("consulta");
   openModal("pagamento");
@@ -350,10 +360,14 @@ function sendProofTest(){
   var file = document.getElementById("comprovante").files[0];
   if(!state || !state.cpf){ alert("Nenhuma inscrição salva para pagamento."); return; }
   if(!file){ alert("Selecione um comprovante de teste antes de enviar."); return; }
+  // Novo envio substitui o comprovante pendente para fins de homologação.
+  state.previousProofName = state.proofName || null;
   state.status = "COMPROVANTE ENVIADO";
+  state.paymentNote = "";
   state.proofName = file.name;
   state.proofSize = file.size;
   state.proofSentAt = new Date().toISOString();
+  state.proofVersion = Number(state.proofVersion || 0) + 1;
   saveState(state);
   document.getElementById("payStatus").textContent = state.status;
   document.getElementById("paymentResult").innerHTML =
@@ -366,13 +380,19 @@ function consultRegistration(){
   var cpf = document.getElementById("qcpf").value.replace(/\D/g,"");
   var result = document.getElementById("qresult");
   if(state && state.cpf === cpf){
-    var paymentButton = state.status === "AGUARDANDO PAGAMENTO"
-      ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>' : '';
+    var paymentButton = (state.status === "AGUARDANDO PAGAMENTO" || state.status === "SOLICITAR CORREÇÃO")
+      ? '<button type="button" class="primary" onclick="openPaymentForSaved()">'+
+        (state.status === "SOLICITAR CORREÇÃO" ? "Corrigir / enviar novo comprovante" : "Enviar comprovante de pagamento")+
+        '</button>' : '';
+    var correction = state.status === "SOLICITAR CORREÇÃO" && state.paymentNote
+      ? '<div class="notice warning"><strong>Motivo da correção</strong><span class="muted">'+escapeHtml(state.paymentNote)+
+        '</span></div>' : '';
     result.innerHTML =
       '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">CPF: '+
       escapeHtml(state.cpf)+'<br>Status: '+escapeHtml(state.status)+
       '<br>Modalidade: '+escapeHtml(state.modalidade||"Corrida 7 km")+
-      '<br>Camisa: '+escapeHtml(state.camisa)+'</span><div class="actions">'+paymentButton+'</div></div>';
+      '<br>Camisa: '+escapeHtml(state.camisa)+'</span></div>'+correction+
+      '<div class="actions">'+paymentButton+'</div>';
   }else{
     result.innerHTML = '<div class="alert">Nenhuma inscrição de homologação encontrada para este CPF.</div>';
   }
