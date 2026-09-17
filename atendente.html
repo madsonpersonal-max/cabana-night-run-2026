@@ -357,7 +357,7 @@ function savePresencial(){
       <div class="modalfield"><label>Equipe/Assessoria</label><input id="pEquipe" placeholder="Opcional"></div>
       <div class="modalfield"><label>Origem *</label><select id="pOrigem" onchange="toggleEmpresaLote()"><option value="PRESENCIAL">Presencial</option><option value="EMPRESA">Empresa</option><option value="BONIFICACAO">Bonificação</option></select></div>
       <div class="modalfield" id="empresaWrap" style="display:none"><label>Empresa / lote *</label><select id="pLote"></select></div>
-      <div class="modalfield"><label>Modalidade *</label><select id="pMod" onchange="toggleResponsavel();updatePresencialValue();toggleEmpresaLote()"><option value="">Selecione</option><option value="individual">Corrida 7 km — Público geral</option><option value="socio">Corrida 7 km — Sócio/Equipe</option><option value="infantil">Corridinha Infantil</option><option value="pcd">PCD presencial</option></select></div>
+      <div class="modalfield"><label>Modalidade *</label><select id="pMod" onchange="toggleResponsavel();updatePresencialValue();toggleEmpresaLote();ajustarTamanhosCorridinha()"><option value="">Selecione</option><option value="individual">Corrida 7 km — Público geral</option><option value="socio">Corrida 7 km — Sócio/Equipe</option><option value="infantil">Corridinha Infantil</option><option value="pcd">PCD presencial</option></select></div>
       <div class="modalfield" id="respNomeWrap" style="display:none"><label>Nome completo do responsável *</label><input id="pRespNome" placeholder="Responsável pelo atleta"></div>
       <div class="modalfield" id="respCpfWrap" style="display:none"><label>CPF do responsável *</label><input id="pRespCpf" inputmode="numeric" placeholder="000.000.000-00"></div>
       <div class="modalfield" id="respWhatsWrap" style="display:none"><label>WhatsApp do responsável *</label><input id="pRespWhats" inputmode="tel" placeholder="(91) 99999-9999"></div>
@@ -734,32 +734,28 @@ window.CNR26_V8={
 <script>
 (function(){
   function ajustarTamanhosCorridinha(){
-    const selects = Array.from(document.querySelectorAll('select'));
-    const modalidade = selects.find(s => {
-      const label = s.previousElementSibling;
-      return label && /modalidade/i.test(label.textContent || '');
-    });
-    if(!modalidade) return;
+    const modalidade = document.getElementById('pMod');
+    const camisa = document.getElementById('pCamisa');
+    if(!modalidade || !camisa) return;
 
-    const camisa = selects.find(s => {
-      const label = s.previousElementSibling;
-      return label && /camisa|tamanho.*camisa/i.test(label.textContent || '');
-    });
-    if(!camisa) return;
-
-    const isCorridinha = /corridinha/i.test(modalidade.value || '');
+    const isCorridinha = modalidade.value === 'infantil';
     const atual = camisa.value;
     const opcoes = isCorridinha
       ? [
-          ['4','4 anos'], ['6','6 anos'], ['8','8 anos'],
-          ['10','10 anos'], ['12','12 anos'], ['PP','PP'], ['P','P']
+          ['4 anos','4 anos'],
+          ['6 anos','6 anos'],
+          ['8 anos','8 anos'],
+          ['10 anos','10 anos'],
+          ['12 anos','12 anos'],
+          ['PP','PP'],
+          ['P','P']
         ]
       : [
           ['PP','PP'], ['P','P'], ['M','M'], ['G','G'],
           ['GG','GG'], ['XG','XG']
         ];
 
-    camisa.innerHTML = '';
+    camisa.innerHTML = '<option value="">Selecione</option>';
     opcoes.forEach(([value,label]) => {
       const opt = document.createElement('option');
       opt.value = value;
@@ -770,9 +766,7 @@ window.CNR26_V8={
     if(opcoes.some(([v]) => v === atual)) camisa.value = atual;
   }
 
-  document.addEventListener('change', function(e){
-    if(e.target.tagName === 'SELECT') ajustarTamanhosCorridinha();
-  });
+  window.ajustarTamanhosCorridinha = ajustarTamanhosCorridinha;
   document.addEventListener('DOMContentLoaded', ajustarTamanhosCorridinha);
   setTimeout(ajustarTamanhosCorridinha, 300);
 })();
