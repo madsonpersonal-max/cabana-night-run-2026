@@ -79,7 +79,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </section>
 
 <section class="notice">
-  <strong>Ambiente de homologação</strong>
+  <strong>Ambiente de homologação • V8.4 integração</strong>
   <span class="muted">Este é um teste. Não realize pagamento real nem envie documentos reais.</span>
 </section>
 
@@ -288,12 +288,12 @@ function renderReview(){
 }
 
 function getSavedState(){
-  try { return JSON.parse(localStorage.getItem("cnr26_state") || "null"); }
-  catch(e){ return null; }
+  try { return JSON.parse(localStorage.getItem("cnr26_homologacao") || "{}"); }
+  catch(e){ return {}; }
 }
 
 function saveState(state){
-  localStorage.setItem("cnr26_state", JSON.stringify(state));
+  localStorage.setItem("cnr26_homologacao", JSON.stringify(state));
 }
 
 function confirmRegistration(){
@@ -371,6 +371,7 @@ function consultRegistration(){
     result.innerHTML =
       '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">CPF: '+
       escapeHtml(state.cpf)+'<br>Status: '+escapeHtml(state.status)+
+      '<br>Modalidade: '+escapeHtml(state.modalidade||"Corrida 7 km")+
       '<br>Camisa: '+escapeHtml(state.camisa)+'</span><div class="actions">'+paymentButton+'</div></div>';
   }else{
     result.innerHTML = '<div class="alert">Nenhuma inscrição de homologação encontrada para este CPF.</div>';
