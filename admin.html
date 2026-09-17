@@ -30,6 +30,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <aside>
 <button class="nav active" data-view="dashboard">Dashboard</button>
 <button class="nav" data-view="inscricoes">Inscrições</button>
+<button class="nav" data-view="atletas">Cadastro de atletas</button>
 <button class="nav" data-view="vagas">Central de vagas</button>
 <button class="nav" data-view="empresas">Empresas</button>
 <button class="nav" data-view="bonificacoes">Bonificações</button>
@@ -63,6 +64,46 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <div class="field"><label>Status</label><select id="fStatus"><option value="">Todos</option><option>INSCRIÇÃO CONFIRMADA</option><option>EM VALIDAÇÃO</option><option>SOLICITAR CORREÇÃO</option></select></div>
 </div>
 <div class="section tablewrap"><table><thead><tr><th>CPF</th><th>Atleta</th><th>Modalidade</th><th>Origem</th><th>Pagamento</th><th>Status</th></tr></thead><tbody id="tblInscricoes"></tbody></table></div>
+</section>
+
+
+<section id="atletas" class="view">
+<h1>Cadastro Geral de Atletas</h1>
+<div class="sub">Consulta centralizada dos atletas cadastrados na homologação. Na produção, a fonte oficial será o banco de dados.</div>
+
+<div class="formgrid">
+  <div class="field"><label>CPF</label><input id="atBuscaCpf" placeholder="Digite o CPF"></div>
+  <div class="field"><label>Nome</label><input id="atBuscaNome" placeholder="Nome completo"></div>
+  <div class="field"><label>Modalidade</label>
+    <select id="atBuscaMod"><option value="">Todas</option><option>Corrida 7 km</option><option>Corridinha Infantil</option><option>PCD presencial</option></select>
+  </div>
+  <div class="field"><label>Origem</label>
+    <select id="atBuscaOrig"><option value="">Todas</option><option>ONLINE</option><option>PRESENCIAL</option><option>EMPRESA</option><option>BONIFICACAO</option></select>
+  </div>
+  <div class="field"><label>Status</label>
+    <select id="atBuscaStatus"><option value="">Todos</option><option>INSCRIÇÃO CONFIRMADA</option><option>EM VALIDAÇÃO</option><option>SOLICITAR CORREÇÃO</option><option>CANCELADA</option></select>
+  </div>
+</div>
+
+<div class="section grid">
+  <div class="card"><div class="label">Atletas encontrados</div><div class="metric" id="atTotal">0</div></div>
+  <div class="card"><div class="label">Corrida 7 km</div><div class="metric" id="atCorrida">0</div></div>
+  <div class="card"><div class="label">Corridinha Infantil</div><div class="metric" id="atInfantil">0</div></div>
+  <div class="card"><div class="label">Empresas</div><div class="metric" id="atEmpresa">0</div></div>
+</div>
+
+<div class="section tablewrap">
+<table>
+<thead><tr><th>CPF</th><th>Atleta</th><th>Modalidade</th><th>Origem</th><th>Empresa/Lote</th><th>Camiseta</th><th>Status</th><th>Ação</th></tr></thead>
+<tbody id="tblAtletas"></tbody>
+</table>
+</div>
+
+<div id="fichaAtleta" class="section card" style="display:none">
+  <h2>Ficha do atleta</h2>
+  <div id="fichaConteudo"></div>
+  <div class="actions"><button class="secondary" onclick="fecharFichaAtleta()">Fechar ficha</button></div>
+</div>
 </section>
 
 <section id="vagas" class="view"><h1>Central de vagas</h1><div class="sub">Somente o Administrador altera limites. Em produção, utilização será calculada pelo banco.</div>
@@ -166,7 +207,7 @@ function loadRegs(){
  }
  return demo;
 }
-function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='inscricoes')renderRegs();if(v==='empresas')renderCompanies();}
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='inscricoes')renderRegs();if(v==='empresas')renderCompanies();if(v==='atletas')renderAtletas();}
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function normalize(r){
  let m=String(r.modality||r.modalidade||'Corrida 7 km'); if(/infantil|corridinha/i.test(m))m='Corridinha Infantil'; else if(/pcd/i.test(m))m='PCD presencial'; else m='Corrida 7 km';
@@ -274,7 +315,102 @@ function renderAtletasEmpresa(){
   );
   body.innerHTML=rows.map(x=>`<tr><td>${x.empresa||'—'}</td><td>${x.loteId||'—'}</td><td>${x.modalidade||'—'}</td><td>${x.cpf||'—'}</td><td>${x.nome||'—'}</td><td>${x.criadoEm?new Date(x.criadoEm).toLocaleString('pt-BR'):'—'}</td></tr>`).join('')||'<tr><td colspan="6">Nenhum atleta corporativo encontrado.</td></tr>';
 }
+
+function getAllAdminAthletes(){
+  const out=[];
+  const seen=new Set();
+  function add(r){
+    const cpf=String(r.cpf||r.CPF||'').trim();
+    if(!cpf || seen.has(cpf)) return;
+    seen.add(cpf);
+    out.push({
+      cpf,
+      nome:r.nome||r.name||'',
+      modalidade:/infantil/i.test(r.modalidade||r.modality||'')?'Corridinha Infantil':/pcd/i.test(r.modalidade||r.modality||'')?'PCD presencial':'Corrida 7 km',
+      origem:r.origem||r.origin||'ONLINE',
+      empresa:r.empresa||'—',
+      loteId:r.loteId||'—',
+      camisa:r.camisa||r.shirt||r.tamanhoCamisa||'—',
+      status:r.status||'—',
+      whatsapp:r.whatsapp||'—',
+      email:r.email||'—',
+      nascimento:r.nascimento||r.dataNascimento||'—',
+      sexo:r.sexo||'—',
+      cidade:r.cidade||'—',
+      responsavel:r.responsavel||r.responsavelNome||null,
+      responsavelCpf:r.responsavelCpf||'—',
+      responsavelWhats:r.responsavelWhats||'—',
+      valor:r.valor||0,
+      pagamento:r.paymentMethod||r.pagamento||'—',
+      criadoEm:r.criadoEm||r.createdAt||''
+    });
+  }
+  ['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas'].forEach(k=>{
+    try{const v=JSON.parse(localStorage.getItem(k)||'[]'); if(Array.isArray(v)) v.forEach(add)}catch(e){}
+  });
+  return out;
+}
+function renderAtletas(){
+  const qcpf=(document.getElementById('atBuscaCpf')?.value||'').toLowerCase();
+  const qnome=(document.getElementById('atBuscaNome')?.value||'').toLowerCase();
+  const qmod=document.getElementById('atBuscaMod')?.value||'';
+  const qorig=document.getElementById('atBuscaOrig')?.value||'';
+  const qstatus=document.getElementById('atBuscaStatus')?.value||'';
+  const rows=getAllAdminAthletes().filter(x=>
+    (!qcpf||x.cpf.toLowerCase().includes(qcpf)) &&
+    (!qnome||x.nome.toLowerCase().includes(qnome)) &&
+    (!qmod||x.modalidade===qmod) &&
+    (!qorig||x.origem===qorig) &&
+    (!qstatus||x.status===qstatus)
+  );
+  const body=document.getElementById('tblAtletas'); if(!body)return;
+  body.innerHTML=rows.map((x,i)=>`<tr>
+    <td>${x.cpf}</td><td>${x.nome}</td><td>${x.modalidade}</td><td>${x.origem}</td>
+    <td>${x.empresa}${x.loteId!=='—'?' / '+x.loteId:''}</td><td>${x.camisa}</td>
+    <td><span class="badge">${x.status}</span></td>
+    <td><button class="secondary" onclick="abrirFichaAtleta('${encodeURIComponent(x.cpf)}')">Ver ficha</button></td>
+  </tr>`).join('')||'<tr><td colspan="8">Nenhum atleta encontrado.</td></tr>';
+  document.getElementById('atTotal').textContent=rows.length;
+  document.getElementById('atCorrida').textContent=rows.filter(x=>x.modalidade==='Corrida 7 km').length;
+  document.getElementById('atInfantil').textContent=rows.filter(x=>x.modalidade==='Corridinha Infantil').length;
+  document.getElementById('atEmpresa').textContent=rows.filter(x=>x.empresa!=='—').length;
+}
+function abrirFichaAtleta(cpfEncoded){
+  const cpf=decodeURIComponent(cpfEncoded);
+  const x=getAllAdminAthletes().find(a=>a.cpf===cpf);
+  const box=document.getElementById('fichaAtleta'), c=document.getElementById('fichaConteudo');
+  if(!x||!box||!c)return;
+  c.innerHTML=`
+    <div class="formgrid">
+      <div class="card"><div class="label">CPF</div><strong>${x.cpf}</strong></div>
+      <div class="card"><div class="label">Nome</div><strong>${x.nome}</strong></div>
+      <div class="card"><div class="label">Modalidade</div><strong>${x.modalidade}</strong></div>
+      <div class="card"><div class="label">Origem</div><strong>${x.origem}</strong></div>
+      <div class="card"><div class="label">Empresa</div><strong>${x.empresa}</strong></div>
+      <div class="card"><div class="label">Lote</div><strong>${x.loteId}</strong></div>
+      <div class="card"><div class="label">Camiseta</div><strong>${x.camisa}</strong></div>
+      <div class="card"><div class="label">Status</div><strong>${x.status}</strong></div>
+      <div class="card"><div class="label">WhatsApp</div><strong>${x.whatsapp}</strong></div>
+      <div class="card"><div class="label">E-mail</div><strong>${x.email}</strong></div>
+      <div class="card"><div class="label">Nascimento</div><strong>${x.nascimento}</strong></div>
+      <div class="card"><div class="label">Sexo</div><strong>${x.sexo}</strong></div>
+      <div class="card"><div class="label">Cidade</div><strong>${x.cidade}</strong></div>
+      <div class="card"><div class="label">Pagamento</div><strong>${x.pagamento}</strong></div>
+      <div class="card"><div class="label">Valor</div><strong>R$ ${Number(x.valor||0).toFixed(2).replace('.',',')}</strong></div>
+    </div>
+    ${x.modalidade==='Corridinha Infantil'?`<div class="section notice"><strong>Responsável legal:</strong> ${x.responsavel||'Não informado'} · CPF: ${x.responsavelCpf} · WhatsApp: ${x.responsavelWhats}</div>`:''}
+  `;
+  box.style.display='block';
+}
+function fecharFichaAtleta(){const x=document.getElementById('fichaAtleta');if(x)x.style.display='none'}
+
 function logout(){alert('Logout de homologação. Em produção haverá autenticação e sessão segura.')}
-window.addEventListener('storage',counts);window.addEventListener('DOMContentLoaded',()=>{counts();renderCompanies();document.getElementById('filtroLoteAtletas')?.addEventListener('change',renderAtletasEmpresa);document.getElementById('filtroAtletaEmpresa')?.addEventListener('input',renderAtletasEmpresa);});
+window.addEventListener('storage',counts);window.addEventListener('DOMContentLoaded',()=>{counts();renderCompanies();renderAtletas();document.getElementById('filtroLoteAtletas')?.addEventListener('change',renderAtletasEmpresa);document.getElementById('filtroAtletaEmpresa')?.addEventListener('input',renderAtletasEmpresa);});
+
+['atBuscaCpf','atBuscaNome','atBuscaMod','atBuscaOrig','atBuscaStatus'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input',renderAtletas);
+  document.getElementById(id)?.addEventListener('change',renderAtletas);
+});
+
 </script>
 </body></html>
