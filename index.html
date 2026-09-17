@@ -59,7 +59,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 <section class="hero">
   <div class="kicker">14 de novembro • Cabana Clube • Barcarena/PA</div>
   <h1>Cabana Night Run <span>2026</span></h1>
-  <p>Corrida noturna de 7 km. Faça sua inscrição, gere seu protocolo e acompanhe o status da inscrição.</p>
+  <p>Corrida noturna de 7 km. Faça sua inscrição e acompanhe o status da inscrição usando seu CPF.</p>
   <div class="actions">
     <button class="primary" onclick="startRegistration()">Fazer inscrição</button>
     <button class="secondary" onclick="openModal('consulta')">Consultar minha inscrição</button>
@@ -95,7 +95,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
   <div class="step" id="s2">2 Modalidade</div>
   <div class="step" id="s3">3 Camisa</div>
   <div class="step" id="s4">4 Revisão</div>
-  <div class="step" id="s5">5 Protocolo</div>
+  <div class="step" id="s5">5 Pagamento</div>
 </div>
 
 <form id="form">
@@ -150,13 +150,13 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 <div id="p4" class="hidden">
 <h3>Revise seus dados</h3>
 <div class="summary" id="review"></div>
-<div class="actions"><button type="button" class="secondary" onclick="goToStep(3)">Voltar</button><button type="button" class="primary" onclick="confirmRegistration()">Confirmar e gerar protocolo</button></div>
+<div class="actions"><button type="button" class="secondary" onclick="goToStep(3)">Voltar</button><button type="button" class="primary" onclick="confirmRegistration()">Confirmar inscrição</button></div>
 </div>
 
 <div id="p5" class="hidden">
 <h3>Inscrição registrada para homologação</h3>
 <div class="summary">
-  <div><span>Protocolo</span><b id="protocol"></b></div>
+  <div><span>CPF</span><b id="registrationCpf"></b></div>
   <div><span>Status</span><b>AGUARDANDO PAGAMENTO</b></div>
   <div><span>Valor</span><b id="valor"></b></div>
 </div>
@@ -175,7 +175,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 <div class="alert">AMBIENTE DE HOMOLOGAÇÃO: não faça PIX real e não envie comprovante real.</div>
 
 <div class="summary">
-  <div><span>Protocolo</span><b id="payProtocol">-</b></div>
+  <div><span>CPF</span><b id="payCpf">-</b></div>
   <div><span>Valor</span><b id="payValue">-</b></div>
   <div><span>Status</span><b id="payStatus">AGUARDANDO PAGAMENTO</b></div>
 </div>
@@ -200,8 +200,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 <div id="consulta" class="modal">
 <div class="box">
 <div class="top"><h2>Consultar minha inscrição</h2><button class="close" onclick="closeModal('consulta')">Fechar</button></div>
-<p class="muted">No sistema real, a consulta será limitada ao próprio atleta mediante protocolo + CPF.</p>
-<label for="qprot">Protocolo</label><input id="qprot" placeholder="CNR26-000001">
+<p class="muted">Consulte sua inscrição usando somente o CPF informado no cadastro.</p>
 <label for="qcpf">CPF</label><input id="qcpf" placeholder="000.000.000-00">
 <button class="primary" onclick="consultRegistration()">Consultar</button>
 <div id="qresult"></div>
@@ -288,38 +287,50 @@ function renderReview(){
     "<div><span>Valor</span><b>"+valor+"</b></div>";
 }
 
+function getSavedState(){
+  try { return JSON.parse(localStorage.getItem("cnr26_state") || "null"); }
+  catch(e){ return null; }
+}
+
+function saveState(state){
+  localStorage.setItem("cnr26_state", JSON.stringify(state));
+}
+
 function confirmRegistration(){
+  var cpf = document.getElementById("cpf").value.replace(/\D/g,"");
+  if(cpf.length !== 11){ alert("Informe um CPF válido com 11 dígitos."); return; }
   var modalidade = document.getElementById("modalidade").value;
-  var protocol = "CNR26-" + Math.floor(100000 + Math.random()*900000);
+  var existing = getSavedState();
+  if(existing && existing.cpf === cpf && existing.status !== "CANCELADA"){
+    alert("Já existe uma inscrição de homologação para este CPF. Consulte pelo CPF para continuar.");
+    return;
+  }
 
   var state = {
-    protocol: protocol,
-    cpf: document.getElementById("cpf").value.replace(/\D/g,""),
+    cpf: cpf,
     nome: document.getElementById("nome").value,
+    whatsapp: document.getElementById("whatsapp").value,
+    modalidade: modalidade,
+    origem: document.getElementById("origem").value,
+    camisa: document.getElementById("camisa").value,
     status: "AGUARDANDO PAGAMENTO",
     valor: modalidade === "socio" ? 100 : 110,
-    camisa: document.getElementById("camisa").value
+    createdAt: new Date().toISOString()
   };
-
   saveState(state);
-
-  document.getElementById("protocol").textContent = protocol;
+  document.getElementById("registrationCpf").textContent = document.getElementById("cpf").value;
   document.getElementById("valor").textContent = modalidade === "socio" ? "R$ 100,00" : "R$ 110,00";
-
   goToStep(5);
 }
 
 function showPaymentDemo(){
-  var state = loadState();
-  if(!state.protocol){
-    alert("Nenhuma inscrição de homologação encontrada.");
-    return;
-  }
+  var state = getSavedState();
+  if(!state || !state.cpf){ alert("Nenhuma inscrição de homologação encontrada."); return; }
   openPayment(state);
 }
 
 function openPayment(state){
-  document.getElementById("payProtocol").textContent = state.protocol || "-";
+  document.getElementById("payCpf").textContent = state.cpf || "-";
   document.getElementById("payValue").textContent = state.valor === 100 ? "R$ 100,00" : "R$ 110,00";
   document.getElementById("payStatus").textContent = state.status || "AGUARDANDO PAGAMENTO";
   document.getElementById("comprovante").value = "";
@@ -330,30 +341,20 @@ function openPayment(state){
 }
 
 function openPaymentForSaved(){
-  var state = loadState();
-  if(state.protocol) openPayment(state);
+  var state = getSavedState();
+  if(state && state.cpf) openPayment(state);
 }
 
 function sendProofTest(){
-  var state = loadState();
+  var state = getSavedState();
   var file = document.getElementById("comprovante").files[0];
-
-  if(!state.protocol){
-    alert("Nenhuma inscrição salva para pagamento.");
-    return;
-  }
-
-  if(!file){
-    alert("Selecione um comprovante de teste antes de enviar.");
-    return;
-  }
-
+  if(!state || !state.cpf){ alert("Nenhuma inscrição salva para pagamento."); return; }
+  if(!file){ alert("Selecione um comprovante de teste antes de enviar."); return; }
   state.status = "COMPROVANTE ENVIADO";
   state.proofName = file.name;
   state.proofSize = file.size;
   state.proofSentAt = new Date().toISOString();
   saveState(state);
-
   document.getElementById("payStatus").textContent = state.status;
   document.getElementById("paymentResult").innerHTML =
     '<div class="notice success"><strong>Comprovante recebido para homologação</strong><span class="muted">Arquivo: '+
@@ -361,21 +362,18 @@ function sendProofTest(){
 }
 
 function consultRegistration(){
-  var state = loadState();
-  var protocol = document.getElementById("qprot").value.trim();
+  var state = getSavedState();
   var cpf = document.getElementById("qcpf").value.replace(/\D/g,"");
   var result = document.getElementById("qresult");
-
-  if(state.protocol === protocol && state.cpf === cpf){
+  if(state && state.cpf === cpf){
     var paymentButton = state.status === "AGUARDANDO PAGAMENTO"
-      ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>'
-      : '';
+      ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>' : '';
     result.innerHTML =
-      '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">Protocolo: '+
-      escapeHtml(state.protocol)+'<br>Status: '+escapeHtml(state.status)+
+      '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">CPF: '+
+      escapeHtml(state.cpf)+'<br>Status: '+escapeHtml(state.status)+
       '<br>Camisa: '+escapeHtml(state.camisa)+'</span><div class="actions">'+paymentButton+'</div></div>';
   }else{
-    result.innerHTML = '<div class="alert">Nenhuma inscrição de homologação encontrada para os dados informados.</div>';
+    result.innerHTML = '<div class="alert">Nenhuma inscrição de homologação encontrada para este CPF.</div>';
   }
 }
 
