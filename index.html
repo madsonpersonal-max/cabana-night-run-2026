@@ -395,8 +395,8 @@ function consultRegistration(){
       ? '<div class="notice warning"><strong>Motivo da correção</strong><span class="muted">'+escapeHtml(state.paymentNote)+
         '</span></div>' : '';
     result.innerHTML =
-      '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">CPF: '+
-      escapeHtml(state.cpf)+'<br>Status: '+escapeHtml(state.status)+
+      '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">Atleta: '+
+      escapeHtml(state.nome||"Nome não informado")+'<br>CPF: '+escapeHtml(state.cpf)+'<br>Status: '+escapeHtml(state.status)+
       '<br>Modalidade: '+escapeHtml(state.modalidade||"Corrida 7 km")+
       '<br>Camisa: '+escapeHtml(state.camisa)+'</span></div>'+correction+
       '<div class="actions">'+paymentButton+'</div>';

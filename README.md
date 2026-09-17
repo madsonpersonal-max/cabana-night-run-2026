@@ -1,5 +1,12 @@
-# Cabana Night Run 2026 — V8.8
+# Cabana Night Run 2026 — V8.9
 
-Atualização de homologação: mensagem visual de sucesso após conclusão da inscrição pública e após inscrição presencial pelo Atendente.
+Homologação: consulta pública de inscrição por CPF agora exibe também o **nome do atleta** antes dos demais dados.
 
-Arquivos: index.html, atendente.html e regulamento-cabana-night-run-2026.pdf.
+Fluxo exibido:
+- Atleta
+- CPF
+- Status
+- Modalidade
+- Camisa
+
+Esta versão continua sendo uma homologação estática/localStorage. Não representa o backend de produção.
