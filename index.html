@@ -46,6 +46,8 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 .pix{font-family:monospace;word-break:break-all;background:#0a080d;border:1px dashed #5b4765;padding:12px;border-radius:10px}
 .footer{padding:28px 0 8px;text-align:center;color:#82798b;font-size:13px}
 @media(max-width:700px){.grid,.info,.row{grid-template-columns:1fr}.hero{padding:27px 20px}.actions button{width:100%}}
+
+.successHero{text-align:center;padding:8px 8px 16px}.successIcon{width:54px;height:54px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;background:#172c16;border:1px solid #5e9b4f;color:#a6ff00}.successHero h3{margin:0 0 7px;font-size:24px}.successHero p{margin:0 auto;max-width:560px}
 </style>
 </head>
 <body>
@@ -154,7 +156,11 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </div>
 
 <div id="p5" class="hidden">
-<h3>Inscrição registrada para homologação</h3>
+<div class="successHero">
+  <div class="successIcon">✓</div>
+  <h3>Inscrição realizada com sucesso!</h3>
+  <p class="muted">Seu cadastro foi registrado. Agora siga para o pagamento e envie o comprovante para validação.</p>
+</div>
 <div class="summary">
   <div><span>CPF</span><b id="registrationCpf"></b></div>
   <div><span>Status</span><b>AGUARDANDO PAGAMENTO</b></div>
@@ -162,6 +168,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </div>
 <div class="notice"><strong>Próxima etapa</strong><span class="muted">Na versão conectada ao backend, esta etapa exibirá o QR Code PIX oficial e permitirá o envio do comprovante.</span></div>
 <div class="actions"><button type="button" class="primary" onclick="showPaymentDemo()">Ir para pagamento (teste)</button><button type="button" class="secondary" onclick="closeModal('inscricao')">Concluir</button></div>
+<div class="notice" style="margin-top:12px"><strong>Importante</strong><span class="muted">A inscrição somente será considerada confirmada após a validação do pagamento pela organização.</span></div>
 </div>
 
 </form>
@@ -341,7 +348,7 @@ function openPayment(state){
   document.getElementById("comprovante").value = "";
   document.getElementById("paymentResult").innerHTML = "";
   document.getElementById("paymentCorrectionNotice").innerHTML =
-    (state.status === "SOLICITAR CORREÇÃO" || state.status === "PAGAMENTO NÃO IDENTIFICADO") && state.paymentNote
+    state.status === "SOLICITAR CORREÇÃO" && state.paymentNote
       ? '<div class="notice warning"><strong>Motivo da correção</strong><span class="muted">'+
         escapeHtml(state.paymentNote)+'</span></div>'
       : "";
@@ -364,7 +371,6 @@ function sendProofTest(){
   state.previousProofName = state.proofName || null;
   state.status = "COMPROVANTE ENVIADO";
   state.paymentNote = "";
-  state.paymentIssue = "";
   state.proofName = file.name;
   state.proofSize = file.size;
   state.proofSentAt = new Date().toISOString();
@@ -381,11 +387,11 @@ function consultRegistration(){
   var cpf = document.getElementById("qcpf").value.replace(/\D/g,"");
   var result = document.getElementById("qresult");
   if(state && state.cpf === cpf){
-    var paymentButton = (state.status === "AGUARDANDO PAGAMENTO" || state.status === "SOLICITAR CORREÇÃO" || state.status === "PAGAMENTO NÃO IDENTIFICADO")
+    var paymentButton = (state.status === "AGUARDANDO PAGAMENTO" || state.status === "SOLICITAR CORREÇÃO")
       ? '<button type="button" class="primary" onclick="openPaymentForSaved()">'+
-        (state.status === "SOLICITAR CORREÇÃO" || state.status === "PAGAMENTO NÃO IDENTIFICADO" ? "Corrigir / enviar novo comprovante" : "Enviar comprovante de pagamento")+
+        (state.status === "SOLICITAR CORREÇÃO" ? "Corrigir / enviar novo comprovante" : "Enviar comprovante de pagamento")+
         '</button>' : '';
-    var correction = (state.status === "SOLICITAR CORREÇÃO" || state.status === "PAGAMENTO NÃO IDENTIFICADO") && state.paymentNote
+    var correction = state.status === "SOLICITAR CORREÇÃO" && state.paymentNote
       ? '<div class="notice warning"><strong>Motivo da correção</strong><span class="muted">'+escapeHtml(state.paymentNote)+
         '</span></div>' : '';
     result.innerHTML =
