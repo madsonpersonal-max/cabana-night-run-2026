@@ -1,15 +1,17 @@
-# Cabana Night Run 2026 — V10.2
-## Pagamentos e controle financeiro
+# Cabana Night Run 2026 — V10.3
+## Empresas: recibo de lote + Patrocinadores
 
-Incluído no ADM > Pagamentos:
-- Indicadores de pagamentos em validação, confirmados e correções.
-- Valor individual confirmado.
-- Quantidade de isentos.
-- Resumo financeiro por origem.
-- Regra explícita de que atleta de empresa/lote não gera cobrança individual.
-- Conferência filtrável por origem, status, CPF/nome.
-- Lista com forma de pagamento, valor e tratamento da cobrança.
-- Quadro separado de empresas/lotes com vagas e valor informado no lote.
-- Evita dupla contagem: valor do lote fica separado dos valores individuais dos atletas.
+Incluído:
+- Aba **Patrocinadores** no gerenciamento ADM.
+- Cadastro de empresa patrocinadora, CNPJ, responsável, contato, e-mail, cota, entrega/descrição, valor, vencimento, forma de pagamento, status e data de pagamento.
+- Geração de **Recibo / Comprovante de Patrocínio** para imprimir ou salvar em PDF pelo navegador.
+- Recibo com os dados do patrocinador e os dados de recebimento do Cabana Clube:
+  - Associação Recreativa Cabana Clube
+  - CNPJ: 63.886.204/0001-91
+  - PIX: 63.886.204/0001-91
+- Aviso no documento de que ele é um controle/comprovante comercial e não substitui nota fiscal quando exigida.
 
-A homologação continua usando localStorage. Em produção, pagamentos e valores devem ser validados no backend/banco, com trilha de auditoria e reconciliação com o PSP/banco quando a integração for implantada.
+Próximo refinamento recomendado:
+- aplicar a mesma emissão de recibo ao cadastro de empresa/lote, mostrando empresa, CNPJ, quantidade contratada, valor por atleta, valor total do lote, modalidade e situação do pagamento;
+- manter recibos numerados e auditáveis no backend de produção;
+- armazenar o PDF/documento no servidor em produção.

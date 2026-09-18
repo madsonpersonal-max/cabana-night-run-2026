@@ -23,6 +23,15 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 .notice{padding:14px;border-radius:12px;background:#211630;border:1px solid var(--line);color:var(--muted);font-size:13px}
 @media(max-width:800px){.layout{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line);display:flex;overflow:auto;gap:6px}.nav{white-space:nowrap;width:auto}.layout main{padding:16px}}
 </style>
+
+<style>
+@media print{
+ body>*:not(#sp_receipt){display:none!important}
+ #sp_receipt{display:block!important;position:static!important;background:white!important;padding:0!important}
+ #sp_receipt>div:last-child{display:none!important}
+ #sp_receipt_paper{box-shadow:none!important;border-radius:0!important;max-width:none!important}
+}
+</style>
 </head>
 <body>
 <header><div class="brand">CABANA <span>NIGHT RUN 2026</span> — ADMIN</div><button class="secondary" onclick="logout()">Sair</button></header>
@@ -32,7 +41,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <button class="nav" data-view="inscricoes">Inscrições</button>
 <button class="nav" data-view="atletas">Cadastro de atletas</button>
 <button class="nav" data-view="vagas">Central de vagas</button>
-<button class="nav" data-view="empresas">Empresas</button>
+<button class="nav" data-view="empresas">Empresas</button><button data-view="patrocinadores">Patrocinadores</button>
 <button class="nav" data-view="bonificacoes">Bonificações</button>
 <button class="nav" data-view="pcd">PCD presencial</button>
 <button class="nav" data-view="pagamentos">Pagamentos</button>
@@ -190,6 +199,56 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <div class="section notice"><strong>Regra V9:</strong> ao criar um lote, as vagas restantes são reservadas imediatamente no estoque da modalidade. O atleta vinculado ao lote não gera cobrança individual e consome somente o saldo do lote. Empresa sem login. O Administrador cadastra o lote e os atletas vinculados serão registrados no sistema. Vagas não utilizadas permanecem reservadas até liberação administrativa com auditoria.</div>
 </section>
 
+
+<section id="patrocinadores" class="view">
+<h1>Patrocinadores</h1>
+<div class="sub">Cadastro, controle de pagamento e emissão de recibo/comprovante comercial de patrocínio.</div>
+
+<div class="section notice">
+<strong>Dados de recebimento do Cabana Clube:</strong><br>
+Associação Recreativa Cabana Clube<br>
+CNPJ: 63.886.204/0001-91<br>
+PIX: 63.886.204/0001-91
+</div>
+
+<div class="grid">
+  <div class="card"><div class="label">Patrocinadores</div><div class="metric" id="sp_total">0</div></div>
+  <div class="card"><div class="label">Contratados</div><div class="metric" id="sp_contratados">0</div></div>
+  <div class="card"><div class="label">Pagos</div><div class="metric ok" id="sp_pagos">0</div></div>
+  <div class="card"><div class="label">Valor contratado</div><div class="metric ok" id="sp_valor">R$ 0,00</div></div>
+</div>
+
+<div class="section">
+<h2>Novo patrocinador</h2>
+<div class="formgrid">
+<div class="field"><label>Empresa *</label><input id="sp_empresa" placeholder="Razão social / nome da empresa"></div>
+<div class="field"><label>CNPJ *</label><input id="sp_cnpj" placeholder="00.000.000/0000-00"></div>
+<div class="field"><label>Responsável *</label><input id="sp_resp" placeholder="Nome do responsável"></div>
+<div class="field"><label>WhatsApp / celular *</label><input id="sp_cel" placeholder="(91) 99999-9999"></div>
+<div class="field"><label>E-mail</label><input id="sp_email" placeholder="Opcional"></div>
+<div class="field"><label>Cota / modalidade *</label><input id="sp_cota" placeholder="Ex.: Cota Master"></div>
+<div class="field"><label>Descrição / entrega</label><input id="sp_desc" placeholder="Ex.: mídia, camisa, pórtico, troféu"></div>
+<div class="field"><label>Valor contratado (R$) *</label><input id="sp_valor_in" type="number" min="0" step="0.01" placeholder="0,00"></div>
+<div class="field"><label>Vencimento</label><input id="sp_venc" type="date"></div>
+<div class="field"><label>Forma de pagamento *</label><select id="sp_pag"><option>PIX</option><option>Transferência</option><option>Cartão</option><option>Dinheiro</option><option>Outro</option></select></div>
+<div class="field"><label>Status *</label><select id="sp_status"><option>CONTRATADO</option><option>AGUARDANDO PAGAMENTO</option><option>PAGO</option><option>CANCELADO</option></select></div>
+<div class="field"><label>Data do pagamento</label><input id="sp_dtpag" type="date"></div>
+</div>
+<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn primary" id="sp_salvar">Cadastrar patrocinador</button>
+<button class="btn" id="sp_limpar">Limpar</button>
+</div>
+<div id="sp_msg" class="notice" style="display:none;margin-top:14px"></div>
+</div>
+
+<div class="section">
+<h2>Patrocinadores cadastrados</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Empresa</th><th>CNPJ</th><th>Cota</th><th>Valor</th><th>Status</th><th>Pagamento</th><th>Ações</th></tr></thead>
+<tbody id="sp_body"></tbody>
+</table></div>
+</div>
+</section>
 <section id="bonificacoes" class="view"><h1>Bonificações</h1><div class="sub">Concessões registradas pelo Atendente, com motivo e autorizador obrigatórios; o Administrador mantém o controle e a auditoria.</div><div class="notice">Toda bonificação deve possuir origem, justificativa, autorizador e movimentação de estoque. Valor da inscrição: R$ 0,00.</div></section>
 
 <section id="pcd" class="view"><h1>PCD presencial</h1><div class="sub">Controle interno da quota presencial.</div><div class="grid"><div class="card"><div class="label">Limite</div><div class="metric">10</div></div><div class="card"><div class="label">Utilizadas</div><div class="metric" id="pcdUsed2">0</div></div><div class="card"><div class="label">Disponíveis</div><div class="metric ok" id="pcdAvail2">10</div></div></div><div class="section notice">A inscrição PCD permanece presencial e requer conferência da documentação pela organização.</div></section>
@@ -607,7 +666,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V10.2 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V10.3 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -621,7 +680,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.2 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.3 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -1060,4 +1119,73 @@ document.addEventListener('DOMContentLoaded',()=>{
  render();
 });
 })();
-</script></body></html>
+</script>
+<div id="sp_receipt" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;padding:30px;overflow:auto">
+<div id="sp_receipt_paper" style="max-width:820px;margin:auto;background:white;color:#111;padding:38px;border-radius:8px">
+<div style="display:flex;justify-content:space-between;gap:20px;border-bottom:2px solid #222;padding-bottom:16px">
+<div><h1 style="margin:0">CABANA NIGHT RUN 2026</h1><strong>Associação Recreativa Cabana Clube</strong><br>CNPJ 63.886.204/0001-91</div>
+<div style="text-align:right"><strong>RECIBO / COMPROVANTE</strong><br><span id="sp_rec_data"></span></div>
+</div>
+<h2>Patrocinador</h2>
+<p><strong>Empresa:</strong> <span id="sp_rec_empresa"></span><br>
+<strong>CNPJ:</strong> <span id="sp_rec_cnpj"></span><br>
+<strong>Responsável:</strong> <span id="sp_rec_resp"></span><br>
+<strong>Contato:</strong> <span id="sp_rec_cel"></span><br>
+<strong>E-mail:</strong> <span id="sp_rec_email"></span></p>
+<h2>Patrocínio</h2>
+<p><strong>Cota:</strong> <span id="sp_rec_cota"></span><br>
+<strong>Descrição:</strong> <span id="sp_rec_desc"></span><br>
+<strong>Valor:</strong> <span id="sp_rec_valor"></span><br>
+<strong>Forma de pagamento:</strong> <span id="sp_rec_pag"></span><br>
+<strong>Status:</strong> <span id="sp_rec_status"></span><br>
+<strong>Data do pagamento:</strong> <span id="sp_rec_dtpag"></span></p>
+<div style="margin-top:24px;padding:16px;border:1px solid #999">
+<strong>Dados para pagamento ao Cabana Clube</strong><br>
+Associação Recreativa Cabana Clube<br>
+CNPJ/PIX: 63.886.204/0001-91<br>
+Chave PIX: <strong>63.886.204/0001-91</strong>
+</div>
+<p style="margin-top:30px;font-size:12px">Documento de controle/comprovante comercial do patrocínio. Não substitui nota fiscal ou documento fiscal quando este for legalmente exigido.</p>
+</div>
+<div style="max-width:820px;margin:14px auto;display:flex;gap:10px;justify-content:flex-end">
+<button class="btn primary" onclick="window.print()">Imprimir / salvar em PDF</button>
+<button class="btn" onclick="document.getElementById('sp_receipt').style.display='none'">Fechar</button>
+</div>
+</div>
+
+<script>
+(function(){
+const KEY='cnr26_patrocinadores_v1';
+function rd(){try{let x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+function wr(x){localStorage.setItem(KEY,JSON.stringify(x))}
+function money(n){return Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function render(){
+ const a=rd(), pagos=a.filter(x=>x.status==='PAGO');
+ document.getElementById('sp_total').textContent=a.length;
+ document.getElementById('sp_contratados').textContent=a.filter(x=>x.status!=='CANCELADO').length;
+ document.getElementById('sp_pagos').textContent=pagos.length;
+ document.getElementById('sp_valor').textContent=money(a.filter(x=>x.status!=='CANCELADO').reduce((s,x)=>s+Number(x.valor||0),0));
+ document.getElementById('sp_body').innerHTML=a.map((x,i)=>`<tr>
+<td>${esc(x.empresa)}</td><td>${esc(x.cnpj)}</td><td>${esc(x.cota)}</td><td>${money(x.valor)}</td><td>${esc(x.status)}</td><td>${esc(x.pag||'PIX')}</td>
+<td><button class="btn" onclick="spRec(${i})">Gerar recibo</button> <button class="btn" onclick="spDel(${i})">Excluir</button></td></tr>`).join('')||'<tr><td colspan="7">Nenhum patrocinador cadastrado.</td></tr>';
+}
+window.spRec=function(i){
+ const x=rd()[i]; if(!x)return;
+ const map={sp_rec_empresa:x.empresa,sp_rec_cnpj:x.cnpj,sp_rec_resp:x.resp,sp_rec_cel:x.cel,sp_rec_email:x.email||'—',sp_rec_cota:x.cota,sp_rec_desc:x.desc||'—',sp_rec_valor:money(x.valor),sp_rec_pag:x.pag,sp_rec_status:x.status,sp_rec_dtpag:x.dtpag||'—'};
+ Object.entries(map).forEach(([id,v])=>document.getElementById(id).textContent=v);
+ document.getElementById('sp_rec_data').textContent=new Date().toLocaleDateString('pt-BR');
+ document.getElementById('sp_receipt').style.display='block';
+}
+window.spDel=function(i){if(!confirm('Excluir este patrocinador da homologação?'))return;let a=rd();a.splice(i,1);wr(a);render()}
+document.getElementById('sp_salvar')?.addEventListener('click',()=>{
+ const empresa=document.getElementById('sp_empresa').value.trim(), cnpj=document.getElementById('sp_cnpj').value.trim(), resp=document.getElementById('sp_resp').value.trim(), cel=document.getElementById('sp_cel').value.trim(), cota=document.getElementById('sp_cota').value.trim(), valor=Number(document.getElementById('sp_valor_in').value||0);
+ if(!empresa||!cnpj||!resp||!cel||!cota||valor<0){alert('Preencha empresa, CNPJ, responsável, celular, cota e valor.');return}
+ const a=rd();a.push({id:crypto.randomUUID?.()||String(Date.now()),empresa,cnpj,resp,cel,email:document.getElementById('sp_email').value.trim(),cota,desc:document.getElementById('sp_desc').value.trim(),valor,venc:document.getElementById('sp_venc').value,pag:document.getElementById('sp_pag').value,status:document.getElementById('sp_status').value,dtpag:document.getElementById('sp_dtpag').value,createdAt:new Date().toISOString()});wr(a);
+ document.getElementById('sp_msg').textContent='Patrocinador cadastrado com sucesso.';document.getElementById('sp_msg').style.display='block';render();
+});
+document.getElementById('sp_limpar')?.addEventListener('click',()=>document.querySelectorAll('#patrocinadores input').forEach(x=>x.value=''));
+document.addEventListener('DOMContentLoaded',render);
+})();
+</script>
+</body></html>
