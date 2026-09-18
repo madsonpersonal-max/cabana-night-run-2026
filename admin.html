@@ -201,23 +201,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 
 <section id="auditoria" class="view"><h1>Auditoria</h1><div class="sub">Histórico das ações administrativas.</div><div class="tablewrap"><table><thead><tr><th>Data/hora</th><th>Usuário</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody id="tblAudit"><tr><td>—</td><td>ADMIN</td><td>SISTEMA</td><td>Painel administrativo inicializado.</td></tr></tbody></table></div></section>
 
-<section id="bonificacoes-v94" style="margin:28px 0;padding:24px;border:1px solid #3b2a4f;border-radius:18px;background:#140d1d">
-<h2>Bonificações</h2>
-<p>Inscrições gratuitas autorizadas pelo Administrador. Cada bonificação consome 1 vaga do estoque geral da modalidade.</p>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
-<label>CPF do atleta *<input id="b94_cpf" maxlength="14" placeholder="CPF"></label>
-<label>Nome do atleta *<input id="b94_nome" placeholder="Nome completo"></label>
-<label>Modalidade *<select id="b94_mod"><option value="corrida">Corrida 7 km</option><option value="infantil">Corridinha Infantil</option></select></label>
-<label>Tamanho da camisa *<select id="b94_camisa"></select></label>
-<label>Motivo da bonificação *<input id="b94_motivo" placeholder="Ex.: parceria, premiação, cortesia"></label>
-<label>Autorizado por *<input id="b94_autorizador" placeholder="Nome do responsável pela autorização"></label>
-</div>
-<button id="b94_salvar" style="margin-top:16px">Registrar bonificação</button>
-<div id="b94_msg" style="margin-top:14px"></div>
-<div style="margin-top:22px;overflow:auto"><table style="width:100%;border-collapse:collapse">
-<thead><tr><th>Atleta</th><th>CPF</th><th>Modalidade</th><th>Camisa</th><th>Valor</th><th>Motivo</th><th>Autorizado por</th><th>Status</th></tr></thead>
-<tbody id="b94_lista"></tbody></table></div>
-</section>
+
 </main></div>
 <script>
 const demo=[
@@ -516,7 +500,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V9.4 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V9.5 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -530,7 +514,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.4 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.5 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
