@@ -20,3 +20,9 @@ Alterações:
 
 ## V8.12 — Correção definitiva da grade de camisas
 A seleção da modalidade Corridinha Infantil usa exclusivamente: 4 anos, 6 anos, 8 anos, 10 anos, 12 anos, PP e P. A grade é atualizada diretamente no evento change da modalidade e também na abertura da página.
+
+## V8.13 — Empresa/Lote: estoque e financeiro
+- Lotes empresariais reservam imediatamente a quantidade contratada no estoque central.
+- Cadastro de atleta de empresa não gera cobrança individual no Atendimento.
+- Pagamento do lote fica controlado no cadastro da empresa/lote.
+- Atletas utilizados dentro do lote não reduzem o estoque central pela segunda vez.

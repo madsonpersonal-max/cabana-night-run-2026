@@ -194,7 +194,7 @@ refresh();
 
 function openPresencial(){
   ["pCpf","pNome","pNasc","pWhats","pEmail","pEquipe","pRespNome","pRespCpf","pRespWhats"].forEach(id=>document.getElementById(id).value="");
-  document.getElementById("pSexo").value=""; document.getElementById("pCidade").value="Barcarena"; document.getElementById("pMod").value=""; document.getElementById("pCamisa").value=""; document.getElementById("pPag").value=""; document.getElementById("pValor").value="R$ 0,00"; toggleResponsavel();
+  document.getElementById("pSexo").value=""; document.getElementById("pCidade").value="Barcarena"; document.getElementById("pMod").value=""; document.getElementById("pCamisa").value=""; document.getElementById("pPag").value=""; document.getElementById("pValor").value="R$ 0,00"; toggleResponsavel(); togglePagamentoEmpresa();
   document.getElementById("presencialModal").classList.add("show");
 }
 function closePresencial(){
@@ -211,12 +211,16 @@ function toggleResponsavel(){
 function updatePresencialValue(){
   const mod=document.getElementById("pMod").value;
   const pag=document.getElementById("pPag").value;
+  const origem=document.getElementById("pOrigem").value;
   let value=0;
-  if(mod==="individual") value=110;
-  if(mod==="socio") value=100;
-  if(mod==="infantil") value=60;
-  if(mod==="pcd" || pag==="Isento PCD" || pag==="Bonificação") value=0;
-  document.getElementById("pValor").value="R$ "+value.toFixed(2).replace(".",",");
+  if(origem==="EMPRESA") value=0;
+  else {
+    if(mod==="individual") value=110;
+    if(mod==="socio") value=100;
+    if(mod==="infantil") value=60;
+    if(mod==="pcd" || pag==="Isento PCD" || pag==="Bonificação") value=0;
+  }
+  document.getElementById("pValor").value=origem==="EMPRESA" ? "R$ 0,00 — pago pela empresa/lote" : "R$ "+value.toFixed(2).replace(".",",");
 }
 
 function toggleEmpresaLote(){
@@ -227,6 +231,22 @@ function toggleEmpresaLote(){
  let lotes=[];try{lotes=JSON.parse(localStorage.getItem("cnr26_empresas_lotes_v2")||"[]")}catch(e){}
  const mod=document.getElementById("pMod").value;
  document.getElementById("pLote").innerHTML=lotes.filter(x=>x.status==="ATIVO"&&Number(x.contratadas||0)>Number(x.utilizadas||0)&&(!mod||x.modalidade==="Corrida 7 km"&&mod!=="infantil"||x.modalidade==="Corridinha Infantil"&&mod==="infantil")).map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${Math.max(0,x.contratadas-x.utilizadas)} vagas</option>`).join('')||'<option value="">Nenhum lote disponível</option>';
+}
+
+function togglePagamentoEmpresa(){
+  const origem=document.getElementById("pOrigem").value;
+  const pag=document.getElementById("pPag");
+  if(!pag) return;
+  if(origem==="EMPRESA"){
+    pag.innerHTML='<option value="LOTE EMPRESA">Lote empresarial — pago pela empresa</option>';
+    pag.value="LOTE EMPRESA";
+    pag.disabled=true;
+  } else {
+    pag.disabled=false;
+    pag.innerHTML='<option value="">Selecione</option><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Isento PCD</option><option>Bonificação</option>';
+    pag.value="";
+  }
+  updatePresencialValue();
 }
 
 function savePresencial(){
@@ -283,7 +303,12 @@ function savePresencial(){
     alert("Já existe uma inscrição infantil com este nome e data de nascimento nesta homologação.");
     return;
   }
-  const value=mod==="individual"?110:mod==="socio"?100:mod==="infantil"?60:0;
+  const value=origem==="EMPRESA"?0:(mod==="individual"?110:mod==="socio"?100:mod==="infantil"?60:0);
+  if(origem==="EMPRESA" && pag!=="LOTE EMPRESA"){
+    alert("Inscrição de empresa usa pagamento pelo lote empresarial, sem cobrança individual.");
+    togglePagamentoEmpresa();
+    return;
+  }
   if(mod==="pcd" && pag!=="Isento PCD"){
     alert("Para PCD presencial, a forma de pagamento deve ser Isento PCD.");
     return;
@@ -318,7 +343,7 @@ function savePresencial(){
   document.getElementById("successPresNome").textContent=nome;
   document.getElementById("successPresMod").textContent=mod==="individual"?"Corrida 7 km — Público geral":mod==="socio"?"Corrida 7 km — Sócio/Equipe":mod==="infantil"?"Corridinha Infantil":"PCD presencial";
   document.getElementById("successPresCamisa").textContent=camisa;
-  document.getElementById("successPresValor").textContent="R$ "+Number(origem==="EMPRESA"?0:value).toFixed(2).replace(".",",");
+  document.getElementById("successPresValor").textContent=origem==="EMPRESA" ? "R$ 0,00 — pago pela empresa/lote" : "R$ "+Number(value).toFixed(2).replace(".",",");
   document.getElementById("successPresStatus").textContent=newState.status;
   document.getElementById("successPresencialModal").classList.add("show");
 }
@@ -355,7 +380,7 @@ function savePresencial(){
       <div class="modalfield"><label>E-mail</label><input id="pEmail" type="email" placeholder="Opcional"></div>
       <div class="modalfield"><label>Cidade *</label><input id="pCidade" value="Barcarena"></div>
       <div class="modalfield"><label>Equipe/Assessoria</label><input id="pEquipe" placeholder="Opcional"></div>
-      <div class="modalfield"><label>Origem *</label><select id="pOrigem" onchange="toggleEmpresaLote()"><option value="PRESENCIAL">Presencial</option><option value="EMPRESA">Empresa</option><option value="BONIFICACAO">Bonificação</option></select></div>
+      <div class="modalfield"><label>Origem *</label><select id="pOrigem" onchange="toggleEmpresaLote();updatePresencialValue();togglePagamentoEmpresa()"><option value="PRESENCIAL">Presencial</option><option value="EMPRESA">Empresa</option><option value="BONIFICACAO">Bonificação</option></select></div>
       <div class="modalfield" id="empresaWrap" style="display:none"><label>Empresa / lote *</label><select id="pLote"></select></div>
       <div class="modalfield"><label>Modalidade *</label><select id="pMod" onchange="toggleResponsavel();updatePresencialValue();toggleEmpresaLote();ajustarTamanhosCorridinha()"><option value="">Selecione</option><option value="individual">Corrida 7 km — Público geral</option><option value="socio">Corrida 7 km — Sócio/Equipe</option><option value="infantil">Corridinha Infantil</option><option value="pcd">PCD presencial</option></select></div>
       <div class="modalfield" id="respNomeWrap" style="display:none"><label>Nome completo do responsável *</label><input id="pRespNome" placeholder="Responsável pelo atleta"></div>
@@ -365,7 +390,7 @@ function savePresencial(){
       <div class="modalfield"><label>Forma de pagamento *</label><select id="pPag" onchange="updatePresencialValue()"><option value="">Selecione</option><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Isento PCD</option><option>Bonificação</option></select></div>
       <div class="modalfield"><label>Valor</label><input id="pValor" readonly value="R$ 0,00"></div>
     </div>
-    <div class="modalhint">Corridinha Infantil: CPF e WhatsApp da criança são opcionais; nome, CPF e WhatsApp do responsável são obrigatórios. Empresa: selecione o lote para consumir uma vaga corporativa. PCD: somente presencial, sujeito à conferência da documentação e disponibilidade das 10 vagas.</div>
+    <div class="modalhint">Corridinha Infantil: CPF e WhatsApp da criança são opcionais; nome, CPF e WhatsApp do responsável são obrigatórios. Empresa: selecione o lote para consumir uma vaga corporativa. A inscrição empresarial não gera cobrança individual nem entra no financeiro do atendimento; o pagamento é controlado no lote da empresa. PCD: somente presencial, sujeito à conferência da documentação e disponibilidade das 10 vagas.</div>
     <div class="actions">
       <button class="primary" onclick="savePresencial()">Registrar inscrição</button>
       <button class="secondary" onclick="closePresencial()">Cancelar</button>
