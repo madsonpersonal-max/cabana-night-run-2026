@@ -324,7 +324,19 @@ function savePresencial(){
     togglePagamentoEmpresa();
     return;
   }
-  if(mod==="pcd" && pag!=="Isento PCD"){
+  
+if(mod==="pcd"){
+  let pcdRegs=0;
+  try{
+    const all=JSON.parse(localStorage.getItem("cnr26_inscricoes_v5")||"[]");
+    pcdRegs=all.filter(x=>/pcd/i.test(x.modality||x.modalidade||"") && !/cancel/i.test(x.status||"")).length;
+  }catch(e){}
+  if(pcdRegs>=10){ alert("As 10 vagas PCD presenciais já foram utilizadas."); return; }
+  const doc=document.getElementById("pPcdDoc")?.value||"";
+  if(doc!=="SIM"){ alert("Para PCD presencial, a documentação exigida deve ser conferida e marcada como SIM."); return; }
+}
+
+if(mod==="pcd" && pag!=="Isento PCD"){
     alert("Para PCD presencial, a forma de pagamento deve ser Isento PCD.");
     return;
   }
@@ -402,7 +414,17 @@ function savePresencial(){
       <div class="modalfield" id="respCpfWrap" style="display:none"><label>CPF do responsável *</label><input id="pRespCpf" inputmode="numeric" placeholder="000.000.000-00"></div>
       <div class="modalfield" id="respWhatsWrap" style="display:none"><label>WhatsApp do responsável *</label><input id="pRespWhats" inputmode="tel" placeholder="(91) 99999-9999"></div>
       <div class="modalfield"><label>Tamanho da camisa *</label><select id="pCamisa" onchange="ajustarTamanhosCorridinha()"><option value="">Selecione</option><option value="PP">PP</option><option value="P">P</option><option value="M">M</option><option value="G">G</option><option value="GG">GG</option><option value="XG">XG</option></select></div>
-      <div class="modalfield"><label>Forma de pagamento *</label><select id="pPag" onchange="updatePresencialValue()"><option value="">Selecione</option><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Isento PCD</option><option>Bonificação</option></select></div>
+      
+<div class="modalfield" id="pcdDocWrap" style="display:none;grid-column:1/-1">
+  <label>Documentação PCD conferida *</label>
+  <select id="pPcdDoc">
+    <option value="">Selecione</option>
+    <option value="SIM">SIM — documentação conferida</option>
+    <option value="NAO">NÃO — não conferida</option>
+  </select>
+</div>
+
+<div class="modalfield"><label>Forma de pagamento *</label><select id="pPag" onchange="updatePresencialValue()"><option value="">Selecione</option><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Isento PCD</option><option>Bonificação</option></select></div>
       <div class="modalfield"><label>Valor</label><input id="pValor" readonly value="R$ 0,00"></div>
     </div>
     <div class="modalhint">Corridinha Infantil: CPF e WhatsApp da criança são opcionais; nome, CPF e WhatsApp do responsável são obrigatórios. Empresa: selecione o lote para consumir uma vaga corporativa. A inscrição empresarial não gera cobrança individual nem entra no financeiro do atendimento; o pagamento é controlado no lote da empresa. PCD: somente presencial, sujeito à conferência da documentação e disponibilidade das 10 vagas.</div>
@@ -832,6 +854,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   msg.textContent='INSCRIÇÃO BONIFICADA REALIZADA COM SUCESSO — 1 vaga consumida.';
  });
 });
+})();
+</script>
+
+<script>
+(function(){
+  function pcdFields(){
+    const m=document.getElementById("pMod"), w=document.getElementById("pcdDocWrap");
+    if(w) w.style.display=(m&&m.value==="pcd")?"block":"none";
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    pcdFields();
+    document.getElementById("pMod")?.addEventListener("change",pcdFields);
+  });
 })();
 </script>
 </body>

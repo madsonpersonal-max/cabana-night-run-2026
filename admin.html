@@ -190,7 +190,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <div class="section notice"><strong>Regra V9:</strong> ao criar um lote, as vagas restantes são reservadas imediatamente no estoque da modalidade. O atleta vinculado ao lote não gera cobrança individual e consome somente o saldo do lote. Empresa sem login. O Administrador cadastra o lote e os atletas vinculados serão registrados no sistema. Vagas não utilizadas permanecem reservadas até liberação administrativa com auditoria.</div>
 </section>
 
-<section id="bonificacoes" class="view"><h1>Bonificações</h1><div class="sub">Concessões controladas exclusivamente pelo Administrador.</div><div class="notice">Toda bonificação deve possuir origem, justificativa, autorizador e movimentação de estoque. Valor da inscrição: R$ 0,00.</div></section>
+<section id="bonificacoes" class="view"><h1>Bonificações</h1><div class="sub">Concessões registradas pelo Atendente, com motivo e autorizador obrigatórios; o Administrador mantém o controle e a auditoria.</div><div class="notice">Toda bonificação deve possuir origem, justificativa, autorizador e movimentação de estoque. Valor da inscrição: R$ 0,00.</div></section>
 
 <section id="pcd" class="view"><h1>PCD presencial</h1><div class="sub">Controle interno da quota presencial.</div><div class="grid"><div class="card"><div class="label">Limite</div><div class="metric">10</div></div><div class="card"><div class="label">Utilizadas</div><div class="metric" id="pcdUsed2">0</div></div><div class="card"><div class="label">Disponíveis</div><div class="metric ok" id="pcdAvail2">10</div></div></div><div class="section notice">A inscrição PCD permanece presencial e requer conferência da documentação pela organização.</div></section>
 
@@ -506,7 +506,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V9.6 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V9.7 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -520,7 +520,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.6 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.7 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {

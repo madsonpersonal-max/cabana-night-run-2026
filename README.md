@@ -1,7 +1,14 @@
-# Cabana Night Run 2026 — V9.6
-## Dashboard com quantidade de bonificados
+# Cabana Night Run 2026 — V9.7
+## PCD presencial
 
-O Dashboard inicial agora apresenta um indicador separado:
-- Bonificados: quantidade de inscrições com origem Bonificação e não canceladas.
-
-O número é calculado a partir do mesmo cadastro geral de inscrições, evitando contagem separada.
+Regras homologadas:
+- PCD somente presencial.
+- 10 vagas exclusivas.
+- Gratuito.
+- Sem PIX e sem comprovante financeiro.
+- Atendente realiza o cadastro.
+- Documentação exigida deve ser conferida presencialmente antes de confirmar.
+- Campo obrigatório: “Documentação PCD conferida = SIM”.
+- Bloqueio quando as 10 vagas estiverem utilizadas.
+- Registro entra no cadastro geral como PCD presencial e inscrição confirmada.
+- Administrador acompanha a cota e auditoria.
