@@ -439,8 +439,10 @@ function getConfirmedCounts(){
     if(!confirmed(status)) return;
     const cpf=String(r.cpf||r.CPF||'').replace(/\D/g,'');
     const m=String(r.modalidade||r.modality||'');
-    if(/infantil|corridinha/i.test(m)){ if(cpf) out.infSet.add(cpf); else out.infantil++; }
-    else if(/pcd/i.test(m)){ if(cpf) out.pcdSet.add(cpf); else out.pcd++; }
+    const o=String(r.origin||r.origem||'');
+    const isPcd=/pcd/i.test(m)||/pcd/i.test(o)||r.pcd===true||r.PCD===true;
+    if(isPcd){ if(cpf) out.pcdSet.add(cpf); else out.pcd++; }
+    else if(/infantil|corridinha/i.test(m)){ if(cpf) out.infSet.add(cpf); else out.infantil++; }
     else { if(cpf) out.corrSet.add(cpf); else out.corrida++; }
   };
   ['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas'].forEach(k=>{try{const v=JSON.parse(localStorage.getItem(k)||'[]');if(Array.isArray(v))v.forEach(add)}catch(e){}});
@@ -755,7 +757,7 @@ window.CNR26_V8={
     return {
       corrida:{total:1000, used:corridaUsed, reserved:corridaReserved, available:Math.max(0,1000-corridaUsed-corridaReserved)},
       infantil:{total:100, used:infantilUsed, reserved:infantilReserved, available:Math.max(0,100-infantilUsed-infantilReserved)},
-      pcd:{total:10, used:0, available:10}
+      pcd:{total:10, used:c.pcd, available:Math.max(0,10-c.pcd)}
     };
   }
 
