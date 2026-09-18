@@ -361,7 +361,7 @@ function savePresencial(){
       <div class="modalfield" id="respNomeWrap" style="display:none"><label>Nome completo do responsável *</label><input id="pRespNome" placeholder="Responsável pelo atleta"></div>
       <div class="modalfield" id="respCpfWrap" style="display:none"><label>CPF do responsável *</label><input id="pRespCpf" inputmode="numeric" placeholder="000.000.000-00"></div>
       <div class="modalfield" id="respWhatsWrap" style="display:none"><label>WhatsApp do responsável *</label><input id="pRespWhats" inputmode="tel" placeholder="(91) 99999-9999"></div>
-      <div class="modalfield"><label>Tamanho da camisa *</label><select id="pCamisa"><option value="">Selecione</option><option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option></select></div>
+      <div class="modalfield"><label>Tamanho da camisa *</label><select id="pCamisa" onchange="ajustarTamanhosCorridinha()"><option value="">Selecione</option><option value="PP">PP</option><option value="P">P</option><option value="M">M</option><option value="G">G</option><option value="GG">GG</option><option value="XG">XG</option></select></div>
       <div class="modalfield"><label>Forma de pagamento *</label><select id="pPag" onchange="updatePresencialValue()"><option value="">Selecione</option><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Isento PCD</option><option>Bonificação</option></select></div>
       <div class="modalfield"><label>Valor</label><input id="pValor" readonly value="R$ 0,00"></div>
     </div>
@@ -670,7 +670,7 @@ window.CNR26_V8={
  }
 };
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8.5 CORREÇÃO DE COMPROVANTE</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8.12 — CAMISA CORRIDINHA</div>
 <script>
 /* V8.3 — ponte de homologação entre área pública e atendente.
    Em produção, ambos usarão a mesma API/banco; não haverá sincronização por localStorage. */
@@ -733,42 +733,25 @@ window.CNR26_V8={
 
 <script>
 (function(){
-  function ajustarTamanhosCorridinha(){
-    const modalidade = document.getElementById('pMod');
-    const camisa = document.getElementById('pCamisa');
+  window.ajustarTamanhosCorridinha = function(){
+    var modalidade=document.getElementById("pMod");
+    var camisa=document.getElementById("pCamisa");
     if(!modalidade || !camisa) return;
-
-    const isCorridinha = modalidade.value === 'infantil';
-    const atual = camisa.value;
-    const opcoes = isCorridinha
-      ? [
-          ['4 anos','4 anos'],
-          ['6 anos','6 anos'],
-          ['8 anos','8 anos'],
-          ['10 anos','10 anos'],
-          ['12 anos','12 anos'],
-          ['PP','PP'],
-          ['P','P']
-        ]
-      : [
-          ['PP','PP'], ['P','P'], ['M','M'], ['G','G'],
-          ['GG','GG'], ['XG','XG']
-        ];
-
-    camisa.innerHTML = '<option value="">Selecione</option>';
-    opcoes.forEach(([value,label]) => {
-      const opt = document.createElement('option');
-      opt.value = value;
-      opt.textContent = label;
-      camisa.appendChild(opt);
+    var infantil=(modalidade.value === "infantil");
+    var atual=camisa.value;
+    var opcoes=infantil ? [
+      ["4 anos","4 anos"],["6 anos","6 anos"],["8 anos","8 anos"],
+      ["10 anos","10 anos"],["12 anos","12 anos"],["PP","PP"],["P","P"]
+    ] : [
+      ["PP","PP"],["P","P"],["M","M"],["G","G"],["GG","GG"],["XG","XG"]
+    ];
+    camisa.innerHTML='<option value="">Selecione</option>';
+    opcoes.forEach(function(item){
+      var o=document.createElement("option"); o.value=item[0]; o.textContent=item[1]; camisa.appendChild(o);
     });
-
-    if(opcoes.some(([v]) => v === atual)) camisa.value = atual;
-  }
-
-  window.ajustarTamanhosCorridinha = ajustarTamanhosCorridinha;
-  document.addEventListener('DOMContentLoaded', ajustarTamanhosCorridinha);
-  setTimeout(ajustarTamanhosCorridinha, 300);
+    if(opcoes.some(function(item){return item[0]===atual;})) camisa.value=atual;
+  };
+  document.addEventListener("DOMContentLoaded", function(){ window.ajustarTamanhosCorridinha(); });
 })();
 </script>
 

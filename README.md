@@ -16,3 +16,7 @@ Alterações:
 - Corridinha Infantil: 4 anos, 6 anos, 8 anos, 10 anos, 12 anos, PP e P.
 - Corrida 7 km mantém os tamanhos adultos configurados.
 - A seleção é alterada automaticamente quando a modalidade é Corridinha Infantil.
+
+
+## V8.12 — Correção definitiva da grade de camisas
+A seleção da modalidade Corridinha Infantil usa exclusivamente: 4 anos, 6 anos, 8 anos, 10 anos, 12 anos, PP e P. A grade é atualizada diretamente no evento change da modalidade e também na abertura da página.
