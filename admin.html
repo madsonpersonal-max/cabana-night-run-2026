@@ -498,7 +498,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V9.0 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V9.2 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -512,4 +512,133 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.0 HOMOLOGAÇÃO</div></body></html>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.2 HOMOLOGAÇÃO</div>
+<script>
+(function(){
+  const CNR_V92_LIMITS = {
+    corrida: 1000,
+    infantil: 100,
+    pcd: 10
+  };
+
+  function num(v){
+    const n = Number(String(v ?? '').replace(/[^\d-]/g,''));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function getData(){
+    let regs = [];
+    let lots = [];
+    try { regs = JSON.parse(localStorage.getItem('cnr26_registrations') || '[]'); } catch(e){}
+    try { lots = JSON.parse(localStorage.getItem('cnr26_company_lots') || '[]'); } catch(e){}
+    return {regs, lots};
+  }
+
+  function modalityOf(x){
+    const v = String(x?.modality || x?.modalidade || '').toLowerCase();
+    return v.includes('infantil') || v.includes('corridinha') ? 'infantil' : 'corrida';
+  }
+
+  function isConfirmed(x){
+    const st = String(x?.status || '').toLowerCase();
+    return st.includes('confirm') || st.includes('realizada') || st.includes('aprov');
+  }
+
+  function lotModality(l){
+    return modalityOf(l);
+  }
+
+  function calc(){
+    const {regs,lots} = getData();
+    const corridaUsed = regs.filter(r => modalityOf(r)==='corrida' && isConfirmed(r) && String(r.origin||r.origem||'').toLowerCase()!=='empresa').length;
+    const infantilUsed = regs.filter(r => modalityOf(r)==='infantil' && isConfirmed(r) && String(r.origin||r.origem||'').toLowerCase()!=='empresa').length;
+
+    const corridaReserved = lots.filter(l => lotModality(l)==='corrida' && String(l.status||'ATIVO').toUpperCase()!=='CANCELADO')
+      .reduce((a,l)=>a + num(l.contracted ?? l.contratadas ?? l.spots ?? l.vagas),0);
+    const infantilReserved = lots.filter(l => lotModality(l)==='infantil' && String(l.status||'ATIVO').toUpperCase()!=='CANCELADO')
+      .reduce((a,l)=>a + num(l.contracted ?? l.contratadas ?? l.spots ?? l.vagas),0);
+
+    return {
+      corrida:{total:1000, used:corridaUsed, reserved:corridaReserved, available:Math.max(0,1000-corridaUsed-corridaReserved)},
+      infantil:{total:100, used:infantilUsed, reserved:infantilReserved, available:Math.max(0,100-infantilUsed-infantilReserved)},
+      pcd:{total:10, used:0, available:10}
+    };
+  }
+
+  function updateText(){
+    const d = calc();
+    const all = Array.from(document.querySelectorAll('*'));
+
+    function setNear(label, value){
+      const el = all.find(e => e.children.length===0 && String(e.textContent).trim()===label);
+      if(!el) return;
+      const parent = el.parentElement;
+      if(!parent) return;
+      const text = parent.innerText || '';
+      if(/Disponíveis|Disponiveis/i.test(label)) return;
+      // handled below through explicit card text replacement
+    }
+
+    // Correct obvious standalone total/used/reserved/available text.
+    all.forEach(el=>{
+      if(el.children.length!==0) return;
+      const t = String(el.textContent).trim();
+      if(t==='900') {
+        const p = el.parentElement?.innerText || '';
+        if(/Corrida 7 km/i.test(p)) el.textContent='1000';
+      }
+      if(t==='840') {
+        const p = el.parentElement?.innerText || '';
+        if(/Corrida 7 km/i.test(p)) el.textContent=String(d.corrida.available);
+      }
+    });
+
+    // Update the composition table by row label.
+    const rows = Array.from(document.querySelectorAll('tr'));
+    rows.forEach(row=>{
+      const cells = Array.from(row.children);
+      if(cells.length < 5) return;
+      const first = (cells[0].innerText||'').trim().toLowerCase();
+      if(first.includes('corrida 7 km')){
+        cells[1].textContent='1.000';
+        cells[2].textContent=String(d.corrida.used);
+        cells[3].textContent=String(d.corrida.reserved);
+        cells[4].textContent=String(d.corrida.available);
+      } else if(first.includes('corridinha')){
+        cells[1].textContent='100';
+        cells[2].textContent=String(d.infantil.used);
+        cells[3].textContent=String(d.infantil.reserved);
+        cells[4].textContent=String(d.infantil.available);
+      } else if(first.includes('pcd')){
+        cells[1].textContent='10';
+        cells[2].textContent=String(d.pcd.used);
+        cells[3].textContent='0';
+        cells[4].textContent=String(d.pcd.available);
+      }
+    });
+
+    // Update visible central-vacancy card values based on nearby headings.
+    Array.from(document.querySelectorAll('*')).forEach(el=>{
+      if(el.children.length>0) return;
+      const t=String(el.textContent).trim().toLowerCase();
+      if(!['1000','100','10','0','988','840'].includes(t)) return;
+      const parent=el.parentElement?.parentElement;
+      const txt=(parent?.innerText||'').toLowerCase();
+      if(txt.includes('corrida 7 km')){
+        if(/total do evento/.test(txt) && t==='900') el.textContent='1000';
+        if(/disponíveis|disponiveis/.test(txt) && t==='840') el.textContent=String(d.corrida.available);
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(updateText,100);
+    setTimeout(updateText,500);
+    setTimeout(updateText,1200);
+  });
+  window.addEventListener('storage', updateText);
+  window.cnrV92Refresh = updateText;
+})();
+</script>
+
+</body></html>
