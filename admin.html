@@ -406,7 +406,7 @@ function loadRegs(){
  });
  return out.length?out:demo;
 }
-function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='inscricoes')renderRegs();if(v==='empresas')renderCompanies();if(v==='atletas')renderAtletas();}
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='inscricoes')renderRegs();if(v==='empresas')renderCompanies();if(v==='atletas')renderAtletas();if(v==='pcd')setTimeout(()=>counts(),0);}
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function normalize(r){
  let m=String(r.modality||r.modalidade||'Corrida 7 km'); if(/infantil|corridinha/i.test(m))m='Corridinha Infantil'; else if(/pcd/i.test(m))m='PCD presencial'; else m='Corrida 7 km';
@@ -694,7 +694,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V10.9 — Consolidação das inscrições, estoque e recibos</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V10.10 — Correção PCD e consolidação das inscrições, estoque e recibos</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -708,7 +708,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.9 CONSOLIDAÇÃO • HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.10 • CORREÇÃO PCD • HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
