@@ -234,7 +234,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 
 <div class="section tablewrap">
 <table id="r98_table">
-<thead><tr><th>CPF</th><th>Atleta</th><th>Modalidade</th><th>Origem</th><th>Camisa</th><th>Valor</th><th>Status</th></tr></thead>
+<thead><tr><th>Nome do atleta</th><th>Sexo</th><th>Nascimento</th><th>CPF</th><th>Camisa</th><th>Equipe</th><th>Categoria</th><th>E-mail</th><th>Celular</th><th>Idade</th></tr></thead>
 <tbody id="r98_body"></tbody>
 </table>
 </div>
@@ -562,7 +562,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V9.9 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V10.1 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -576,7 +576,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.9 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.1 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -818,14 +818,33 @@ function norm(r){
   return {
     cpf:String(r.cpf||r.CPF||'').replace(/\D/g,''),
     nome:String(r.nome||r.name||''),
+    sexo:String(r.sexo||r.sex||'').trim(),
+    nascimento:String(r.nascimento||r.dataNascimento||r.birthDate||r.dob||'').trim(),
     mod, origem,
     empresa:company || '—',
     loteId:loteId || '—',
     camisa:String(r.camisa||r.shirt||r.tamanhoCamisa||''),
+    equipe:String(r.equipe||r.equipeNome||r.team||r.teamName||r.assessoria||r.equipeAssessoria||'').trim(),
+    categoria:String(r.categoria||r.category||r.condicao||r.condition||'').trim(),
+    email:String(r.email||r.eMail||'').trim(),
+    celular:String(r.celular||r.whatsapp||r.telefone||r.phone||'').trim(),
+    idade:null,
     valor,status
   };
 }
-
+function calcAge(n){
+  if(!n)return '';
+  let d=null;
+  const br=n.match(/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/);
+  if(br)d=new Date(Number(br[3]),Number(br[2])-1,Number(br[1]));
+  else { const x=new Date(n); if(!isNaN(x)) d=x; }
+  if(!d || isNaN(d))return '';
+  const ref=new Date('2026-12-31T00:00:00');
+  let age=ref.getFullYear()-d.getFullYear();
+  const m=ref.getMonth()-d.getMonth();
+  if(m<0 || (m===0 && ref.getDate()<d.getDate())) age--;
+  return age;
+}
 function matchStatus(s,f){
   if(!f)return true;
   if(f==='CONFIRMADA')return /CONFIRMADA|PAGAMENTO CONFIRMADO|APROVAD/.test(s);
@@ -835,7 +854,7 @@ function matchStatus(s,f){
   return true;
 }
 
-function allRows(){return rawRegs().map(norm)}
+function allRows(){return rawRegs().map(r=>{const x=norm(r);x.idade=calcAge(x.nascimento);return x})}
 
 function filtered(){
   const m=document.getElementById('r98_mod').value;
@@ -886,8 +905,8 @@ function render(){
   document.getElementById('r99_dup').textContent=dups.length;
 
   document.getElementById('r98_body').innerHTML=rs.map(r=>
-    `<tr><td>${esc(r.cpf||'—')}</td><td>${esc(r.nome||'—')}</td><td>${esc(r.mod)}</td><td>${esc(r.origem)}</td><td>${esc(r.camisa||'—')}</td><td>R$ ${r.valor.toFixed(2).replace('.',',')}</td><td><span class="badge">${esc(r.status||'—')}</span></td></tr>`
-  ).join('')||'<tr><td colspan="7">Nenhum registro encontrado.</td></tr>';
+    `<tr><td>${esc(r.nome||'—')}</td><td>${esc(r.sexo||'—')}</td><td>${esc(r.nascimento||'—')}</td><td>${esc(r.cpf||'—')}</td><td>${esc(r.camisa||'—')}</td><td>${esc(r.equipe||'—')}</td><td>${esc(r.categoria||'—')}</td><td>${esc(r.email||'—')}</td><td>${esc(r.celular||'—')}</td><td>${esc(r.idade===''?'—':r.idade)}</td></tr>`
+  ).join('')||'<tr><td colspan="10">Nenhum registro encontrado.</td></tr>';
 
   const shirts={};rs.forEach(r=>{const k=r.mod+'|'+(r.camisa||'—');shirts[k]=(shirts[k]||0)+1});
   document.getElementById('r98_camisas').innerHTML=Object.entries(shirts).map(([k,v])=>{
@@ -912,8 +931,8 @@ function render(){
 
 function csv(){
   const rs=filtered();
-  const head=['CPF','Atleta','Modalidade','Origem','Empresa','Lote','Camisa','Valor','Status'];
-  const lines=[head,...rs.map(r=>[r.cpf,r.nome,r.mod,r.origem,r.empresa,r.loteId,r.camisa,r.valor.toFixed(2).replace('.',','),r.status])];
+  const head=['NOME DO ATLETA','SEXO','NASCIMENTO','CPF','CAMISETA','EQUIPE','CATEGORIA','EMAIL','CELULAR','IDADE'];
+  const lines=[head,...rs.map(r=>[r.nome,r.sexo,r.nascimento,r.cpf,r.camisa,r.equipe,r.categoria,r.email,r.celular,r.idade])];
   const text='\ufeff'+lines.map(a=>a.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
   const blob=new Blob([text],{type:'text/csv;charset=utf-8;'});
   const u=URL.createObjectURL(blob),a=document.createElement('a');

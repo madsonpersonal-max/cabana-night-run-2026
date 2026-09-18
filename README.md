@@ -1,15 +1,18 @@
-# Cabana Night Run 2026 — V9.9
-## Relatórios corrigidos
+# Cabana Night Run 2026 — V10.1
+## Relatório completo do atleta
 
-Correções:
-- Modalidade inicia em “Todas”.
-- PCD é reconhecido pela modalidade/campo PCD, mesmo quando a origem técnica é PRESENCIAL.
-- Atleta vinculado a empresa/lote é classificado como EMPRESA mesmo quando o cadastro operacional gravou origem PRESENCIAL.
-- Bonificação é identificada pela origem e pelos campos de bonificação.
-- CPF duplicado não é escondido: continua visível e passa a ser destacado como inconsistência.
-- Resumo de empresas/lotes mostra contratadas, utilizadas e restantes.
-- Dashboard/relatório devem ser conferidos com a mesma base lógica.
-- Exportação CSV inclui empresa e lote.
-- Valor confirmado considera apenas registros confirmados.
+O relatório detalhado e a exportação CSV/Excel passam a trazer exatamente os campos solicitados:
+1. NOME DO ATLETA
+2. SEXO
+3. NASCIMENTO
+4. CPF
+5. CAMISETA
+6. EQUIPE
+7. CATEGORIA
+8. EMAIL
+9. CELULAR
+10. IDADE
 
-Homologação local: a regra definitiva de unicidade de CPF deve ser aplicada também no backend/BD de produção.
+A idade é calculada com referência em 31/12/2026, conforme a regra etária do regulamento do evento. O CPF da criança pode permanecer vazio quando não informado; os dados do responsável continuam sendo tratados no cadastro infantil.
+
+Os demais filtros e indicadores da V9.9/V10.0 foram preservados.
