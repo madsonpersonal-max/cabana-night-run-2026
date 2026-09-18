@@ -1,18 +1,15 @@
-# Cabana Night Run 2026 — V10.1
-## Relatório completo do atleta
+# Cabana Night Run 2026 — V10.2
+## Pagamentos e controle financeiro
 
-O relatório detalhado e a exportação CSV/Excel passam a trazer exatamente os campos solicitados:
-1. NOME DO ATLETA
-2. SEXO
-3. NASCIMENTO
-4. CPF
-5. CAMISETA
-6. EQUIPE
-7. CATEGORIA
-8. EMAIL
-9. CELULAR
-10. IDADE
+Incluído no ADM > Pagamentos:
+- Indicadores de pagamentos em validação, confirmados e correções.
+- Valor individual confirmado.
+- Quantidade de isentos.
+- Resumo financeiro por origem.
+- Regra explícita de que atleta de empresa/lote não gera cobrança individual.
+- Conferência filtrável por origem, status, CPF/nome.
+- Lista com forma de pagamento, valor e tratamento da cobrança.
+- Quadro separado de empresas/lotes com vagas e valor informado no lote.
+- Evita dupla contagem: valor do lote fica separado dos valores individuais dos atletas.
 
-A idade é calculada com referência em 31/12/2026, conforme a regra etária do regulamento do evento. O CPF da criança pode permanecer vazio quando não informado; os dados do responsável continuam sendo tratados no cadastro infantil.
-
-Os demais filtros e indicadores da V9.9/V10.0 foram preservados.
+A homologação continua usando localStorage. Em produção, pagamentos e valores devem ser validados no backend/banco, com trilha de auditoria e reconciliação com o PSP/banco quando a integração for implantada.

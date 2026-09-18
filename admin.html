@@ -194,7 +194,52 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 
 <section id="pcd" class="view"><h1>PCD presencial</h1><div class="sub">Controle interno da quota presencial.</div><div class="grid"><div class="card"><div class="label">Limite</div><div class="metric">10</div></div><div class="card"><div class="label">Utilizadas</div><div class="metric" id="pcdUsed2">0</div></div><div class="card"><div class="label">Disponíveis</div><div class="metric ok" id="pcdAvail2">10</div></div></div><div class="section notice">A inscrição PCD permanece presencial e requer conferência da documentação pela organização.</div></section>
 
-<section id="pagamentos" class="view"><h1>Pagamentos</h1><div class="sub">Fila administrativa de validação e acompanhamento.</div><div class="grid"><div class="card"><div class="label">Em validação</div><div class="metric warn" id="payValid">0</div></div><div class="card"><div class="label">Confirmados</div><div class="metric ok" id="payOk">0</div></div><div class="card"><div class="label">Correção solicitada</div><div class="metric" id="payCorr">0</div></div></div></section>
+<section id="pagamentos" class="view">
+<h1>Pagamentos</h1>
+<div class="sub">Controle financeiro das inscrições. Atletas de empresa/lote não geram cobrança individual.</div>
+
+<div class="section notice">
+<strong>Regra financeira:</strong> inscrição individual paga pelo atleta é controlada por comprovante. Inscrição presencial pode ser registrada com a forma de pagamento utilizada. Empresa/lote é faturada no lote e não gera cobrança individual ao atleta. Bonificação e PCD presencial são isentos.
+</div>
+
+<div class="grid">
+  <div class="card"><div class="label">Em validação</div><div class="metric warn" id="p10_valid">0</div></div>
+  <div class="card"><div class="label">Confirmados</div><div class="metric ok" id="p10_ok">0</div></div>
+  <div class="card"><div class="label">Correção solicitada</div><div class="metric" id="p10_corr">0</div></div>
+  <div class="card"><div class="label">Valor individual confirmado</div><div class="metric ok" id="p10_ind">R$ 0,00</div></div>
+  <div class="card"><div class="label">Isentos</div><div class="metric" id="p10_isentos">0</div></div>
+</div>
+
+<div class="section">
+<h2>Resumo financeiro por origem</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Origem</th><th>Inscrições</th><th>Confirmadas</th><th>Valor confirmado</th><th>Tratamento</th></tr></thead>
+<tbody id="p10_origem"></tbody>
+</table></div>
+</div>
+
+<div class="section">
+<h2>Conferência de pagamentos</h2>
+<div class="formgrid">
+  <div class="field"><label>Origem</label><select id="p10_forig"><option value="">Todas</option><option>ONLINE</option><option>PRESENCIAL</option><option>EMPRESA</option><option>BONIFICACAO</option><option>PCD</option></select></div>
+  <div class="field"><label>Status</label><select id="p10_fstatus"><option value="">Todos</option><option>CONFIRMADA</option><option>VALIDACAO</option><option>CORRECAO</option></select></div>
+  <div class="field"><label>CPF ou atleta</label><input id="p10_busca" placeholder="CPF ou nome"></div>
+</div>
+<div class="tablewrap" style="margin-top:14px"><table>
+<thead><tr><th>Atleta</th><th>CPF</th><th>Origem</th><th>Forma de pagamento</th><th>Valor</th><th>Status</th><th>Cobrança individual</th></tr></thead>
+<tbody id="p10_body"></tbody>
+</table></div>
+</div>
+
+<div class="section">
+<h2>Empresas / lotes</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Empresa</th><th>Modalidade</th><th>Vagas contratadas</th><th>Utilizadas</th><th>Restantes</th><th>Valor informado no lote</th><th>Status</th></tr></thead>
+<tbody id="p10_lotes"></tbody>
+</table></div>
+<div class="notice">O valor do lote é exibido separadamente do valor individual dos atletas para evitar dupla contagem financeira.</div>
+</div>
+</section>
 
 
 <section id="relatorios" class="view">
@@ -562,7 +607,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V10.1 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V10.2 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -576,7 +621,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.1 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.2 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -946,6 +991,73 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('r98_csv')?.addEventListener('click',csv);
   document.getElementById('r98_imprimir')?.addEventListener('click',()=>window.print());
   render();
+});
+})();
+</script>
+<script>
+(function(){
+const REG_KEYS=['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas'];
+const LOT_KEY='cnr26_empresas_lotes_v2';
+function read(k){try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
+function regs(){
+ const seen=new Set(), out=[];
+ REG_KEYS.forEach(k=>read(k).forEach(r=>{
+   const cpf=String(r.cpf||r.CPF||'').replace(/\D/g,'');
+   const id=String(r.id||r.registrationId||'');
+   const key=id||[cpf,String(r.nome||r.name||''),String(r.modalidade||r.modality||''),String(r.createdAt||r.criadoEm||'')].join('|');
+   if(!seen.has(key)){seen.add(key);out.push(r)}
+ }));
+ return out.map(r=>{
+   const mod=String(r.modalidade||r.modality||'');
+   const or=String(r.origem||r.origin||'').toUpperCase();
+   let origem=/bonific/i.test(or)||r.motivoBonificacao?'BONIFICACAO':/pcd/i.test(or)||/pcd/i.test(mod)||r.pcd?'PCD':r.empresa||r.loteId||/empresa|lote/i.test(or)?'EMPRESA':/presencial/i.test(or)?'PRESENCIAL':'ONLINE';
+   return {
+    nome:String(r.nome||r.name||''),cpf:String(r.cpf||r.CPF||'').replace(/\D/g,''),
+    origem, pag:String(r.paymentMethod||r.paymentStatus||r.pagamento||r.payment||'—'),
+    valor:Number(r.valor??r.value??0)||0,status:String(r.status||r.situacao||'').toUpperCase()
+   };
+ });
+}
+function conf(r){return /CONFIRMADA|PAGAMENTO CONFIRMADO|APROVAD/.test(r.status)}
+function waiting(r){return /VALIDA/.test(r.status)}
+function correction(r){return /CORREÇÃO|CORRECAO/.test(r.status)}
+function money(n){return Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+function render(){
+ const all=regs();
+ const valid=all.filter(waiting).length, ok=all.filter(conf).length, corr=all.filter(correction).length;
+ const individual=all.filter(r=>(r.origem==='ONLINE'||r.origem==='PRESENCIAL')&&conf(r)).reduce((a,r)=>a+r.valor,0);
+ const exempt=all.filter(r=>(r.origem==='BONIFICACAO'||r.origem==='PCD')).length;
+ document.getElementById('p10_valid').textContent=valid;
+ document.getElementById('p10_ok').textContent=ok;
+ document.getElementById('p10_corr').textContent=corr;
+ document.getElementById('p10_ind').textContent=money(individual);
+ document.getElementById('p10_isentos').textContent=exempt;
+
+ const groups=['ONLINE','PRESENCIAL','EMPRESA','BONIFICACAO','PCD'];
+ const labels={ONLINE:'Online',PRESENCIAL:'Presencial',EMPRESA:'Empresa/lote',BONIFICACAO:'Bonificação',PCD:'PCD presencial'};
+ const treatment={ONLINE:'Cobrança individual',PRESENCIAL:'Cobrança no atendimento',EMPRESA:'Cobrança no lote — sem cobrança individual',BONIFICACAO:'Isento',PCD:'Isento'};
+ document.getElementById('p10_origem').innerHTML=groups.map(o=>{
+   const a=all.filter(r=>r.origem===o), c=a.filter(conf).length;
+   const val=a.filter(conf).reduce((x,r)=>x+r.valor,0);
+   return `<tr><td>${labels[o]}</td><td>${a.length}</td><td>${c}</td><td>${money(val)}</td><td>${treatment[o]}</td></tr>`;
+ }).join('');
+
+ const fo=document.getElementById('p10_forig').value, fs=document.getElementById('p10_fstatus').value, q=document.getElementById('p10_busca').value.toLowerCase().trim();
+ const rows=all.filter(r=>(!fo||r.origem===fo)&&(!fs||(fs==='CONFIRMADA'?conf(r):fs==='VALIDACAO'?waiting(r):correction(r)))&&(!q||r.nome.toLowerCase().includes(q)||r.cpf.includes(q)));
+ document.getElementById('p10_body').innerHTML=rows.map(r=>{
+   const charge=r.origem==='EMPRESA'?'NÃO — lote':'SIM';
+   return `<tr><td>${r.nome||'—'}</td><td>${r.cpf||'—'}</td><td>${r.origem}</td><td>${r.pag||'—'}</td><td>${money(r.valor)}</td><td>${r.status||'—'}</td><td>${charge}</td></tr>`;
+ }).join('')||'<tr><td colspan="7">Nenhum registro encontrado.</td></tr>';
+
+ const lots=read(LOT_KEY);
+ document.getElementById('p10_lotes').innerHTML=lots.map(l=>{
+   const c=Number(l.contratadas??l.contracted??0)||0,u=Number(l.utilizadas??l.used??0)||0;
+   return `<tr><td>${l.empresa||'—'}</td><td>${l.modalidade||'—'}</td><td>${c}</td><td>${u}</td><td>${Math.max(0,c-u)}</td><td>${money(l.valor)}</td><td>${l.status||'ATIVO'}</td></tr>`;
+ }).join('')||'<tr><td colspan="7">Nenhum lote cadastrado.</td></tr>';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ ['p10_forig','p10_fstatus','p10_busca'].forEach(id=>document.getElementById(id)?.addEventListener('input',render));
+ render();
 });
 })();
 </script></body></html>
