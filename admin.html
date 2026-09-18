@@ -204,7 +204,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <div class="section">
   <div class="formgrid">
     <div class="field"><label>Modalidade</label>
-      <select id="r98_mod"><option value="">Todas</option><option>Corrida 7 km</option><option>Corridinha Infantil</option></select>
+      <select id="r98_mod"><option value="" selected>Todas</option><option>Corrida 7 km</option><option>Corridinha Infantil</option></select>
     </div>
     <div class="field"><label>Origem</label>
       <select id="r98_origem"><option value="">Todas</option><option value="ONLINE">Online</option><option value="PRESENCIAL">Presencial</option><option value="EMPRESA">Empresa/lote</option><option value="BONIFICACAO">Bonificação</option><option value="PCD">PCD presencial</option></select>
@@ -228,6 +228,8 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
   <div class="card"><div class="label">PCD</div><div class="metric" id="r98_pcd">0</div></div>
   <div class="card"><div class="label">Empresas/lotes</div><div class="metric" id="r98_emp">0</div></div>
   <div class="card"><div class="label">Valor confirmado</div><div class="metric ok" id="r98_valor">R$ 0,00</div></div>
+  <div class="card"><div class="label">CPFs duplicados</div><div class="metric" id="r99_dup">0</div></div>
+  <div class="card"><div class="label">Vagas empresa reservadas</div><div class="metric" id="r99_res">0</div></div>
 </div>
 
 <div class="section tablewrap">
@@ -242,6 +244,15 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <div class="tablewrap"><table><thead><tr><th>Modalidade</th><th>Camisa</th><th>Quantidade</th></tr></thead><tbody id="r98_camisas"></tbody></table></div>
 </div>
 
+
+<div class="section">
+<h2>Resumo de empresas e lotes</h2>
+<div class="tablewrap"><table><thead><tr><th>Empresa</th><th>Modalidade</th><th>Contratadas</th><th>Utilizadas</th><th>Restantes</th><th>Status</th></tr></thead><tbody id="r99_lotes"></tbody></table></div>
+</div>
+<div class="section" id="r99_alerta" style="display:none;border:1px solid #7b3f3f">
+<h2>Inconsistências encontradas</h2>
+<div id="r99_alerta_text"></div>
+</div>
 <div class="section">
 <h2>Resumo por origem</h2>
 <div class="tablewrap"><table><thead><tr><th>Origem</th><th>Quantidade</th></tr></thead><tbody id="r98_origens"></tbody></table></div>
@@ -551,7 +562,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V9.8 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V9.9 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -565,7 +576,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.8 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.9 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -766,68 +777,156 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 <script>
 (function(){
-const RKEYS=['cnr26_registrations','cnr26_inscricoes_v5','cnr26_inscricoes','cnr26_atletas'];
-function readRegs(){
- const seen=new Map(), arr=[];
- RKEYS.forEach(k=>{try{const v=JSON.parse(localStorage.getItem(k)||'[]');if(!Array.isArray(v))return;v.forEach(r=>{
-   const cpf=String(r.cpf||r.CPF||'').replace(/\D/g,'');
-   const nome=String(r.nome||r.name||'').trim();
-   const id=String(r.id||r.registrationId||'');
-   const key=id||((cpf||nome)+'|'+String(r.modality||r.modalidade||'')+'|'+String(r.createdAt||r.criadoEm||''));
-   if(!seen.has(key)){seen.set(key,1);arr.push(r);}
- })}catch(e){}});
- return arr;
+const RKEYS=['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas'];
+const LOTKEY='cnr26_empresas_lotes_v2';
+
+function read(k){try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
+
+function rawRegs(){
+  const out=[], seen=new Set();
+  RKEYS.forEach(k=>read(k).forEach(r=>{
+    const cpf=String(r.cpf||r.CPF||'').replace(/\D/g,'');
+    const nome=String(r.nome||r.name||'').trim().toLowerCase();
+    const mod=String(r.modalidade||r.modality||'').trim().toLowerCase();
+    const created=String(r.criadoEm||r.createdAt||r.created_at||'');
+    const id=String(r.id||r.registrationId||'');
+    // Deduplica apenas cópias do mesmo registro entre chaves de homologação.
+    // Dois registros diferentes com o mesmo CPF continuam visíveis para auditoria.
+    const key=id ? 'id:'+id : [cpf,nome,mod,created].join('|');
+    if(!seen.has(key)){seen.add(key);out.push(r)}
+  }));
+  return out;
 }
+
 function norm(r){
- let mod=String(r.modality||r.modalidade||'Corrida 7 km');
- if(/infantil|corridinha/i.test(mod))mod='Corridinha Infantil'; else mod='Corrida 7 km';
- let o=String(r.origin||r.origem||'ONLINE').toUpperCase();
- if(/bonific/i.test(o))o='BONIFICACAO'; else if(/pcd/i.test(o)||/pcd/i.test(mod))o='PCD'; else if(/empresa|lote|corpor/i.test(o))o='EMPRESA'; else if(/presencial/i.test(o))o='PRESENCIAL'; else o='ONLINE';
- const status=String(r.status||r.situacao||r.paymentStatus||'').toUpperCase();
- const valor=Number(r.valor??r.value??0)||0;
- return {cpf:String(r.cpf||r.CPF||'').replace(/\D/g,''),nome:String(r.nome||r.name||''),mod,origem:o,camisa:String(r.camisa||r.shirt||''),valor,status};
+  const modalidadeRaw=String(r.modality||r.modalidade||'');
+  let mod=/infantil|corridinha/i.test(modalidadeRaw)?'Corridinha Infantil':'Corrida 7 km';
+  if(/pcd/i.test(modalidadeRaw) || r.pcd || r.PCD) mod='PCD presencial';
+
+  const originRaw=String(r.origin||r.origem||'').toUpperCase();
+  const company=String(r.empresa||r.company||r.empresaNome||'').trim();
+  const loteId=String(r.loteId||r.lote||r.companyLotId||'').trim();
+
+  let origem='ONLINE';
+  if(/bonific/i.test(originRaw) || r.motivoBonificacao || r.autorizadoPor || r.autorizador) origem='BONIFICACAO';
+  else if(/pcd/i.test(originRaw) || mod==='PCD presencial' || r.pcd || r.PCD) origem='PCD';
+  else if(company || loteId || /empresa|lote|corpor/i.test(originRaw) || r.empresaId) origem='EMPRESA';
+  else if(/presencial/i.test(originRaw)) origem='PRESENCIAL';
+
+  const status=String(r.status||r.situacao||r.paymentStatus||'').toUpperCase();
+  const valor=Number(r.valor??r.value??0)||0;
+  return {
+    cpf:String(r.cpf||r.CPF||'').replace(/\D/g,''),
+    nome:String(r.nome||r.name||''),
+    mod, origem,
+    empresa:company || '—',
+    loteId:loteId || '—',
+    camisa:String(r.camisa||r.shirt||r.tamanhoCamisa||''),
+    valor,status
+  };
 }
+
 function matchStatus(s,f){
- if(!f)return true;
- if(f==='CONFIRMADA')return /CONFIRMADA|PAGAMENTO CONFIRMADO|APROVAD/.test(s);
- if(f==='VALIDACAO')return /VALIDA/.test(s);
- if(f==='CORRECAO')return /CORREÇÃO|CORRECAO/.test(s);
- if(f==='CANCELADA')return /CANCEL/.test(s);
- return true;
+  if(!f)return true;
+  if(f==='CONFIRMADA')return /CONFIRMADA|PAGAMENTO CONFIRMADO|APROVAD/.test(s);
+  if(f==='VALIDACAO')return /VALIDA/.test(s);
+  if(f==='CORRECAO')return /CORREÇÃO|CORRECAO/.test(s);
+  if(f==='CANCELADA')return /CANCEL/.test(s);
+  return true;
 }
-function rows(){
- const m=document.getElementById('r98_mod').value,o=document.getElementById('r98_origem').value,st=document.getElementById('r98_status').value,q=document.getElementById('r98_busca').value.toLowerCase().trim();
- return readRegs().map(norm).filter(r=>(!m||r.mod===m)&&(!o||r.origem===o)&&matchStatus(r.status,st)&&(!q||r.nome.toLowerCase().includes(q)||r.cpf.includes(q)));
+
+function allRows(){return rawRegs().map(norm)}
+
+function filtered(){
+  const m=document.getElementById('r98_mod').value;
+  const o=document.getElementById('r98_origem').value;
+  const st=document.getElementById('r98_status').value;
+  const q=document.getElementById('r98_busca').value.toLowerCase().trim();
+  return allRows().filter(r=>
+    (!m||r.mod===m)&&(!o||r.origem===o)&&matchStatus(r.status,st)&&
+    (!q||r.nome.toLowerCase().includes(q)||r.cpf.includes(q))
+  );
 }
+
 function confirmed(r){return /CONFIRMADA|PAGAMENTO CONFIRMADO|APROVAD/.test(r.status)}
 function esc(v){return String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function duplicateCPFs(rows){
+  const map={};
+  rows.forEach(r=>{if(r.cpf) (map[r.cpf]??=[]).push(r)});
+  return Object.entries(map).filter(([cpf,a])=>a.length>1);
+}
+
+function renderLots(){
+  const lots=read(LOTKEY);
+  let totalReserved=0;
+  const body=document.getElementById('r99_lotes');
+  if(!body)return;
+  body.innerHTML=lots.map(l=>{
+    const contracted=Number(l.contracted??l.contratadas??l.spots??l.vagas??0)||0;
+    const used=Number(l.utilizadas??l.used??0)||0;
+    const remaining=Math.max(0,contracted-used);
+    totalReserved+=String(l.status||'ATIVO').toUpperCase()==='CANCELADO'?0:contracted;
+    const mod=/infantil|corridinha/i.test(String(l.modalidade||l.modality||''))?'Corridinha Infantil':'Corrida 7 km';
+    return `<tr><td>${esc(l.empresa||l.company||'—')}</td><td>${esc(mod)}</td><td>${contracted}</td><td>${used}</td><td>${remaining}</td><td>${esc(l.status||'ATIVO')}</td></tr>`;
+  }).join('')||'<tr><td colspan="6">Nenhum lote cadastrado.</td></tr>';
+  const el=document.getElementById('r99_res'); if(el)el.textContent=String(totalReserved);
+}
+
 function render(){
- const rs=rows();
- document.getElementById('r98_total').textContent=rs.length;
- document.getElementById('r98_conf').textContent=rs.filter(confirmed).length;
- document.getElementById('r98_bon').textContent=rs.filter(r=>r.origem==='BONIFICACAO').length;
- document.getElementById('r98_pcd').textContent=rs.filter(r=>r.origem==='PCD').length;
- document.getElementById('r98_emp').textContent=rs.filter(r=>r.origem==='EMPRESA').length;
- document.getElementById('r98_valor').textContent=rs.filter(confirmed).reduce((a,r)=>a+r.valor,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
- document.getElementById('r98_body').innerHTML=rs.map(r=>`<tr><td>${esc(r.cpf||'—')}</td><td>${esc(r.nome||'—')}</td><td>${esc(r.mod)}</td><td>${esc(r.origem)}</td><td>${esc(r.camisa||'—')}</td><td>R$ ${r.valor.toFixed(2).replace('.',',')}</td><td><span class="badge">${esc(r.status||'—')}</span></td></tr>`).join('')||'<tr><td colspan="7">Nenhum registro encontrado.</td></tr>';
- const shirts={};rs.forEach(r=>{const k=r.mod+'|'+(r.camisa||'—');shirts[k]=(shirts[k]||0)+1});
- document.getElementById('r98_camisas').innerHTML=Object.entries(shirts).map(([k,v])=>{const [m,c]=k.split('|');return `<tr><td>${esc(m)}</td><td>${esc(c)}</td><td>${v}</td></tr>`}).join('')||'<tr><td colspan="3">—</td></tr>';
- const origins={};rs.forEach(r=>origins[r.origem]=(origins[r.origem]||0)+1);
- document.getElementById('r98_origens').innerHTML=Object.entries(origins).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join('')||'<tr><td colspan="2">—</td></tr>';
+  const rs=filtered();
+  const dups=duplicateCPFs(rs);
+
+  document.getElementById('r98_total').textContent=rs.length;
+  document.getElementById('r98_conf').textContent=rs.filter(confirmed).length;
+  document.getElementById('r98_bon').textContent=rs.filter(r=>r.origem==='BONIFICACAO').length;
+  document.getElementById('r98_pcd').textContent=rs.filter(r=>r.origem==='PCD').length;
+  document.getElementById('r98_emp').textContent=rs.filter(r=>r.origem==='EMPRESA').length;
+  document.getElementById('r98_valor').textContent=rs.filter(confirmed).reduce((a,r)=>a+r.valor,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  document.getElementById('r99_dup').textContent=dups.length;
+
+  document.getElementById('r98_body').innerHTML=rs.map(r=>
+    `<tr><td>${esc(r.cpf||'—')}</td><td>${esc(r.nome||'—')}</td><td>${esc(r.mod)}</td><td>${esc(r.origem)}</td><td>${esc(r.camisa||'—')}</td><td>R$ ${r.valor.toFixed(2).replace('.',',')}</td><td><span class="badge">${esc(r.status||'—')}</span></td></tr>`
+  ).join('')||'<tr><td colspan="7">Nenhum registro encontrado.</td></tr>';
+
+  const shirts={};rs.forEach(r=>{const k=r.mod+'|'+(r.camisa||'—');shirts[k]=(shirts[k]||0)+1});
+  document.getElementById('r98_camisas').innerHTML=Object.entries(shirts).map(([k,v])=>{
+    const [m,c]=k.split('|');return `<tr><td>${esc(m)}</td><td>${esc(c)}</td><td>${v}</td></tr>`;
+  }).join('')||'<tr><td colspan="3">—</td></tr>';
+
+  const origins={};rs.forEach(r=>origins[r.origem]=(origins[r.origem]||0)+1);
+  document.getElementById('r98_origens').innerHTML=Object.entries(origins).map(([k,v])=>
+    `<tr><td>${esc(k)}</td><td>${v}</td></tr>`
+  ).join('')||'<tr><td colspan="2">—</td></tr>';
+
+  const alertBox=document.getElementById('r99_alerta'), alertText=document.getElementById('r99_alerta_text');
+  if(dups.length){
+    alertBox.style.display='block';
+    alertText.innerHTML=dups.map(([cpf,a])=>
+      `<p><b>CPF ${esc(cpf)}</b> aparece ${a.length} vezes: ${a.map(x=>esc(x.nome||'sem nome')).join(', ')}. Em produção, CPF ativo deve ser UNIQUE.</p>`
+    ).join('');
+  }else alertBox.style.display='none';
+
+  renderLots();
 }
+
 function csv(){
- const rs=rows(), head=['CPF','Atleta','Modalidade','Origem','Camisa','Valor','Status'];
- const lines=[head,...rs.map(r=>[r.cpf,r.nome,r.mod,r.origem,r.camisa,r.valor.toFixed(2).replace('.',','),r.status])];
- const text='\ufeff'+lines.map(a=>a.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
- const blob=new Blob([text],{type:'text/csv;charset=utf-8;'}),u=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=u;a.download='relatorio_cabana_night_run_2026.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+  const rs=filtered();
+  const head=['CPF','Atleta','Modalidade','Origem','Empresa','Lote','Camisa','Valor','Status'];
+  const lines=[head,...rs.map(r=>[r.cpf,r.nome,r.mod,r.origem,r.empresa,r.loteId,r.camisa,r.valor.toFixed(2).replace('.',','),r.status])];
+  const text='\ufeff'+lines.map(a=>a.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  const blob=new Blob([text],{type:'text/csv;charset=utf-8;'});
+  const u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download='relatorio_cabana_night_run_2026.csv';a.click();
+  setTimeout(()=>URL.revokeObjectURL(u),1000);
 }
+
 document.addEventListener('DOMContentLoaded',()=>{
- ['r98_mod','r98_origem','r98_status','r98_busca'].forEach(id=>document.getElementById(id)?.addEventListener('input',render));
- document.getElementById('r98_atualizar')?.addEventListener('click',render);
- document.getElementById('r98_csv')?.addEventListener('click',csv);
- document.getElementById('r98_imprimir')?.addEventListener('click',()=>window.print());
- render();
+  ['r98_mod','r98_origem','r98_status','r98_busca'].forEach(id=>document.getElementById(id)?.addEventListener('input',render));
+  document.getElementById('r98_atualizar')?.addEventListener('click',render);
+  document.getElementById('r98_csv')?.addEventListener('click',csv);
+  document.getElementById('r98_imprimir')?.addEventListener('click',()=>window.print());
+  render();
 });
 })();
 </script></body></html>

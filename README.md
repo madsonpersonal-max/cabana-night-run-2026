@@ -1,17 +1,15 @@
-# Cabana Night Run 2026 — V9.8
-## Relatórios operacionais
+# Cabana Night Run 2026 — V9.9
+## Relatórios corrigidos
 
-Incluído no ADM > Relatórios:
-- Filtros por modalidade, origem, status e CPF/nome.
-- Lista detalhada de inscrições.
-- Contagem de inscrições filtradas e confirmadas.
-- Quantidade de bonificados.
-- Quantidade de PCD.
-- Quantidade de atletas de empresa/lote.
-- Valor confirmado.
-- Resumo de camisetas.
-- Resumo por origem.
-- Exportação CSV compatível com Excel.
-- Impressão do relatório para salvar como PDF pelo navegador.
+Correções:
+- Modalidade inicia em “Todas”.
+- PCD é reconhecido pela modalidade/campo PCD, mesmo quando a origem técnica é PRESENCIAL.
+- Atleta vinculado a empresa/lote é classificado como EMPRESA mesmo quando o cadastro operacional gravou origem PRESENCIAL.
+- Bonificação é identificada pela origem e pelos campos de bonificação.
+- CPF duplicado não é escondido: continua visível e passa a ser destacado como inconsistência.
+- Resumo de empresas/lotes mostra contratadas, utilizadas e restantes.
+- Dashboard/relatório devem ser conferidos com a mesma base lógica.
+- Exportação CSV inclui empresa e lote.
+- Valor confirmado considera apenas registros confirmados.
 
-A homologação continua usando localStorage. Em produção, os relatórios devem consultar o banco/API e aplicar autorização server-side.
+Homologação local: a regra definitiva de unicidade de CPF deve ser aplicada também no backend/BD de produção.
