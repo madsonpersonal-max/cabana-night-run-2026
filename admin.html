@@ -250,7 +250,25 @@ PIX: 63.886.204/0001-91
 </table></div>
 </div>
 </section>
-<section id="bonificacoes" class="view"><h1>Bonificações</h1><div class="sub">Concessões registradas pelo Atendente, com motivo e autorizador obrigatórios; o Administrador mantém o controle e a auditoria.</div><div class="notice">Toda bonificação deve possuir origem, justificativa, autorizador e movimentação de estoque. Valor da inscrição: R$ 0,00.</div></section>
+<section id="bonificacoes" class="view">
+<h1>Bonificações</h1>
+<div class="sub">Concessões registradas pelo Atendente, com motivo e autorizador obrigatórios; o Administrador mantém o controle e a auditoria.</div>
+<div class="notice">Toda bonificação deve possuir origem, justificativa, autorizador e movimentação de estoque. Valor da inscrição: R$ 0,00.</div>
+<div class="grid" style="margin-top:14px">
+  <div class="card"><div class="label">Bonificações ativas</div><div class="metric" id="b106_total">0</div></div>
+  <div class="card"><div class="label">Corrida 7 km</div><div class="metric" id="b106_corrida">0</div></div>
+  <div class="card"><div class="label">Corridinha Infantil</div><div class="metric" id="b106_infantil">0</div></div>
+  <div class="card"><div class="label">Valor das inscrições</div><div class="metric ok">R$ 0,00</div></div>
+</div>
+<div class="section" style="margin-top:14px">
+  <h2>Bonificados cadastrados</h2>
+  <div class="sub" style="margin-bottom:12px">Lista consolidada das bonificações registradas no sistema. PCD não entra nesta lista.</div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Atleta</th><th>CPF</th><th>Modalidade</th><th>Camiseta</th><th>Valor</th><th>Motivo</th><th>Autorizador</th><th>Status</th></tr></thead>
+    <tbody id="b106_body"><tr><td colspan="8">Carregando...</td></tr></tbody>
+  </table></div>
+</div>
+</section>
 
 <section id="pcd" class="view"><h1>PCD presencial</h1><div class="sub">Controle interno da quota presencial.</div><div class="grid"><div class="card"><div class="label">Limite</div><div class="metric">10</div></div><div class="card"><div class="label">Utilizadas</div><div class="metric" id="pcdUsed2">0</div></div><div class="card"><div class="label">Disponíveis</div><div class="metric ok" id="pcdAvail2">10</div></div></div><div class="section notice">A inscrição PCD permanece presencial e requer conferência da documentação pela organização.</div></section>
 
@@ -850,6 +868,52 @@ document.addEventListener('DOMContentLoaded',()=>{
   msg.textContent='INSCRIÇÃO REALIZADA COM SUCESSO — bonificação registrada e 1 vaga consumida.'; render();
  });
 });
+})();
+</script>
+
+
+<script>
+(function(){
+  const REG_KEYS=['cnr26_registrations','cnr26_inscricoes_v5','cnr26_inscricoes','cnr26_atletas'];
+  const BONUS_KEY='cnr26_bonificacoes_v94';
+  function read(k){try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
+  function cpf(r){return String(r.cpf||r.CPF||'').replace(/\D/g,'')}
+  function origin(r){return String(r.origin||r.origem||'').toLowerCase()}
+  function status(r){return String(r.status||r.situacao||'').toLowerCase()}
+  function isBonus(r){return origin(r).includes('bonific') || origin(r)==='bonificacao' || r.motivoBonificacao || r.autorizadoPor}
+  function isActive(r){return !status(r).includes('cancel')}
+  function modality(r){const m=String(r.modality||r.modalidade||r.mod||'');return /infantil|corridinha/i.test(m)?'Corridinha Infantil':'Corrida 7 km'}
+  function shirt(r){return r.camisa||r.shirt||r.tamanhoCamisa||'—'}
+  function money(v){return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+  function getBonuses(){
+    const out=[], seen=new Set();
+    REG_KEYS.forEach(k=>read(k).forEach(r=>{
+      if(!isBonus(r)||!isActive(r)) return;
+      const key=cpf(r)||String(r.id||r.registrationId||'')||[r.nome||r.name,modality(r)].join('|');
+      if(seen.has(key)) return; seen.add(key);
+      out.push({nome:r.nome||r.name||'—',cpf:cpf(r)||'—',mod:modality(r),camisa:shirt(r),valor:0,motivo:r.motivoBonificacao||r.motivo||'—',aut:r.autorizadoPor||r.autorizador||'—',status:r.status||'INSCRIÇÃO CONFIRMADA'});
+    }));
+    read(BONUS_KEY).forEach(r=>{
+      if(!isActive(r)) return;
+      const key=cpf(r)||String(r.id||'')||[r.nome||r.name,modality(r)].join('|');
+      if(seen.has(key)) return; seen.add(key);
+      out.push({nome:r.nome||r.name||'—',cpf:cpf(r)||'—',mod:modality(r),camisa:shirt(r),valor:0,motivo:r.motivo||'—',aut:r.autorizador||'—',status:r.status||'INSCRIÇÃO CONFIRMADA'});
+    });
+    return out;
+  }
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function render(){
+    const rows=getBonuses(), body=document.getElementById('b106_body');
+    const total=document.getElementById('b106_total'), corrida=document.getElementById('b106_corrida'), infantil=document.getElementById('b106_infantil');
+    if(total) total.textContent=rows.length;
+    if(corrida) corrida.textContent=rows.filter(r=>r.mod==='Corrida 7 km').length;
+    if(infantil) infantil.textContent=rows.filter(r=>r.mod==='Corridinha Infantil').length;
+    if(!body) return;
+    body.innerHTML=rows.length?rows.map(r=>`<tr><td>${esc(r.nome)}</td><td>${esc(r.cpf)}</td><td>${esc(r.mod)}</td><td>${esc(r.camisa)}</td><td>${money(r.valor)}</td><td>${esc(r.motivo)}</td><td>${esc(r.aut)}</td><td>${esc(r.status)}</td></tr>`).join(''):'<tr><td colspan="8">Nenhuma bonificação registrada.</td></tr>';
+  }
+  document.addEventListener('DOMContentLoaded',()=>{render();setTimeout(render,300);setTimeout(render,1000);});
+  window.addEventListener('storage',render);
+  window.cnrV106RefreshBonificacoes=render;
 })();
 </script>
 
