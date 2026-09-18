@@ -1,10 +1,11 @@
-# Cabana Night Run 2026 — V9.2
-## Correção da Central de Vagas
+# Cabana Night Run 2026 — V9.3
+## Central de Vagas sincronizada com Empresas/Lotes
 
-Correções:
-- Corrida 7 km permanece com 1.000 vagas totais.
-- Corridinha Infantil permanece com 100 vagas totais.
-- PCD permanece com cota separada de 10 vagas.
+Correção:
+- A Central de Vagas agora lê a mesma chave de armazenamento utilizada pelo módulo Empresas/Lotes: `cnr26_empresas_lotes_v2`.
+- Corrida 7 km mantém total de 1.000.
+- Corridinha Infantil mantém total de 100.
+- PCD mantém cota separada de 10.
 - Disponíveis = Total - Utilizadas - Reservadas por empresas.
-- Reserva empresarial não é descontada novamente quando o atleta é vinculado ao lote.
-- A tabela de composição deve refletir os mesmos valores dos cartões.
+- Lotes empresariais ativos são considerados na reserva do estoque.
+- Vincular atleta a lote não desconta novamente do estoque geral.
