@@ -1,28 +1,15 @@
-CABANA NIGHT RUN 2026 — V8.10
-Homologação: Corridinha Infantil com dados de contato do responsável.
+# Cabana Night Run 2026 — V9.0
 
-Alterações:
-- CPF da criança: opcional.
-- WhatsApp da criança: opcional.
-- Nome do responsável: obrigatório.
-- CPF do responsável: obrigatório.
-- WhatsApp do responsável: obrigatório.
-- Validação de idade 4–12 anos em 31/12/2026 mantida.
-- Corrida 7 km continua exigindo CPF e WhatsApp do atleta.
-- Duplicidade sem CPF infantil é tratada por nome + data de nascimento na homologação.
+Versão de homologação focada em Empresas/Lotes, reserva de estoque e separação financeira.
 
+## Regras V9.0
+- Criar lote reserva imediatamente as vagas restantes do estoque da modalidade.
+- Disponíveis = total - utilizadas - reservadas por empresas.
+- Atleta de empresa não gera cobrança individual nem comprovante.
+- Pagamento fica associado ao lote empresarial.
+- Atleta vinculado consome saldo do lote, sem reduzir novamente o estoque público.
+- Lote não pode exceder o saldo público disponível para reserva.
+- Liberação de saldo restante devolve as vagas ao estoque público.
+- Limite central não pode ser reduzido abaixo de vagas utilizadas + reservadas.
 
-## V8.11 — Tamanhos de camisa da Corridinha Infantil
-- Corridinha Infantil: 4 anos, 6 anos, 8 anos, 10 anos, 12 anos, PP e P.
-- Corrida 7 km mantém os tamanhos adultos configurados.
-- A seleção é alterada automaticamente quando a modalidade é Corridinha Infantil.
-
-
-## V8.12 — Correção definitiva da grade de camisas
-A seleção da modalidade Corridinha Infantil usa exclusivamente: 4 anos, 6 anos, 8 anos, 10 anos, 12 anos, PP e P. A grade é atualizada diretamente no evento change da modalidade e também na abertura da página.
-
-## V8.13 — Empresa/Lote: estoque e financeiro
-- Lotes empresariais reservam imediatamente a quantidade contratada no estoque central.
-- Cadastro de atleta de empresa não gera cobrança individual no Atendimento.
-- Pagamento do lote fica controlado no cadastro da empresa/lote.
-- Atletas utilizados dentro do lote não reduzem o estoque central pela segunda vez.
+Homologação local com localStorage; produção deve usar backend/banco transacional.

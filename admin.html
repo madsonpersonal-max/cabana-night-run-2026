@@ -44,10 +44,12 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <section id="dashboard" class="view active">
 <h1>Dashboard</h1><div class="sub">Visão administrativa da operação da Cabana Night Run 2026.</div>
 <div class="grid">
-<div class="card"><div class="label">Corrida 7 km — total</div><div class="metric">1.000</div></div>
+<div class="card"><div class="label">Corrida 7 km — total</div><div class="metric" id="dashTotalCorrida">1.000</div></div>
 <div class="card"><div class="label">Corrida — utilizadas</div><div class="metric" id="mCorrida">0</div></div>
+<div class="card"><div class="label">Corrida — reservadas empresas</div><div class="metric" id="mReservaCorrida">0</div></div>
 <div class="card"><div class="label">Corrida — disponíveis</div><div class="metric ok" id="dCorrida">1.000</div></div>
 <div class="card"><div class="label">Corridinha — utilizadas</div><div class="metric" id="mInfantil">0</div></div>
+<div class="card"><div class="label">Corridinha — reservadas empresas</div><div class="metric" id="mReservaInfantil">0</div></div>
 <div class="card"><div class="label">Corridinha — disponíveis</div><div class="metric ok" id="dInfantil">100</div></div>
 <div class="card"><div class="label">PCD — utilizadas</div><div class="metric" id="mPcd">0</div></div>
 <div class="card"><div class="label">PCD — disponíveis</div><div class="metric ok" id="dPcd">10</div></div>
@@ -106,7 +108,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 </div>
 </section>
 
-<section id="vagas" class="view"><h1>Central de vagas</h1><div class="sub">Somente o Administrador altera limites. Em produção, utilização será calculada pelo banco.</div>
+<section id="vagas" class="view"><h1>Central de vagas</h1><div class="sub">Somente o Administrador altera limites. As vagas públicas = total − utilizadas − reservas de empresas. A reserva corporativa ocorre no momento da criação do lote.</div>
 <div class="grid">
 <div class="card"><b>Corrida 7 km</b><div class="formgrid"><div class="field"><label>Total</label><input id="vCorrida" type="number" min="0" value="1000"></div></div><p>Utilizadas: <strong id="uCorrida">0</strong> · Disponíveis: <strong id="aCorrida">1000</strong></p></div>
 <div class="card"><b>Corridinha Infantil</b><div class="formgrid"><div class="field"><label>Total</label><input id="vInfantil" type="number" min="0" value="100"></div></div><p>Utilizadas: <strong id="uInfantil">0</strong> · Disponíveis: <strong id="aInfantil">100</strong></p></div>
@@ -176,7 +178,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
     <tbody id="tblAtletasEmpresa"></tbody></table>
   </div>
 </div>
-<div class="section notice"><strong>Regra:</strong> empresa sem login. O Administrador cadastra o lote e os atletas vinculados serão registrados no sistema. Vagas não utilizadas permanecem reservadas até liberação administrativa com auditoria.</div>
+<div class="section notice"><strong>Regra V9:</strong> ao criar um lote, as vagas restantes são reservadas imediatamente no estoque da modalidade. O atleta vinculado ao lote não gera cobrança individual e consome somente o saldo do lote. Empresa sem login. O Administrador cadastra o lote e os atletas vinculados serão registrados no sistema. Vagas não utilizadas permanecem reservadas até liberação administrativa com auditoria.</div>
 </section>
 
 <section id="bonificacoes" class="view"><h1>Bonificações</h1><div class="sub">Concessões controladas exclusivamente pelo Administrador.</div><div class="notice">Toda bonificação deve possuir origem, justificativa, autorizador e movimentação de estoque. Valor da inscrição: R$ 0,00.</div></section>
@@ -220,25 +222,72 @@ function renderRegs(){
  document.getElementById('tblInscricoes').innerHTML=rows.map(r=>`<tr><td>${r.cpf}</td><td>${r.nome}</td><td>${r.mod}</td><td>${r.origem}</td><td>${r.pag}</td><td><span class="badge">${r.status||'—'}</span></td></tr>`).join('')||'<tr><td colspan="6">Nenhum registro encontrado.</td></tr>';
 }
 ['fBusca','fMod','fStatus'].forEach(id=>document.getElementById(id).addEventListener('input',renderRegs));
-function counts(){let rows=loadRegs().map(normalize),c={corrida:0,infantil:0,pcd:0,valid:0,ok:0,corr:0};rows.forEach(r=>{if(confirmed(r.status)){if(r.mod==='Corridinha Infantil')c.infantil++;else if(r.mod==='PCD presencial')c.pcd++;else c.corrida++;c.ok++}if(/VALIDA/i.test(r.status))c.valid++;if(/CORREÇÃO/i.test(r.status))c.corr++});
- let stock=JSON.parse(localStorage.getItem('cnr26_central_vagas_v24')||'{"corrida":{"total":1000},"infantil":{"total":100},"pcd":{"total":10}}');
- const t=(k,d)=>Number(stock[k]?.total??d);
- document.getElementById('mCorrida').textContent=c.corrida;document.getElementById('dCorrida').textContent=t('corrida',1000)-c.corrida;
- document.getElementById('mInfantil').textContent=c.infantil;document.getElementById('dInfantil').textContent=t('infantil',100)-c.infantil;
- document.getElementById('mPcd').textContent=c.pcd;document.getElementById('dPcd').textContent=t('pcd',10)-c.pcd;
- document.getElementById('mValidacao').textContent=c.valid;document.getElementById('payValid').textContent=c.valid;document.getElementById('payOk').textContent=c.ok;document.getElementById('payCorr').textContent=c.corr;
- document.getElementById('pcdUsed2').textContent=c.pcd;document.getElementById('pcdAvail2').textContent=t('pcd',10)-c.pcd;
- ['Corrida','Infantil','Pcd'].forEach((x,i)=>{let k=['corrida','infantil','pcd'][i],u=c[k.toLowerCase()]||0;document.getElementById('u'+x).textContent=u;document.getElementById('a'+x).textContent=t(k,[1000,100,10][i])-u});
+function getCompanyReservationSummary(){
+  let v=[]; try{v=JSON.parse(localStorage.getItem(COMPANY_KEY)||'[]')}catch(e){v=[]}
+  const r={corrida:0,infantil:0};
+  v.forEach(x=>{
+    if(String(x.status||'').toUpperCase()==='ENCERRADO') return;
+    const remaining=Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0));
+    if(/infantil|corridinha/i.test(x.modalidade||'')) r.infantil+=remaining;
+    else r.corrida+=remaining;
+  });
+  return r;
 }
-function saveStock(){let s={corrida:{label:'Corrida 7 km',total:+vCorrida.value,used:0},infantil:{label:'Corridinha Infantil',total:+vInfantil.value,used:0},pcd:{label:'PCD presencial',total:+vPcd.value,used:0}};localStorage.setItem('cnr26_central_vagas_v24',JSON.stringify(s));counts();alert('Limites salvos.');}
+function getConfirmedCounts(){
+  const out={corrida:0,infantil:0,pcd:0,valid:0,ok:0,corrSet:new Set(),infSet:new Set(),pcdSet:new Set()};
+  const add=(r)=>{
+    const status=String(r.status||r.situacao||r.paymentStatus||'').toUpperCase();
+    if(/VALIDA/.test(status)) out.valid++;
+    if(/CORREÇÃO/.test(status)) out.corr=(out.corr||0)+1;
+    if(!confirmed(status)) return;
+    const cpf=String(r.cpf||r.CPF||'').replace(/\D/g,'');
+    const m=String(r.modalidade||r.modality||'');
+    if(/infantil|corridinha/i.test(m)){ if(cpf) out.infSet.add(cpf); else out.infantil++; }
+    else if(/pcd/i.test(m)){ if(cpf) out.pcdSet.add(cpf); else out.pcd++; }
+    else { if(cpf) out.corrSet.add(cpf); else out.corrida++; }
+  };
+  ['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas'].forEach(k=>{try{const v=JSON.parse(localStorage.getItem(k)||'[]');if(Array.isArray(v))v.forEach(add)}catch(e){}});
+  getLinks().forEach(x=>{ const m=String(x.modalidade||''); const cpf=String(x.cpf||'').replace(/\D/g,''); if(/infantil|corridinha/i.test(m)){if(cpf)out.infSet.add(cpf);else out.infantil++;} else {if(cpf)out.corrSet.add(cpf);else out.corrida++;} });
+  out.corrida+=out.corrSet.size; out.infantil+=out.infSet.size; out.pcd+=out.pcdSet.size; out.ok=out.corrida+out.infantil+out.pcd;
+  return out;
+}
+function counts(){
+ let c=getConfirmedCounts();
+ let stock=JSON.parse(localStorage.getItem('cnr26_central_vagas_v24')||'{"corrida":{"total":1000,"used":0},"infantil":{"total":100,"used":0},"pcd":{"total":10,"used":0}}');
+ const t=(k,d)=>Number(stock[k]?.total??d), res=getCompanyReservationSummary();
+ const availableCorrida=Math.max(0,t('corrida',1000)-c.corrida-res.corrida);
+ const availableInfantil=Math.max(0,t('infantil',100)-c.infantil-res.infantil);
+ const availablePcd=Math.max(0,t('pcd',10)-c.pcd);
+ document.getElementById('mCorrida').textContent=c.corrida; document.getElementById('mReservaCorrida').textContent=res.corrida; document.getElementById('dCorrida').textContent=availableCorrida; document.getElementById('dashTotalCorrida').textContent=t('corrida',1000);
+ document.getElementById('mInfantil').textContent=c.infantil; document.getElementById('mReservaInfantil').textContent=res.infantil; document.getElementById('dInfantil').textContent=availableInfantil;
+ document.getElementById('mPcd').textContent=c.pcd; document.getElementById('dPcd').textContent=availablePcd;
+ document.getElementById('mValidacao').textContent=c.valid; document.getElementById('payValid').textContent=c.valid; document.getElementById('payOk').textContent=c.ok; document.getElementById('payCorr').textContent=c.corr||0;
+ document.getElementById('pcdUsed2').textContent=c.pcd; document.getElementById('pcdAvail2').textContent=availablePcd;
+ ['Corrida','Infantil','Pcd'].forEach((x,i)=>{let k=['corrida','infantil','pcd'][i],u=c[k]||0;document.getElementById('u'+x).textContent=u;document.getElementById('a'+x).textContent=[availableCorrida,availableInfantil,availablePcd][i]});
+}
+function saveStock(){
+ const current=JSON.parse(localStorage.getItem('cnr26_central_vagas_v24')||'{"corrida":{"total":1000},"infantil":{"total":100},"pcd":{"total":10}}');
+ const res=getCompanyReservationSummary(); const c=getConfirmedCounts();
+ const n={corrida:{label:'Corrida 7 km',total:Math.max(0,+vCorrida.value),used:c.corrida},infantil:{label:'Corridinha Infantil',total:Math.max(0,+vInfantil.value),used:c.infantil},pcd:{label:'PCD presencial',total:Math.max(0,+vPcd.value),used:c.pcd}};
+ if(n.corrida.total < c.corrida+res.corrida || n.infantil.total < c.infantil+res.infantil || n.pcd.total < c.pcd){alert('Não é possível reduzir o limite abaixo das vagas já utilizadas ou reservadas.');return;}
+ localStorage.setItem('cnr26_central_vagas_v24',JSON.stringify(n)); counts(); alert('Limites salvos sem alterar vagas já utilizadas ou reservadas.');
+}
 const COMPANY_KEY='cnr26_empresas_lotes_v2';
 function getCompanies(){try{return JSON.parse(localStorage.getItem(COMPANY_KEY)||'[]')}catch(e){return []}}
-function setCompanies(v){localStorage.setItem(COMPANY_KEY,JSON.stringify(v));renderCompanies()}
+function setCompanies(v){localStorage.setItem(COMPANY_KEY,JSON.stringify(v));renderCompanies();counts()}
 function saveCompanyLot(){
  const nome=empNome.value.trim(),cnpj=empCnpj.value.trim(),resp=empResp.value.trim(),whats=empWhats.value.trim();
  if(!nome||!cnpj||!resp||!whats){alert('Preencha os campos obrigatórios.');return}
- const v=getCompanies(); v.push({id:'EMP-'+Date.now(),empresa:nome,cnpj,responsavel:resp,whatsapp:whats,email:empEmail.value.trim(),modalidade:loteMod.value,contratadas:Math.max(1,Number(loteQtd.value)||1),utilizadas:0,valor:Math.max(0,Number(loteValor.value)||0),validade:loteValidade.value,status:'ATIVO',criadoEm:new Date().toISOString()});
- setCompanies(v);clearCompanyForm();alert('Empresa e lote cadastrados.')
+ const qtd=Math.max(1,Number(loteQtd.value)||1), modalidade=loteMod.value;
+ const stock=JSON.parse(localStorage.getItem('cnr26_central_vagas_v24')||'{"corrida":{"total":1000},"infantil":{"total":100}}');
+ const c=getConfirmedCounts(),res=getCompanyReservationSummary();
+ const key=/infantil|corridinha/i.test(modalidade)?'infantil':'corrida';
+ const total=Number(stock[key]?.total ?? (key==='infantil'?100:1000));
+ const used=c[key]||0, reserved=res[key]||0, available=Math.max(0,total-used-reserved);
+ if(qtd>available){alert(`Não há vagas públicas suficientes para reservar este lote. Disponíveis para reserva: ${available}.`);return;}
+ const v=getCompanies();
+ v.push({id:'EMP-'+Date.now(),empresa:nome,cnpj,responsavel:resp,whatsapp:whats,email:empEmail.value.trim(),modalidade,contratadas:qtd,utilizadas:0,valor:Math.max(0,Number(loteValor.value)||0),validade:loteValidade.value,status:'ATIVO',criadoEm:new Date().toISOString(),reservaEstoque:qtd});
+ setCompanies(v);clearCompanyForm();counts();alert(`Empresa e lote cadastrados. ${qtd} vaga(s) foram reservadas do estoque geral.`);
 }
 function clearCompanyForm(){['empNome','empCnpj','empResp','empWhats','empEmail','loteValidade'].forEach(id=>document.getElementById(id).value='');loteQtd.value=10;loteValor.value=0}
 function renderCompanies(){
@@ -444,7 +493,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V8 — Integridade das inscrições</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V9.0 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -458,4 +507,4 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V8 HOMOLOGAÇÃO</div></body></html>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.0 HOMOLOGAÇÃO</div></body></html>
