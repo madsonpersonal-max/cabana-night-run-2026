@@ -200,6 +200,24 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <section id="usuarios" class="view"><h1>Usuários</h1><div class="sub">Apenas dois perfis operacionais: Atendente e Administrador.</div><div class="tablewrap"><table><thead><tr><th>Perfil</th><th>Acesso</th><th>Observação</th></tr></thead><tbody><tr><td>ATENDENTE</td><td>Operacional</td><td>Sem alteração de limites críticos, permissões ou configurações.</td></tr><tr><td>ADMINISTRADOR</td><td>Total</td><td>Vagas, lotes, bonificações, PCD, pagamentos, relatórios, usuários e configurações.</td></tr></tbody></table></div></section>
 
 <section id="auditoria" class="view"><h1>Auditoria</h1><div class="sub">Histórico das ações administrativas.</div><div class="tablewrap"><table><thead><tr><th>Data/hora</th><th>Usuário</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody id="tblAudit"><tr><td>—</td><td>ADMIN</td><td>SISTEMA</td><td>Painel administrativo inicializado.</td></tr></tbody></table></div></section>
+
+<section id="bonificacoes-v94" style="margin:28px 0;padding:24px;border:1px solid #3b2a4f;border-radius:18px;background:#140d1d">
+<h2>Bonificações</h2>
+<p>Inscrições gratuitas autorizadas pelo Administrador. Cada bonificação consome 1 vaga do estoque geral da modalidade.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+<label>CPF do atleta *<input id="b94_cpf" maxlength="14" placeholder="CPF"></label>
+<label>Nome do atleta *<input id="b94_nome" placeholder="Nome completo"></label>
+<label>Modalidade *<select id="b94_mod"><option value="corrida">Corrida 7 km</option><option value="infantil">Corridinha Infantil</option></select></label>
+<label>Tamanho da camisa *<select id="b94_camisa"></select></label>
+<label>Motivo da bonificação *<input id="b94_motivo" placeholder="Ex.: parceria, premiação, cortesia"></label>
+<label>Autorizado por *<input id="b94_autorizador" placeholder="Nome do responsável pela autorização"></label>
+</div>
+<button id="b94_salvar" style="margin-top:16px">Registrar bonificação</button>
+<div id="b94_msg" style="margin-top:14px"></div>
+<div style="margin-top:22px;overflow:auto"><table style="width:100%;border-collapse:collapse">
+<thead><tr><th>Atleta</th><th>CPF</th><th>Modalidade</th><th>Camisa</th><th>Valor</th><th>Motivo</th><th>Autorizado por</th><th>Status</th></tr></thead>
+<tbody id="b94_lista"></tbody></table></div>
+</section>
 </main></div>
 <script>
 const demo=[
@@ -498,7 +516,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V9.2 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V9.4 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -512,7 +530,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.2 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.4 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -641,4 +659,46 @@ window.CNR26_V8={
 })();
 </script>
 
+
+<script>
+(function(){
+const KEY='cnr26_bonificacoes_v94', REGKEY='cnr26_registrations';
+const get=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]}};
+const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+function shirts(){
+ const m=document.getElementById('b94_mod'),c=document.getElementById('b94_camisa'); if(!m||!c)return;
+ const a=m.value==='infantil'?[['4','4 anos'],['6','6 anos'],['8','8 anos'],['10','10 anos'],['12','12 anos'],['PP','PP'],['P','P']]:[['PP','PP'],['P','P'],['M','M'],['G','G'],['GG','GG'],['XG','XG']];
+ c.innerHTML=a.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join('');
+}
+function sameMod(x,m){
+ const v=String(x.modality||x.modalidade||'').toLowerCase(), inf=v.includes('infantil')||v.includes('corridinha');
+ return m==='infantil'?inf:!inf;
+}
+function available(m){
+ const regs=get(REGKEY).filter(r=>sameMod(r,m)&&String(r.origin||r.origem||'').toLowerCase()!=='empresa'&&String(r.status||'').toLowerCase().includes('confirm')).length;
+ const lots=get('cnr26_empresas_lotes_v2').filter(l=>sameMod(l,m)&&String(l.status||'ATIVO').toUpperCase()!=='CANCELADO').reduce((a,l)=>a+Number(l.contracted??l.contratadas??l.spots??l.vagas??0),0);
+ return Math.max(0,(m==='infantil'?100:1000)-regs-lots);
+}
+function render(){
+ const el=document.getElementById('b94_lista'); if(!el)return;
+ const rows=get(KEY);
+ el.innerHTML=rows.length?rows.map(r=>'<tr><td>'+r.nome+'</td><td>'+r.cpf+'</td><td>'+ (r.mod==='infantil'?'Corridinha Infantil':'Corrida 7 km')+'</td><td>'+r.camisa+'</td><td>R$ 0,00</td><td>'+r.motivo+'</td><td>'+r.autorizador+'</td><td>'+r.status+'</td></tr>').join(''):'<tr><td colspan="8">Nenhuma bonificação registrada.</td></tr>';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ shirts(); render();
+ document.getElementById('b94_mod')?.addEventListener('change',shirts);
+ document.getElementById('b94_salvar')?.addEventListener('click',()=>{
+  const cpf=document.getElementById('b94_cpf').value.replace(/\D/g,''),nome=document.getElementById('b94_nome').value.trim(),mod=document.getElementById('b94_mod').value,camisa=document.getElementById('b94_camisa').value,motivo=document.getElementById('b94_motivo').value.trim(),aut=document.getElementById('b94_autorizador').value.trim(),msg=document.getElementById('b94_msg');
+  if(!cpf||cpf.length!==11||!nome||!motivo||!aut){msg.textContent='Preencha corretamente todos os campos obrigatórios.';return;}
+  const regs=get(REGKEY);
+  if(regs.some(r=>String(r.cpf||'').replace(/\D/g,'')===cpf&&String(r.status||'').toLowerCase()!=='cancelada')){msg.textContent='Já existe uma inscrição para este CPF.';return;}
+  if(available(mod)<=0){msg.textContent='Não há vaga disponível para esta modalidade. Bonificação bloqueada.';return;}
+  const now=new Date().toISOString(), b=get(KEY);
+  b.push({id:'BON-'+Date.now(),cpf,nome,mod,camisa,motivo,autorizador:aut,valor:0,status:'INSCRIÇÃO CONFIRMADA',origin:'BONIFICACAO',payment_status:'ISENTO — BONIFICAÇÃO',created_at:now}); put(KEY,b);
+  regs.push({cpf,nome,modality:mod==='infantil'?'Corridinha Infantil':'Corrida 7 km',modalidade:mod==='infantil'?'Corridinha Infantil':'Corrida 7 km',camisa,origin:'BONIFICACAO',origem:'Bonificação',status:'INSCRIÇÃO CONFIRMADA',valor:0,paymentStatus:'ISENTO — BONIFICAÇÃO',motivoBonificacao:motivo,autorizadoPor:aut,createdAt:now}); put(REGKEY,regs);
+  msg.textContent='INSCRIÇÃO REALIZADA COM SUCESSO — bonificação registrada e 1 vaga consumida.'; render();
+ });
+});
+})();
+</script>
 </body></html>
