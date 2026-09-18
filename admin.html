@@ -200,7 +200,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 </section>
 
 
-<section id="patrocinadores" class="view">
+<section id="patrocinadores" class="view" data-view="patrocinadores"><button id="abrirPatrocinadoresV104" class="btn primary" style="margin:10px 0" onclick="document.getElementById('patrocinadores').classList.add('active');document.getElementById('patrocinadores').style.display='';window.renderPatrocinadores&&window.renderPatrocinadores();">Abrir Patrocinadores</button>
 <h1>Patrocinadores</h1>
 <div class="sub">Cadastro, controle de pagamento e emissão de recibo/comprovante comercial de patrocínio.</div>
 
@@ -666,7 +666,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V10.3 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V10.4 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -680,7 +680,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.3 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.4 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -1185,7 +1185,32 @@ document.getElementById('sp_salvar')?.addEventListener('click',()=>{
  document.getElementById('sp_msg').textContent='Patrocinador cadastrado com sucesso.';document.getElementById('sp_msg').style.display='block';render();
 });
 document.getElementById('sp_limpar')?.addEventListener('click',()=>document.querySelectorAll('#patrocinadores input').forEach(x=>x.value=''));
+window.renderPatrocinadores=render;
 document.addEventListener('DOMContentLoaded',render);
+})();
+</script>
+
+<script>
+(function(){
+  function showSponsor(){
+    const target=document.getElementById('patrocinadores');
+    if(!target)return;
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    target.classList.add('active');
+    target.style.display='';
+    if(typeof window.renderPatrocinadores==='function') window.renderPatrocinadores();
+  }
+  function bind(){
+    document.querySelectorAll('a[href="#patrocinadores"],[data-view="patrocinadores"]').forEach(el=>{
+      el.addEventListener('click',function(e){
+        e.preventDefault();
+        showSponsor();
+        history.replaceState(null,'','#patrocinadores');
+      });
+    });
+    if(location.hash==='#patrocinadores') setTimeout(showSponsor,50);
+  }
+  document.addEventListener('DOMContentLoaded',bind);
 })();
 </script>
 </body></html>
