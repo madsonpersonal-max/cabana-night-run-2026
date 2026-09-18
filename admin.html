@@ -108,12 +108,15 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 </div>
 </section>
 
-<section id="vagas" class="view"><h1>Central de vagas</h1><div class="sub">Somente o Administrador altera limites. As vagas públicas = total − utilizadas − reservas de empresas. A reserva corporativa ocorre no momento da criação do lote.</div>
+<section id="vagas" class="view"><h1>Central de vagas</h1><div class="sub">Estoque único por modalidade. <strong>Disponíveis = Total − Utilizadas − Reservadas por empresas.</strong> A reserva corporativa ocorre no momento da criação do lote e não é descontada novamente quando o atleta é vinculado.</div>
 <div class="grid">
-<div class="card"><b>Corrida 7 km</b><div class="formgrid"><div class="field"><label>Total</label><input id="vCorrida" type="number" min="0" value="1000"></div></div><p>Utilizadas: <strong id="uCorrida">0</strong> · Disponíveis: <strong id="aCorrida">1000</strong></p></div>
-<div class="card"><b>Corridinha Infantil</b><div class="formgrid"><div class="field"><label>Total</label><input id="vInfantil" type="number" min="0" value="100"></div></div><p>Utilizadas: <strong id="uInfantil">0</strong> · Disponíveis: <strong id="aInfantil">100</strong></p></div>
-<div class="card"><b>PCD presencial</b><div class="formgrid"><div class="field"><label>Total</label><input id="vPcd" type="number" min="0" value="10"></div></div><p>Utilizadas: <strong id="uPcd">0</strong> · Disponíveis: <strong id="aPcd">10</strong></p></div>
-</div><div class="actions"><button class="primary" onclick="saveStock()">Salvar limites</button></div></section>
+<div class="card"><b>Corrida 7 km</b><div class="formgrid"><div class="field"><label>Total do evento</label><input id="vCorrida" type="number" min="0" value="1000"></div></div><p>Utilizadas: <strong id="uCorrida">0</strong></p><p>Reservadas empresas: <strong id="rCorrida">0</strong></p><p class="ok">Disponíveis: <strong id="aCorrida">1000</strong></p></div>
+<div class="card"><b>Corridinha Infantil</b><div class="formgrid"><div class="field"><label>Total do evento</label><input id="vInfantil" type="number" min="0" value="100"></div></div><p>Utilizadas: <strong id="uInfantil">0</strong></p><p>Reservadas empresas: <strong id="rInfantil">0</strong></p><p class="ok">Disponíveis: <strong id="aInfantil">100</strong></p></div>
+<div class="card"><b>PCD presencial</b><div class="formgrid"><div class="field"><label>Total de vagas</label><input id="vPcd" type="number" min="0" value="10"></div></div><p>Utilizadas: <strong id="uPcd">0</strong></p><p class="ok">Disponíveis: <strong id="aPcd">10</strong></p></div>
+</div>
+<div class="section card"><h2>Composição do estoque</h2><div class="tablewrap"><table><thead><tr><th>Modalidade</th><th>Total</th><th>Utilizadas</th><th>Reservadas empresas</th><th>Disponíveis</th></tr></thead><tbody id="tblComposicaoVagas"></tbody></table></div></div>
+<div class="section notice"><strong>Regra central:</strong> criar um lote empresarial reduz imediatamente as vagas disponíveis. Vincular um atleta a um lote apenas reduz o saldo do lote, pois a vaga já estava reservada no estoque central.</div>
+<div class="actions"><button class="primary" onclick="saveStock()">Salvar limites</button></div></section>
 
 <section id="empresas" class="view">
 <h1>Empresas e Lotes</h1><div class="sub">Cadastro administrativo de empresas e reserva controlada de vagas corporativas.</div>
@@ -260,6 +263,8 @@ function counts(){
  const availablePcd=Math.max(0,t('pcd',10)-c.pcd);
  document.getElementById('mCorrida').textContent=c.corrida; document.getElementById('mReservaCorrida').textContent=res.corrida; document.getElementById('dCorrida').textContent=availableCorrida; document.getElementById('dashTotalCorrida').textContent=t('corrida',1000);
  document.getElementById('mInfantil').textContent=c.infantil; document.getElementById('mReservaInfantil').textContent=res.infantil; document.getElementById('dInfantil').textContent=availableInfantil;
+ document.getElementById('rCorrida').textContent=res.corrida; document.getElementById('rInfantil').textContent=res.infantil;
+ const tv=document.getElementById('tblComposicaoVagas'); if(tv) tv.innerHTML=`<tr><td>Corrida 7 km</td><td>${t('corrida',1000)}</td><td>${c.corrida}</td><td>${res.corrida}</td><td class="ok"><strong>${availableCorrida}</strong></td></tr><tr><td>Corridinha Infantil</td><td>${t('infantil',100)}</td><td>${c.infantil}</td><td>${res.infantil}</td><td class="ok"><strong>${availableInfantil}</strong></td></tr><tr><td>PCD presencial</td><td>${t('pcd',10)}</td><td>${c.pcd}</td><td>0</td><td class="ok"><strong>${availablePcd}</strong></td></tr>`;
  document.getElementById('mPcd').textContent=c.pcd; document.getElementById('dPcd').textContent=availablePcd;
  document.getElementById('mValidacao').textContent=c.valid; document.getElementById('payValid').textContent=c.valid; document.getElementById('payOk').textContent=c.ok; document.getElementById('payCorr').textContent=c.corr||0;
  document.getElementById('pcdUsed2').textContent=c.pcd; document.getElementById('pcdAvail2').textContent=availablePcd;
