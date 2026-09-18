@@ -42,7 +42,13 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 </aside>
 <main>
 <section id="dashboard" class="view active">
-<h1>Dashboard</h1><div class="sub">Visão administrativa da operação da Cabana Night Run 2026.</div>
+<h1>Dashboard</h1><div class="sub">Visão administrativa da operação da Cabana Night Run 2026.
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px">
+<div style="border:1px solid #3b2a4f;border-radius:16px;padding:18px;background:#140d1d">
+  <div style="opacity:.85">Bonificados</div>
+  <div id="cnr_v96_bonificados" style="font-size:34px;font-weight:800;margin-top:8px">0</div>
+</div>
+</div></div>
 <div class="grid">
 <div class="card"><div class="label">Corrida 7 km — total</div><div class="metric" id="dashTotalCorrida">1.000</div></div>
 <div class="card"><div class="label">Corrida — utilizadas</div><div class="metric" id="mCorrida">0</div></div>
@@ -500,7 +506,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V9.5 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V9.6 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -514,7 +520,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.5 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.6 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -683,6 +689,33 @@ document.addEventListener('DOMContentLoaded',()=>{
   msg.textContent='INSCRIÇÃO REALIZADA COM SUCESSO — bonificação registrada e 1 vaga consumida.'; render();
  });
 });
+})();
+</script>
+
+<script>
+(function(){
+  function countBonificados(){
+    try{
+      const regs = JSON.parse(localStorage.getItem('cnr26_registrations') || '[]');
+      return regs.filter(r => {
+        const origin = String(r.origin || r.origem || '').toLowerCase();
+        const status = String(r.status || '').toLowerCase();
+        return (origin.includes('bonific') || origin === 'bonificacao') &&
+               !status.includes('cancel');
+      }).length;
+    }catch(e){ return 0; }
+  }
+  function refreshBonificados(){
+    const el=document.getElementById('cnr_v96_bonificados');
+    if(el) el.textContent=String(countBonificados());
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    refreshBonificados();
+    setTimeout(refreshBonificados,300);
+    setTimeout(refreshBonificados,1000);
+  });
+  window.addEventListener('storage', refreshBonificados);
+  window.cnrV96RefreshBonificados = refreshBonificados;
 })();
 </script>
 </body></html>
