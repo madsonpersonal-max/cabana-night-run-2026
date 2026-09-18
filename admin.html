@@ -394,10 +394,17 @@ const demo=[
  {cpf:'333333333',nome:'ATLETA TESTE INFANTIL',mod:'Corridinha Infantil',origem:'PRESENCIAL',pag:'Confirmado',status:'INSCRIÇÃO CONFIRMADA'}
 ];
 function loadRegs(){
- for(const k of ['cnr26_registrations','cnr26_inscricoes','cnr26_atletas','inscricoes_cnr26']){
-  try{let v=JSON.parse(localStorage.getItem(k)||'null');if(Array.isArray(v))return v}catch(e){}
- }
- return demo;
+ const keys=['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas','inscricoes_cnr26'];
+ const out=[]; const seen=new Set();
+ const sig=(r)=>{
+   const id=r.id||r.registrationId||r.registroId||r.internalId||r.uuid||'';
+   if(id) return 'ID:'+String(id);
+   return [r.cpf||r.CPF||'',r.nome||r.name||'',r.modalidade||r.modality||'',r.criadoEm||r.createdAt||'',r.status||r.situacao||'',r.paymentStatus||r.pagamento||'',r.origin||r.origem||''].map(String).join('|');
+ };
+ keys.forEach(k=>{
+  try{const v=JSON.parse(localStorage.getItem(k)||'[]'); if(Array.isArray(v)) v.forEach(r=>{const key=sig(r); if(!seen.has(key)){seen.add(key); out.push(r)}})}catch(e){}
+ });
+ return out.length?out:demo;
 }
 function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='inscricoes')renderRegs();if(v==='empresas')renderCompanies();if(v==='atletas')renderAtletas();}
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>show(b.dataset.view));
@@ -699,7 +706,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.5 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.7 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {

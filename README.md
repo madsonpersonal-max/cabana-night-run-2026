@@ -1,16 +1,10 @@
-# Cabana Night Run 2026 — V10.6
+# Cabana Night Run 2026 — V10.7
 
-## Correção: Bonificações completas
+Correção da aba **Inscrições**: agora consolida os registros das chaves de homologação utilizadas pelo sistema, em vez de retornar apenas a primeira chave encontrada.
 
-A V10.6 mantém a V10.5 e corrige a aba administrativa **Bonificações**.
+- Consolida `cnr26_inscricoes_v5`, `cnr26_registrations`, `cnr26_inscricoes`, `cnr26_atletas` e `inscricoes_cnr26`.
+- Evita duplicar o mesmo registro quando ele estiver replicado em mais de uma chave.
+- Mantém registros realmente distintos, inclusive casos de CPF duplicado, para permitir auditoria.
+- Mantém V10.6 Bonificações Completas e demais módulos.
 
-### O que foi corrigido
-- A aba agora exibe os atletas bonificados já registrados.
-- Lista consolidada entre o registro da inscrição e o cadastro de bonificação, evitando duplicação.
-- Colunas: Atleta, CPF, Modalidade, Camiseta, Valor, Motivo, Autorizador e Status.
-- Indicadores: total de bonificações ativas, corrida 7 km e corridinha infantil.
-- PCD permanece separado e não é contado como bonificação.
-- Valor da inscrição bonificada permanece R$ 0,00.
-
-## Homologação
-Este pacote continua sendo uma referência de homologação em HTML/localStorage. Produção deve usar backend/banco de dados e regras de autorização no servidor.
+**Homologação:** localStorage. Produção deverá usar banco de dados/API compartilhados.
