@@ -26,10 +26,10 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 
 <style>
 @media print{
- body>*:not(#sp_receipt){display:none!important}
- #sp_receipt{display:block!important;position:static!important;background:white!important;padding:0!important}
- #sp_receipt>div:last-child{display:none!important}
- #sp_receipt_paper{box-shadow:none!important;border-radius:0!important;max-width:none!important}
+ body>*:not(#sp_receipt):not(#lot_receipt){display:none!important}
+ #lot_receipt,#sp_receipt{display:block!important;position:static!important;background:white!important;padding:0!important}
+ #sp_receipt>div:last-child,#lot_receipt>div:last-child{display:none!important}
+ #sp_receipt_paper,#lot_receipt_paper{box-shadow:none!important;border-radius:0!important;max-width:none!important}
 }
 </style>
 </head>
@@ -144,16 +144,17 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <div class="field"><label>E-mail</label><input id="empEmail" type="email"></div>
 <div class="field"><label>Modalidade *</label><select id="loteMod"><option>Corrida 7 km</option><option>Corridinha Infantil</option></select></div>
 <div class="field"><label>Vagas contratadas *</label><input id="loteQtd" type="number" min="1" value="10"></div>
-<div class="field"><label>Valor negociado (R$)</label><input id="loteValor" type="number" min="0" step="0.01" value="0"></div>
+<div class="field"><label>Valor negociado TOTAL do lote (R$)</label><input id="loteValor" type="number" min="0" step="0.01" value="0"></div>
 <div class="field"><label>Validade</label><input id="loteValidade" type="date"></div>
 </div>
 <div class="actions"><button class="primary" onclick="saveCompanyLot()">Cadastrar empresa + lote</button><button class="secondary" onclick="clearCompanyForm()">Limpar</button></div></div>
+<div class="notice" style="margin-top:14px"><strong>Regra financeira do lote:</strong> informe o <strong>valor total negociado</strong> para todas as vagas contratadas. O sistema calcula automaticamente o valor equivalente por atleta no recibo.</div>
 <div class="section grid">
 <div class="card"><div class="label">Empresas cadastradas</div><div class="metric" id="empCount">0</div></div>
 <div class="card"><div class="label">Vagas contratadas</div><div class="metric" id="lotCount">0</div></div>
 <div class="card"><div class="label">Vagas utilizadas</div><div class="metric" id="lotUsed">0</div></div>
 <div class="card"><div class="label">Vagas restantes</div><div class="metric ok" id="lotAvail">0</div></div></div>
-<div class="section tablewrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>Modalidade</th><th>Contratadas</th><th>Utilizadas</th><th>Restantes</th><th>Valor</th><th>Status</th></tr></thead><tbody id="tblEmpresas"></tbody></table></div>
+<div class="section tablewrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>Modalidade</th><th>Contratadas</th><th>Utilizadas</th><th>Restantes</th><th>Valor total</th><th>Valor/atleta</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tblEmpresas"></tbody></table></div>
 
 <div class="section card">
   <h2>Vincular atleta ao lote</h2>
@@ -465,7 +466,7 @@ function saveCompanyLot(){
 function clearCompanyForm(){['empNome','empCnpj','empResp','empWhats','empEmail','loteValidade'].forEach(id=>document.getElementById(id).value='');loteQtd.value=10;loteValor.value=0}
 function renderCompanies(){
  const v=getCompanies();
- tblEmpresas.innerHTML=v.map(x=>`<tr><td>${x.empresa}</td><td>${x.cnpj}</td><td>${x.responsavel}</td><td>${x.modalidade}</td><td>${x.contratadas}</td><td>${x.utilizadas}</td><td>${Math.max(0,x.contratadas-x.utilizadas)}</td><td>R$ ${Number(x.valor||0).toFixed(2).replace('.',',')}</td><td><span class="badge">${x.status}</span></td></tr>`).join('')||'<tr><td colspan="9">Nenhuma empresa cadastrada.</td></tr>';
+ tblEmpresas.innerHTML=v.map(x=>{const q=Number(x.contratadas||0), total=Number(x.valor||0), por=q>0?total/q:0; return `<tr><td>${x.empresa}</td><td>${x.cnpj}</td><td>${x.responsavel}</td><td>${x.modalidade}</td><td>${q}</td><td>${x.utilizadas}</td><td>${Math.max(0,q-Number(x.utilizadas||0))}</td><td>R$ ${total.toFixed(2).replace('.',',')}</td><td>R$ ${por.toFixed(2).replace('.',',')}</td><td><span class="badge">${x.status}</span></td><td><button class="btn" onclick="companyLotReceipt('${x.id}')">Gerar recibo</button></td></tr>`}).join('')||'<tr><td colspan="11">Nenhuma empresa cadastrada.</td></tr>';
  empCount.textContent=v.length;lotCount.textContent=v.reduce((a,x)=>a+Number(x.contratadas||0),0);lotUsed.textContent=v.reduce((a,x)=>a+Number(x.utilizadas||0),0);lotAvail.textContent=v.reduce((a,x)=>a+Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),0);
  const sel=document.getElementById('vincLote');
  if(sel) sel.innerHTML=v.filter(x=>x.status==='ATIVO'&&Number(x.contratadas||0)>Number(x.utilizadas||0)).map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${Math.max(0,x.contratadas-x.utilizadas)} vagas</option>`).join('')||'<option value="">Nenhum lote com vaga disponível</option>';
@@ -666,7 +667,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V10.4 — Integridade das inscrições e estoque</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V10.5 — Integridade das inscrições, estoque e recibos</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -680,7 +681,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.4 HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V10.5 HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -1118,6 +1119,63 @@ document.addEventListener('DOMContentLoaded',()=>{
  ['p10_forig','p10_fstatus','p10_busca'].forEach(id=>document.getElementById(id)?.addEventListener('input',render));
  render();
 });
+})();
+</script>
+<div id="lot_receipt" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;padding:30px;overflow:auto">
+<div id="lot_receipt_paper" style="max-width:820px;margin:auto;background:white;color:#111;padding:38px;border-radius:8px">
+<div style="display:flex;justify-content:space-between;gap:20px;border-bottom:2px solid #222;padding-bottom:16px">
+<div><h1 style="margin:0">CABANA NIGHT RUN 2026</h1><strong>Associação Recreativa Cabana Clube</strong><br>CNPJ 63.886.204/0001-91</div>
+<div style="text-align:right"><strong>RECIBO DE LOTE EMPRESARIAL</strong><br><span id="lot_rec_data"></span></div>
+</div>
+<h2>Empresa</h2>
+<p><strong>Empresa:</strong> <span id="lot_rec_empresa"></span><br>
+<strong>CNPJ:</strong> <span id="lot_rec_cnpj"></span><br>
+<strong>Responsável:</strong> <span id="lot_rec_resp"></span><br>
+<strong>WhatsApp / celular:</strong> <span id="lot_rec_cel"></span><br>
+<strong>E-mail:</strong> <span id="lot_rec_email"></span></p>
+<h2>Dados do lote</h2>
+<p><strong>Modalidade:</strong> <span id="lot_rec_mod"></span><br>
+<strong>Vagas contratadas:</strong> <span id="lot_rec_qtd"></span><br>
+<strong>Vagas utilizadas:</strong> <span id="lot_rec_used"></span><br>
+<strong>Vagas restantes:</strong> <span id="lot_rec_remaining"></span><br>
+<strong>Valor total negociado do lote:</strong> <span id="lot_rec_total"></span><br>
+<strong>Valor equivalente por atleta:</strong> <span id="lot_rec_unit"></span><br>
+<strong>Validade do lote:</strong> <span id="lot_rec_validade"></span><br>
+<strong>Status:</strong> <span id="lot_rec_status"></span></p>
+<div style="margin-top:24px;padding:16px;border:1px solid #999">
+<strong>Dados para pagamento ao Cabana Clube</strong><br>
+Associação Recreativa Cabana Clube<br>
+CNPJ/PIX: 63.886.204/0001-91<br>
+Chave PIX: <strong>63.886.204/0001-91</strong>
+</div>
+<div style="margin-top:20px;padding:14px;border:1px solid #ccc;background:#f7f7f7">
+<strong>Critério financeiro:</strong> o valor acima é o <strong>valor total negociado do lote</strong>. O valor equivalente por atleta é calculado automaticamente pela divisão do valor total pelas vagas contratadas e tem caráter apenas informativo. Atletas vinculados ao lote não geram cobrança individual.
+</div>
+<p style="margin-top:30px;font-size:12px">Documento de controle/comprovante comercial do lote empresarial. Não substitui nota fiscal ou documento fiscal quando este for legalmente exigido.</p>
+</div>
+<div style="max-width:820px;margin:14px auto;display:flex;gap:10px;justify-content:flex-end">
+<button class="btn primary" onclick="window.print()">Imprimir / salvar em PDF</button>
+<button class="btn" onclick="document.getElementById('lot_receipt').style.display='none'">Fechar</button>
+</div>
+</div>
+
+<script>
+(function(){
+  function moneyLot(n){return Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+  function setLot(id,v){const el=document.getElementById(id);if(el)el.textContent=v}
+  window.companyLotReceipt=function(id){
+    let lots=[]; try{lots=JSON.parse(localStorage.getItem('cnr26_empresas_lotes_v2')||'[]')}catch(e){}
+    const x=lots.find(l=>String(l.id)===String(id));
+    if(!x){alert('Lote não encontrado.');return}
+    const qtd=Number(x.contratadas||0), used=Number(x.utilizadas||0), total=Number(x.valor||0), unit=qtd>0?total/qtd:0;
+    setLot('lot_rec_empresa',x.empresa||'—'); setLot('lot_rec_cnpj',x.cnpj||'—'); setLot('lot_rec_resp',x.responsavel||'—');
+    setLot('lot_rec_cel',x.whatsapp||'—'); setLot('lot_rec_email',x.email||'—'); setLot('lot_rec_mod',x.modalidade||'—');
+    setLot('lot_rec_qtd',qtd); setLot('lot_rec_used',used); setLot('lot_rec_remaining',Math.max(0,qtd-used));
+    setLot('lot_rec_total',moneyLot(total)); setLot('lot_rec_unit',moneyLot(unit));
+    setLot('lot_rec_validade',x.validade?new Date(x.validade+'T00:00:00').toLocaleDateString('pt-BR'):'Não informada');
+    setLot('lot_rec_status',x.status||'ATIVO'); setLot('lot_rec_data',new Date().toLocaleDateString('pt-BR'));
+    document.getElementById('lot_receipt').style.display='block';
+  }
 })();
 </script>
 <div id="sp_receipt" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;padding:30px;overflow:auto">
