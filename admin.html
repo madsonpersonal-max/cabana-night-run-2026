@@ -532,21 +532,36 @@ function getLinks(){try{return JSON.parse(localStorage.getItem(LINK_KEY)||'[]')}
 function setLinks(v){localStorage.setItem(LINK_KEY,JSON.stringify(v));renderVinculos();renderCompanies();counts()}
 function vincularAtleta(){
  const loteId=document.getElementById('vincLote').value;
- const cpf=document.getElementById('vincCpf').value.trim();
+ const cpf=normCpf(document.getElementById('vincCpf').value.trim());
  const nome=document.getElementById('vincNome').value.trim();
  if(!loteId||!cpf||!nome){alert('Preencha lote, CPF e nome do atleta.');return}
+ if(cpf.length!==11){alert('CPF inválido.');return}
  const companies=getCompanies(), lote=companies.find(x=>x.id===loteId);
  if(!lote){alert('Lote não encontrado.');return}
  if(Number(lote.utilizadas||0)>=Number(lote.contratadas||0)){alert('Este lote não possui vagas disponíveis.');return}
  const links=getLinks();
- if(links.some(x=>x.cpf===cpf)){alert('Este CPF já está vinculado a um lote.');return}
- links.push({id:'VINC-'+Date.now(),loteId,empresa:lote.empresa,modalidade:lote.modalidade,cpf,nome,data:new Date().toISOString()});
+ if(links.some(x=>normCpf(x.cpf)===cpf)){alert('Este CPF já está vinculado a um lote.');return}
+ let regs=[]; try{regs=JSON.parse(localStorage.getItem('cnr26_inscricoes_v5')||'[]')}catch(e){regs=[]}
+ const existing=regs.findIndex(x=>normCpf(x.cpf||x.documento)===cpf);
+ if(existing>=0){
+   const r=regs[existing];
+   if(r.loteId && r.loteId!==loteId){alert('Este CPF já pertence a outro lote empresarial.');return}
+   if(!r.loteId && String(r.origem||'').toUpperCase()!=='EMPRESA'){
+     if(!confirm('Este CPF já possui uma inscrição. Deseja vinculá-la a este lote empresarial? O pagamento individual será substituído pelo controle do lote.')) return;
+   }
+   Object.assign(r,{cpf,nome,modalidade:lote.modalidade,origem:'EMPRESA',empresa:lote.empresa,loteId:lote.id,status:'INSCRIÇÃO CONFIRMADA',pagamento:'LOTE EMPRESARIAL — SEM COBRANÇA INDIVIDUAL',valor:0});
+ } else {
+   regs.push({cpf,nome,modalidade:lote.modalidade,origem:'EMPRESA',empresa:lote.empresa,loteId:lote.id,status:'INSCRIÇÃO CONFIRMADA',pagamento:'LOTE EMPRESARIAL — SEM COBRANÇA INDIVIDUAL',valor:0,criadoEm:new Date().toISOString()});
+ }
+ links.push({id:'VINC-'+Date.now(),loteId,empresa:lote.empresa,modalidade:lote.modalidade,cpf,nome,data:new Date().toISOString(),origem:'EMPRESA'});
  lote.utilizadas=Number(lote.utilizadas||0)+1;
  localStorage.setItem('cnr26_empresas_lotes_v2',JSON.stringify(companies));
+ localStorage.setItem('cnr26_inscricoes_v5',JSON.stringify(regs));
  setLinks(links);
  document.getElementById('vincCpf').value='';
  document.getElementById('vincNome').value='';
- alert('Atleta vinculado ao lote. 1 vaga foi consumida.');
+ auditAdm('VINCULAR_ATLETA_EMPRESA',{loteId,empresa:lote.empresa,cpf,nome});
+ alert('Atleta vinculado ao lote e registrado no cadastro geral. 1 vaga foi consumida.');
 }
 function renderVinculos(){
  const body=document.getElementById('tblVinculos'); if(!body)return;
@@ -573,10 +588,16 @@ function executarAcaoLote(){
 }
 
 function getCorporateRegistrations(){
+  const map=new Map();
   try{
     const a=JSON.parse(localStorage.getItem('cnr26_inscricoes_v5')||'[]');
-    return Array.isArray(a)?a.filter(x=>x.empresa||x.loteId||x.origem==='EMPRESA'):[];
-  }catch(e){return []}
+    if(Array.isArray(a)) a.filter(x=>x.empresa||x.loteId||String(x.origem||'').toUpperCase()==='EMPRESA').forEach(x=>map.set(normCpf(x.cpf||x.documento),x));
+  }catch(e){}
+  getLinks().forEach(x=>{
+    const cpf=normCpf(x.cpf); if(!cpf)return;
+    if(!map.has(cpf)) map.set(cpf,{cpf,nome:x.nome,empresa:x.empresa,loteId:x.loteId,modalidade:x.modalidade,origem:'EMPRESA',criadoEm:x.data,status:'INSCRIÇÃO CONFIRMADA'});
+  });
+  return Array.from(map.values());
 }
 function renderAtletasEmpresa(){
   const body=document.getElementById('tblAtletasEmpresa'); if(!body)return;
@@ -717,7 +738,7 @@ window.CNR26_V8={
 </script>
 
 <div id="v8Integrity" style="margin:16px;padding:15px;border-radius:14px;background:#211b28;color:#fff;border:1px solid #3d3347">
-<b>V11.1 — Auditoria e consolidação do Administrador</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
+<b>V11.3 — Empresas com atualização incremental e integração de lotes</b><div id="v8IntegrityText" style="margin-top:8px;color:#bbb">Verificando...</div>
 </div>
 <script>
 (function(){
@@ -731,7 +752,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V11.1 • AUDITORIA ADM • HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V11.3 • EMPRESAS + IMPORTAÇÃO • HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -1420,6 +1441,8 @@ function analisarImportacaoEmpresa(){
       const age=idadeEm31Dez(r.nascimento); if(/infantil|corridinha/i.test(lote.modalidade)){if(age===null||age<4||age>12) errors.push('idade fora de 4–12 em 31/12/2026'); if(!r.responsavel) errors.push('responsável'); if(r.cpfResponsavel && r.cpfResponsavel.length!==11) errors.push('CPF responsável');}
       if(!r.camisa) errors.push('camiseta');
       const sameLote=usedCpf.has(r.cpf); const any=existing.find(x=>normCpf(x.cpf||x.documento)===r.cpf);
+      if(any && !sameLote && any.loteId && any.loteId!==lote.id) errors.push('CPF já cadastrado em outro lote');
+      if(any && !sameLote && !any.loteId && String(any.origem||'').toUpperCase()!=='EMPRESA') errors.push('CPF já possui inscrição individual');
       result.push({...r,linha:i+2,novo:!sameLote,existenteNoSistema:!!any,erros:errors});
     });
     const valid=result.filter(r=>r.erros.length===0), novos=valid.filter(r=>r.novo), existentes=valid.filter(r=>!r.novo), erros=result.filter(r=>r.erros.length);
