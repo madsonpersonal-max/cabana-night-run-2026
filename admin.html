@@ -514,7 +514,7 @@ function saveCompanyLot(){
 function clearCompanyForm(){['empNome','empCnpj','empResp','empWhats','empEmail','loteValidade'].forEach(id=>document.getElementById(id).value='');loteQtd.value=10;loteValor.value=0}
 function renderCompanies(){
  const v=getCompanies();
- tblEmpresas.innerHTML=v.map(x=>{const q=Number(x.contratadas||0), total=Number(x.valor||0), por=q>0?total/q:0; return `<tr><td>${x.empresa}</td><td>${x.cnpj}</td><td>${x.responsavel}</td><td>${x.modalidade}</td><td>${q}</td><td>${x.utilizadas}</td><td>${Math.max(0,q-Number(x.utilizadas||0))}</td><td>R$ ${total.toFixed(2).replace('.',',')}</td><td>R$ ${por.toFixed(2).replace('.',',')}</td><td><span class="badge">${x.status}</span></td><td><button class="btn" onclick="companyLotReceipt('${x.id}')">Gerar recibo</button><button class="btn admin-edit" onclick="editarEmpresaAdm('${x.id}')">Editar dados</button><button class="btn admin-edit" onclick="autorizarVagasLoteAdm('${x.id}')">Autorizar vagas</button></td></tr>`}).join('')||'<tr><td colspan="11">Nenhuma empresa cadastrada.</td></tr>';
+ tblEmpresas.innerHTML=v.map(x=>{const q=Number(x.contratadas||0), total=Number(x.valor||0), por=q>0?total/q:0; return `<tr><td>${x.empresa}</td><td>${x.cnpj}</td><td>${x.responsavel}</td><td>${x.modalidade}</td><td>${q}</td><td>${x.utilizadas}</td><td>${Math.max(0,q-Number(x.utilizadas||0))}</td><td>R$ ${total.toFixed(2).replace('.',',')}</td><td>R$ ${por.toFixed(2).replace('.',',')}</td><td><span class="badge">${x.status}</span></td><td><button class="btn" onclick="companyLotReceipt('${x.id}')">Gerar recibo</button><button type="button" class="btn admin-edit js-editar-empresa" data-id="${x.id}">Editar dados</button><button type="button" class="btn admin-edit js-autorizar-lote" data-id="${x.id}">Autorizar vagas</button></td></tr>`}).join('')||'<tr><td colspan="11">Nenhuma empresa cadastrada.</td></tr>';
  empCount.textContent=v.length;lotCount.textContent=v.reduce((a,x)=>a+Number(x.contratadas||0),0);lotUsed.textContent=v.reduce((a,x)=>a+Number(x.utilizadas||0),0);lotAvail.textContent=v.reduce((a,x)=>a+Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),0);
  const sel=document.getElementById('vincLote');
  if(sel) sel.innerHTML=v.filter(x=>x.status==='ATIVO'&&Number(x.contratadas||0)>Number(x.utilizadas||0)).map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${Math.max(0,x.contratadas-x.utilizadas)} vagas</option>`).join('')||'<option value="">Nenhum lote com vaga disponível</option>';
@@ -752,7 +752,7 @@ window.CNR26_V8={
   (dup.length?"<br><span style='color:#ffb0b0'>Atenção: há duplicidade na homologação. Em produção, CPF ativo deverá ter restrição UNIQUE no banco.</span>":"");
 })();
 </script>
-<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V11.3 • EMPRESAS + IMPORTAÇÃO • HOMOLOGAÇÃO</div>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V11.4 • EMPRESAS + EDIÇÃO CORRIGIDA • HOMOLOGAÇÃO</div>
 <script>
 (function(){
   const CNR_V92_LIMITS = {
@@ -1404,6 +1404,7 @@ function editarAtletaAdm(cpfEncoded){const cpf=decodeURIComponent(cpfEncoded);co
 function editarEmpresaAdm(id){const x=getCompanies().find(v=>v.id===id);if(!x){alert('Empresa/lote não encontrado.');return} const b='<div class="admin-grid"><div class="admin-field"><label>Empresa</label><input id="admEmpNome" value="'+(x.empresa||'')+'"></div><div class="admin-field"><label>CNPJ</label><input id="admEmpCnpj" value="'+(x.cnpj||'')+'"></div><div class="admin-field"><label>Responsável</label><input id="admEmpResp" value="'+(x.responsavel||'')+'"></div><div class="admin-field"><label>WhatsApp</label><input id="admEmpWhats" value="'+(x.whatsapp||'')+'"></div><div class="admin-field"><label>E-mail</label><input id="admEmpEmail" value="'+(x.email||'')+'"></div><div class="admin-field"><label>Valor total negociado</label><input id="admEmpValor" type="number" min="0" step="0.01" value="'+Number(x.valor||0)+'"></div><div class="admin-field"><label>Validade</label><input id="admEmpValidade" type="date" value="'+(x.validade||'')+'"></div><div class="admin-field"><label>Motivo da alteração</label><textarea id="admMotivoEmp" rows="3" placeholder="Obrigatório para auditoria"></textarea></div></div>'; abrirModalV111('Editar dados da empresa/lote',b,()=>{const motivo=document.getElementById('admMotivoEmp').value.trim();if(!motivo){alert('Informe o motivo da alteração.');return} const v=getCompanies();const idx=v.findIndex(z=>z.id===id);if(idx<0)return;const before={...v[idx]};Object.assign(v[idx],{empresa:document.getElementById('admEmpNome').value.trim(),cnpj:document.getElementById('admEmpCnpj').value.trim(),responsavel:document.getElementById('admEmpResp').value.trim(),whatsapp:document.getElementById('admEmpWhats').value.trim(),email:document.getElementById('admEmpEmail').value.trim(),valor:Math.max(0,Number(document.getElementById('admEmpValor').value)||0),validade:document.getElementById('admEmpValidade').value});localStorage.setItem(COMPANY_KEY,JSON.stringify(v));auditAdm('EDITAR_EMPRESA',{id,motivo,antes:before,depois:v[idx]});renderCompanies();counts();fecharModalV111();alert('Dados da empresa/lote atualizados.');});}
 function autorizarVagasLoteAdm(id){const v=getCompanies(),idx=v.findIndex(z=>z.id===id);if(idx<0)return;const x=v[idx];const atual=Number(x.contratadas||0),usadas=Number(x.utilizadas||0);const b='<div class="admin-grid"><div class="admin-field"><label>Vagas contratadas atuais</label><input value="'+atual+'" disabled></div><div class="admin-field"><label>Novo total de vagas do lote</label><input id="admLoteQtd" type="number" min="'+usadas+'" value="'+atual+'"></div><div class="admin-field"><label>Motivo da autorização</label><textarea id="admMotivoLote" rows="3" placeholder="Obrigatório para auditoria"></textarea></div></div>'; abrirModalV111('Autorizar vagas do lote',b,()=>{const motivo=document.getElementById('admMotivoLote').value.trim();const novo=Math.max(usadas,Number(document.getElementById('admLoteQtd').value)||0);if(!motivo){alert('Informe o motivo da autorização.');return} if(novo===atual){alert('Nenhuma alteração informada.');return} const stock=JSON.parse(localStorage.getItem('cnr26_central_vagas_v24')||'{"corrida":{"total":1000},"infantil":{"total":100}}');const key=/infantil|corridinha/i.test(x.modalidade)?'infantil':'corrida';const delta=novo-atual; if(delta>0){const res=getCompanyReservationSummary();const c=getConfirmedCounts();const available=Number(stock[key]?.total||0)-(c[key]||0)-(res[key]||0); if(available<delta){alert('Não há vagas públicas suficientes para ampliar este lote.');return}} x.contratadas=novo; x.reservaEstoque=Math.max(0,Number(x.reservaEstoque||atual)+delta);localStorage.setItem(COMPANY_KEY,JSON.stringify(v));auditAdm('AUTORIZAR_VAGAS_LOTE',{id,empresa:x.empresa,antes:atual,depois:novo,motivo});renderCompanies();counts();fecharModalV111();alert('Vagas do lote autorizadas e registradas.');});}
 
+</script>
 <script id="v112-importacao-empresa">
 let importEmpresaState=null;
 function normHeader(v){return String(v||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'');}
@@ -1473,5 +1474,15 @@ function confirmarImportacaoEmpresa(){
 }
 function cancelarImportacaoEmpresa(){importEmpresaState=null;document.getElementById('impResultado').style.display='none';document.getElementById('impPreview').style.display='none';document.getElementById('impConfirmActions').style.display='none';document.getElementById('impArquivo').value='';}
 </script>
+<script id="v114-edit-actions">
+(function(){
+  document.addEventListener('click',function(e){
+    const edit=e.target.closest('.js-editar-empresa');
+    if(edit){ e.preventDefault(); e.stopPropagation(); editarEmpresaAdm(edit.dataset.id); return; }
+    const auth=e.target.closest('.js-autorizar-lote');
+    if(auth){ e.preventDefault(); e.stopPropagation(); autorizarVagasLoteAdm(auth.dataset.id); return; }
+  },true);
+})();
 </script>
+
 </body></html>
