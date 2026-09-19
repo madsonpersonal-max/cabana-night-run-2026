@@ -36,6 +36,7 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <style id="v111-admin-css">
 .admin-global{margin:14px 0;padding:12px 14px;border:1px solid #6d4bb3;border-radius:12px;background:#171020;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.admin-global strong{color:#a6ff00}.admin-global span{opacity:.85;font-size:13px}.admin-global button{cursor:pointer}.admin-edit{margin-left:6px}.admin-lock{font-size:12px;padding:4px 8px;border-radius:999px;background:#241a35;border:1px solid #6d4bb3;color:#a6ff00}.modal-v111{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px}.modal-v111 .box{max-width:760px;width:100%;max-height:90vh;overflow:auto;background:#130d1d;border:1px solid #6d4bb3;border-radius:16px;padding:20px}.modal-v111 .box h2{margin-top:0}.modal-v111 .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}.admin-field{display:flex;flex-direction:column;gap:6px}.admin-field input,.admin-field select,.admin-field textarea{padding:10px;border-radius:8px;border:1px solid #4a3b5c;background:#0e0915;color:#fff}.admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}@media(max-width:700px){.admin-grid{grid-template-columns:1fr}}
 </style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <header><div class="brand">CABANA <span>NIGHT RUN 2026</span> — ADMIN</div><button class="secondary" onclick="logout()">Sair</button></header>
@@ -159,6 +160,22 @@ table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:13px;bor
 <div class="card"><div class="label">Vagas utilizadas</div><div class="metric" id="lotUsed">0</div></div>
 <div class="card"><div class="label">Vagas restantes</div><div class="metric ok" id="lotAvail">0</div></div></div>
 <div class="section tablewrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>Modalidade</th><th>Contratadas</th><th>Utilizadas</th><th>Restantes</th><th>Valor total</th><th>Valor/atleta</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tblEmpresas"></tbody></table></div>
+
+<div class="section card">
+  <h2>Atualizar lista de atletas</h2>
+  <div class="sub">Função exclusiva para lotes empresariais. A planilha adiciona atletas novos e atualiza apenas dados cadastrais de CPFs já existentes. Nunca exclui atletas automaticamente.</div>
+  <div class="formgrid">
+    <div class="field"><label>Lote / empresa *</label><select id="impLote"></select></div>
+    <div class="field"><label>Planilha (.xlsx ou .csv) *</label><input id="impArquivo" type="file" accept=".xlsx,.xls,.csv"></div>
+  </div>
+  <div class="actions">
+    <button class="secondary" onclick="baixarModeloEmpresa()">Baixar planilha padrão</button>
+    <button class="primary" onclick="analisarImportacaoEmpresa()">Analisar planilha</button>
+  </div>
+  <div id="impResultado" class="notice" style="display:none;margin-top:14px"></div>
+  <div id="impPreview" class="section tablewrap" style="display:none"></div>
+  <div class="actions" id="impConfirmActions" style="display:none"><button class="primary" onclick="confirmarImportacaoEmpresa()">Confirmar atualização</button><button class="secondary" onclick="cancelarImportacaoEmpresa()">Cancelar</button></div>
+</div>
 
 <div class="section card">
   <h2>Vincular atleta ao lote</h2>
@@ -501,6 +518,8 @@ function renderCompanies(){
  empCount.textContent=v.length;lotCount.textContent=v.reduce((a,x)=>a+Number(x.contratadas||0),0);lotUsed.textContent=v.reduce((a,x)=>a+Number(x.utilizadas||0),0);lotAvail.textContent=v.reduce((a,x)=>a+Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),0);
  const sel=document.getElementById('vincLote');
  if(sel) sel.innerHTML=v.filter(x=>x.status==='ATIVO'&&Number(x.contratadas||0)>Number(x.utilizadas||0)).map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${Math.max(0,x.contratadas-x.utilizadas)} vagas</option>`).join('')||'<option value="">Nenhum lote com vaga disponível</option>';
+ const imp=document.getElementById('impLote');
+ if(imp) imp.innerHTML=v.filter(x=>x.status==='ATIVO').map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0))} vagas restantes</option>`).join('')||'<option value="">Nenhum lote empresarial ativo</option>';
  const gs=document.getElementById('gestLote');
  if(gs) gs.innerHTML=v.map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${x.status} — ${Math.max(0,x.contratadas-x.utilizadas)} restantes</option>`).join('')||'<option value="">Nenhum lote</option>';
  const fa=document.getElementById('filtroLoteAtletas');
@@ -1363,5 +1382,73 @@ function abrirAutorizarVagasAdm(){
 function editarAtletaAdm(cpfEncoded){const cpf=decodeURIComponent(cpfEncoded);const x=getAllAdminAthletes().find(a=>a.cpf===cpf);if(!x){alert('Atleta não encontrado.');return} const b='<div class="admin-grid"><div class="admin-field"><label>CPF (somente leitura)</label><input id="admCpf" value="'+x.cpf+'" disabled></div><div class="admin-field"><label>Nome</label><input id="admNome" value="'+(x.nome||'')+'"></div><div class="admin-field"><label>WhatsApp</label><input id="admWhats" value="'+(x.whatsapp||'')+'"></div><div class="admin-field"><label>E-mail</label><input id="admEmail" value="'+(x.email||'')+'"></div><div class="admin-field"><label>Nascimento</label><input id="admNasc" value="'+(x.nascimento==='—'?'':x.nascimento)+'"></div><div class="admin-field"><label>Sexo</label><input id="admSexo" value="'+(x.sexo==='—'?'':x.sexo)+'"></div><div class="admin-field"><label>Cidade</label><input id="admCidade" value="'+(x.cidade==='—'?'':x.cidade)+'"></div><div class="admin-field"><label>Camiseta</label><input id="admCamisa" value="'+(x.camisa==='—'?'':x.camisa)+'"></div><div class="admin-field"><label>Motivo da alteração</label><textarea id="admMotivoAtleta" rows="3" placeholder="Obrigatório para auditoria"></textarea></div></div>'; abrirModalV111('Editar dados do atleta',b,()=>{const motivo=document.getElementById('admMotivoAtleta').value.trim();if(!motivo){alert('Informe o motivo da alteração.');return} const updates={nome:document.getElementById('admNome').value.trim(),whatsapp:document.getElementById('admWhats').value.trim(),email:document.getElementById('admEmail').value.trim(),nascimento:document.getElementById('admNasc').value.trim(),sexo:document.getElementById('admSexo').value.trim(),cidade:document.getElementById('admCidade').value.trim(),camisa:document.getElementById('admCamisa').value.trim()}; let changed=0; ['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas'].forEach(k=>{try{const arr=JSON.parse(localStorage.getItem(k)||'[]');if(Array.isArray(arr)){let c=0;arr.forEach(r=>{const rc=String(r.cpf||r.documento||'').replace(/\D/g,'');if(rc===cpf){Object.assign(r,updates);c++}});if(c){localStorage.setItem(k,JSON.stringify(arr));changed+=c}}}catch(e){}}); auditAdm('EDITAR_ATLETA',{cpf,updates,motivo,registrosAlterados:changed});renderAtletas();renderRegs();counts();fecharModalV111();alert('Dados do atleta atualizados.');});}
 function editarEmpresaAdm(id){const x=getCompanies().find(v=>v.id===id);if(!x){alert('Empresa/lote não encontrado.');return} const b='<div class="admin-grid"><div class="admin-field"><label>Empresa</label><input id="admEmpNome" value="'+(x.empresa||'')+'"></div><div class="admin-field"><label>CNPJ</label><input id="admEmpCnpj" value="'+(x.cnpj||'')+'"></div><div class="admin-field"><label>Responsável</label><input id="admEmpResp" value="'+(x.responsavel||'')+'"></div><div class="admin-field"><label>WhatsApp</label><input id="admEmpWhats" value="'+(x.whatsapp||'')+'"></div><div class="admin-field"><label>E-mail</label><input id="admEmpEmail" value="'+(x.email||'')+'"></div><div class="admin-field"><label>Valor total negociado</label><input id="admEmpValor" type="number" min="0" step="0.01" value="'+Number(x.valor||0)+'"></div><div class="admin-field"><label>Validade</label><input id="admEmpValidade" type="date" value="'+(x.validade||'')+'"></div><div class="admin-field"><label>Motivo da alteração</label><textarea id="admMotivoEmp" rows="3" placeholder="Obrigatório para auditoria"></textarea></div></div>'; abrirModalV111('Editar dados da empresa/lote',b,()=>{const motivo=document.getElementById('admMotivoEmp').value.trim();if(!motivo){alert('Informe o motivo da alteração.');return} const v=getCompanies();const idx=v.findIndex(z=>z.id===id);if(idx<0)return;const before={...v[idx]};Object.assign(v[idx],{empresa:document.getElementById('admEmpNome').value.trim(),cnpj:document.getElementById('admEmpCnpj').value.trim(),responsavel:document.getElementById('admEmpResp').value.trim(),whatsapp:document.getElementById('admEmpWhats').value.trim(),email:document.getElementById('admEmpEmail').value.trim(),valor:Math.max(0,Number(document.getElementById('admEmpValor').value)||0),validade:document.getElementById('admEmpValidade').value});localStorage.setItem(COMPANY_KEY,JSON.stringify(v));auditAdm('EDITAR_EMPRESA',{id,motivo,antes:before,depois:v[idx]});renderCompanies();counts();fecharModalV111();alert('Dados da empresa/lote atualizados.');});}
 function autorizarVagasLoteAdm(id){const v=getCompanies(),idx=v.findIndex(z=>z.id===id);if(idx<0)return;const x=v[idx];const atual=Number(x.contratadas||0),usadas=Number(x.utilizadas||0);const b='<div class="admin-grid"><div class="admin-field"><label>Vagas contratadas atuais</label><input value="'+atual+'" disabled></div><div class="admin-field"><label>Novo total de vagas do lote</label><input id="admLoteQtd" type="number" min="'+usadas+'" value="'+atual+'"></div><div class="admin-field"><label>Motivo da autorização</label><textarea id="admMotivoLote" rows="3" placeholder="Obrigatório para auditoria"></textarea></div></div>'; abrirModalV111('Autorizar vagas do lote',b,()=>{const motivo=document.getElementById('admMotivoLote').value.trim();const novo=Math.max(usadas,Number(document.getElementById('admLoteQtd').value)||0);if(!motivo){alert('Informe o motivo da autorização.');return} if(novo===atual){alert('Nenhuma alteração informada.');return} const stock=JSON.parse(localStorage.getItem('cnr26_central_vagas_v24')||'{"corrida":{"total":1000},"infantil":{"total":100}}');const key=/infantil|corridinha/i.test(x.modalidade)?'infantil':'corrida';const delta=novo-atual; if(delta>0){const res=getCompanyReservationSummary();const c=getConfirmedCounts();const available=Number(stock[key]?.total||0)-(c[key]||0)-(res[key]||0); if(available<delta){alert('Não há vagas públicas suficientes para ampliar este lote.');return}} x.contratadas=novo; x.reservaEstoque=Math.max(0,Number(x.reservaEstoque||atual)+delta);localStorage.setItem(COMPANY_KEY,JSON.stringify(v));auditAdm('AUTORIZAR_VAGAS_LOTE',{id,empresa:x.empresa,antes:atual,depois:novo,motivo});renderCompanies();counts();fecharModalV111();alert('Vagas do lote autorizadas e registradas.');});}
+
+<script id="v112-importacao-empresa">
+let importEmpresaState=null;
+function normHeader(v){return String(v||'').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'');}
+function normCpf(v){return String(v??'').replace(/\D/g,'');}
+function normDate(v){
+  if(v instanceof Date && !isNaN(v)) return v.toISOString().slice(0,10);
+  const s=String(v??'').trim(); if(!s) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/); if(m) return `${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+  return s;
+}
+function importFields(row){
+  const o={}; Object.keys(row||{}).forEach(k=>o[normHeader(k)]=row[k]);
+  return {nome:String(o.NOME_DO_ATLETA||o.NOME||'').trim(),cpf:normCpf(o.CPF),sexo:String(o.SEXO||'').trim(),nascimento:normDate(o.NASCIMENTO||o.DATA_DE_NASCIMENTO),camisa:String(o.CAMISETA||o.CAMISA||'').trim().toUpperCase(),equipe:String(o.EQUIPE||o.ASSESSORIA||'').trim(),email:String(o.EMAIL||'').trim(),whatsapp:String(o.CELULAR||o.WHATSAPP||o.TELEFONE||'').trim(),responsavel:String(o.NOME_DO_RESPONSAVEL||o.RESPONSAVEL||'').trim(),cpfResponsavel:normCpf(o.CPF_DO_RESPONSAVEL||o.CPF_RESPONSAVEL),whatsappResponsavel:String(o.WHATSAPP_DO_RESPONSAVEL||o.CELULAR_DO_RESPONSAVEL||'').trim()};
+}
+function idadeEm31Dez(data){const d=new Date(data); if(isNaN(d)) return null; const ref=new Date('2026-12-31T00:00:00'); let a=ref.getFullYear()-d.getFullYear(); const md=ref.getMonth()-d.getMonth(); if(md<0||(md===0&&ref.getDate()<d.getDate())) a--; return a;}
+function getImportLote(){const id=document.getElementById('impLote')?.value;return getCompanies().find(x=>x.id===id);}
+function baixarModeloEmpresa(){
+ const headers=['NOME DO ATLETA','CPF','SEXO','NASCIMENTO','CAMISETA','EQUIPE','EMAIL','CELULAR','NOME DO RESPONSAVEL','CPF DO RESPONSAVEL','WHATSAPP DO RESPONSAVEL'];
+ const example=[['Joao da Silva','12345678901','M','10/05/1990','G','Empresa Teste','atleta@empresa.com','91999999999','','','']];
+ if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet([headers,...example]);ws['!cols']=headers.map(()=>({wch:24}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Atletas');XLSX.writeFile(wb,'modelo_atletas_empresa_cabana_night_run.xlsx');}
+ else {const csv=[headers.join(';'),example[0].join(';')].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='modelo_atletas_empresa_cabana_night_run.csv';a.click();}
+}
+function analisarImportacaoEmpresa(){
+ const lote=getImportLote(), file=document.getElementById('impArquivo')?.files?.[0]; if(!lote){alert('Selecione um lote empresarial ativo.');return} if(!file){alert('Selecione uma planilha .xlsx, .xls ou .csv.');return}
+ const reader=new FileReader(); reader.onload=e=>{
+   try{
+    let rows=[];
+    if(/\.csv$/i.test(file.name)){const txt=new TextDecoder('utf-8').decode(e.target.result);const lines=txt.split(/\r?\n/).filter(x=>x.trim());const sep=lines[0].includes(';')?';':',';const headers=lines.shift().split(sep).map(x=>x.replace(/^\"|\"$/g,''));rows=lines.map(line=>{const vals=line.split(sep);const o={};headers.forEach((h,i)=>o[h]=String(vals[i]??'').replace(/^\"|\"$/g,''));return o;});}
+    else {const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];rows=XLSX.utils.sheet_to_json(ws,{defval:''});}
+    const parsed=rows.map(importFields).filter(r=>r.nome||r.cpf); if(!parsed.length) throw new Error('Nenhum atleta encontrado na planilha.');
+    const existing=JSON.parse(localStorage.getItem('cnr26_inscricoes_v5')||'[]'); const links=getLinks(); const usedCpf=new Set(links.filter(x=>x.loteId===lote.id).map(x=>normCpf(x.cpf))); const incoming=new Set(); const result=[];
+    parsed.forEach((r,i)=>{
+      const errors=[]; if(!r.nome) errors.push('nome'); if(r.cpf.length!==11) errors.push('CPF'); if(incoming.has(r.cpf)) errors.push('CPF duplicado na planilha'); incoming.add(r.cpf);
+      const age=idadeEm31Dez(r.nascimento); if(/infantil|corridinha/i.test(lote.modalidade)){if(age===null||age<4||age>12) errors.push('idade fora de 4–12 em 31/12/2026'); if(!r.responsavel) errors.push('responsável'); if(r.cpfResponsavel && r.cpfResponsavel.length!==11) errors.push('CPF responsável');}
+      if(!r.camisa) errors.push('camiseta');
+      const sameLote=usedCpf.has(r.cpf); const any=existing.find(x=>normCpf(x.cpf||x.documento)===r.cpf);
+      result.push({...r,linha:i+2,novo:!sameLote,existenteNoSistema:!!any,erros:errors});
+    });
+    const valid=result.filter(r=>r.erros.length===0), novos=valid.filter(r=>r.novo), existentes=valid.filter(r=>!r.novo), erros=result.filter(r=>r.erros.length);
+    const restantes=Math.max(0,Number(lote.contratadas||0)-Number(lote.utilizadas||0));
+    const excesso=Math.max(0,novos.length-restantes); if(excesso){valid.slice(Math.max(0,valid.length-excesso)).forEach(r=>{r.erros.push('vagas insuficientes no lote')});}
+    const validFinal=result.filter(r=>r.erros.length===0); const novosFinal=validFinal.filter(r=>r.novo), existentesFinal=validFinal.filter(r=>!r.novo);
+    importEmpresaState={loteId:lote.id,rows:validFinal,fileName:file.name};
+    const res=document.getElementById('impResultado');res.style.display='block';res.innerHTML=`<strong>Prévia da atualização</strong><br>Linhas recebidas: <strong>${result.length}</strong> · Novos: <strong>${novosFinal.length}</strong> · Já no lote: <strong>${existentesFinal.length}</strong> · Erros: <strong>${result.filter(r=>r.erros.length).length}</strong><br>Vagas restantes no lote: <strong>${restantes}</strong>. A atualização não exclui atletas e não altera pagamento/comprovante/status.`;
+    const pv=document.getElementById('impPreview');pv.style.display='block';pv.innerHTML='<table><thead><tr><th>Linha</th><th>Atleta</th><th>CPF</th><th>Ação</th><th>Erros</th></tr></thead><tbody>'+result.slice(0,100).map(r=>`<tr><td>${r.linha}</td><td>${r.nome}</td><td>${r.cpf||'—'}</td><td>${r.erros.length?'BLOQUEADO':(r.novo?'NOVO':'ATUALIZAR DADOS')}</td><td>${r.erros.join(', ')||'—'}</td></tr>`).join('')+'</tbody></table>'+(result.length>100?`<p>Mostrando 100 de ${result.length} linhas.</p>`:'');
+    document.getElementById('impConfirmActions').style.display=validFinal.length?'flex':'none';
+   }catch(err){alert('Não foi possível analisar a planilha: '+err.message);}
+ }; reader.readAsArrayBuffer(file);
+}
+function confirmarImportacaoEmpresa(){
+ if(!importEmpresaState?.rows?.length){alert('Nenhum registro válido para importar.');return} const lote=getCompanies().find(x=>x.id===importEmpresaState.loteId); if(!lote){alert('Lote não encontrado.');return}
+ const links=getLinks(); let regs=JSON.parse(localStorage.getItem('cnr26_inscricoes_v5')||'[]'); let added=0,updated=0; const now=new Date().toISOString();
+ importEmpresaState.rows.forEach(r=>{
+   const li=links.findIndex(x=>x.loteId===lote.id&&normCpf(x.cpf)===r.cpf);
+   if(li>=0){links[li].nome=r.nome;links[li].atualizadoEm=now;updated++;}
+   else {links.push({id:'VINC-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),loteId:lote.id,empresa:lote.empresa,modalidade:lote.modalidade,cpf:r.cpf,nome:r.nome,data:now,origem:'EMPRESA'});lote.utilizadas=Number(lote.utilizadas||0)+1;added++;}
+   const ri=regs.findIndex(x=>normCpf(x.cpf||x.documento)===r.cpf && (x.loteId===lote.id || !x.loteId));
+   const base={cpf:r.cpf,nome:r.nome,sexo:r.sexo,nascimento:r.nascimento,camisa:r.camisa,equipe:r.equipe,email:r.email,whatsapp:r.whatsapp,modalidade:lote.modalidade,origem:'EMPRESA',empresa:lote.empresa,loteId:lote.id,status:'INSCRIÇÃO CONFIRMADA',pagamento:'LOTE EMPRESARIAL — SEM COBRANÇA INDIVIDUAL',criadoEm:ri>=0?(regs[ri].criadoEm||now):now};
+   if(/infantil|corridinha/i.test(lote.modalidade)){base.nomeResponsavel=r.responsavel;base.cpfResponsavel=r.cpfResponsavel;base.whatsappResponsavel=r.whatsappResponsavel;}
+   if(ri>=0){regs[ri]={...regs[ri],...base};}else{regs.push(base);}
+ });
+ localStorage.setItem('cnr26_empresa_atletas_v3',JSON.stringify(links));localStorage.setItem('cnr26_inscricoes_v5',JSON.stringify(regs));localStorage.setItem(COMPANY_KEY,JSON.stringify(getCompanies()));auditAdm('IMPORTAR_ATLETAS_EMPRESA',{loteId:lote.id,empresa:lote.empresa,arquivo:importEmpresaState.fileName,adicionados:added,atualizados:updated});
+ importEmpresaState=null;document.getElementById('impArquivo').value='';document.getElementById('impResultado').style.display='none';document.getElementById('impPreview').style.display='none';document.getElementById('impConfirmActions').style.display='none';renderCompanies();renderAtletas();renderRegs();counts();alert(`Atualização concluída. ${added} atleta(s) novo(s) e ${updated} atleta(s) atualizado(s).`);
+}
+function cancelarImportacaoEmpresa(){importEmpresaState=null;document.getElementById('impResultado').style.display='none';document.getElementById('impPreview').style.display='none';document.getElementById('impConfirmActions').style.display='none';document.getElementById('impArquivo').value='';}
+</script>
 </script>
 </body></html>
