@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cabana Night Run 2026 — ADM Operacional V12.2</title>
+<title>Cabana Night Run 2026 — ADM Operacional V12.2 CORRIGIDO</title>
 <style>
 :root{--bg:#0c0712;--panel:#171021;--panel2:#20152d;--line:#3a2850;--text:#f4f0f8;--muted:#bdb1c9;--green:#a8ff19;--purple:#7b3fb2;--danger:#ff6b6b;--warn:#ffc857}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
@@ -154,6 +154,7 @@ const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'B
 const normCpf=s=>String(s||'').replace(/\D/g,'');
 const DOC_MAX=3*1024*1024;
 function arr(k){try{const x=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+function arrObj(k){try{const x=JSON.parse(localStorage.getItem(k)||'{}');return x&&typeof x==='object'&&!Array.isArray(x)?x:{} }catch(e){return{}}}
 function put(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function regs(){const out=[],seen=new Set();REG_KEYS.forEach(k=>arr(k).forEach(r=>{const cpf=normCpf(r.cpf||r.CPF||r.documento);const sig=cpf+'|'+(r.modalidade||r.modality||'')+'|'+(r.status||'');if(!seen.has(sig)){seen.add(sig);out.push(r)}}));return out}
 function normReg(r){return{raw:r,cpf:normCpf(r.cpf||r.CPF||r.documento),nome:r.nome||r.name||'',modalidade:/infantil|corridinha/i.test(r.modalidade||r.modality||'')?'Corridinha Infantil':/pcd/i.test(r.modalidade||r.modality||'')?'PCD presencial':'Corrida 7 km',origem:String(r.origem||r.origin||'ONLINE').toUpperCase(),pagamento:r.pagamento||r.paymentStatus||r.payment||'',status:r.status||r.situacao||'',valor:Number(r.valor||r.amount||0)||0}}
@@ -189,6 +190,30 @@ function renderPayments(){const c=getCounts(),emps=companies(),empVal=emps.reduc
 function csvDownload(filename,rows){const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');const blob=new Blob(["\ufeff"+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function exportRegistrations(){const rows=[['NOME','CPF','MODALIDADE','ORIGEM','PAGAMENTO','STATUS','VALOR'],...regs().map(r=>{const x=normReg(r);return[x.nome,x.cpf,x.modalidade,x.origem,x.pagamento,x.status,x.valor]})];csvDownload('cabana_night_run_inscricoes.csv',rows)}
 function exportCompanies(){const rows=[['EMPRESA','CNPJ','MODALIDADE','VAGAS','UTILIZADAS','RESTANTES','VALOR TOTAL','VALOR/VAGA','STATUS'],...companies().map(x=>[x.empresa,x.cnpj,x.modalidade,x.contratadas,x.utilizadas,Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),x.valor,Number(x.contratadas||0)?Number(x.valor||0)/Number(x.contratadas):0,x.status])];csvDownload('cabana_night_run_empresas.csv',rows)}
+function renderAthletes(){
+  const rows=regs().map(normReg).filter(x=>/ONLINE|PRESENCIAL|BONIFICACAO|PCD/.test(x.origem));
+  const ageOf=d=>{
+    if(!d)return '';
+    const b=new Date(d),ref=new Date('2026-12-31T00:00:00');
+    if(isNaN(b))return '';
+    let a=ref.getFullYear()-b.getFullYear();
+    if(ref.getMonth()<b.getMonth()||(ref.getMonth()===b.getMonth()&&ref.getDate()<b.getDate()))a--;
+    return a;
+  };
+  const body=document.getElementById('tblAthletes');
+  if(!body)return;
+  body.innerHTML=rows.map(r=>{
+    const x=r.raw||{};
+    const nascimento=x.nascimento||x.dataNascimento||x.birthDate||'';
+    const sexo=x.sexo||x.genero||x.gender||'';
+    const camisa=x.camiseta||x.camisa||x.shirt||'';
+    const equipe=x.equipe||x.assessoria||x.team||'';
+    const categoria=x.categoria||x.category||'';
+    const email=x.email||'';
+    const celular=x.whatsapp||x.celular||x.telefone||'';
+    return `<tr><td>${esc(r.nome)}</td><td>${esc(sexo)}</td><td>${esc(nascimento)}</td><td>${esc(r.cpf)}</td><td>${esc(camisa)}</td><td>${esc(equipe)}</td><td>${esc(categoria)}</td><td>${esc(email)}</td><td>${esc(celular)}</td><td>${esc(ageOf(nascimento))}</td><td>${esc(r.origem)}</td></tr>`;
+  }).join('')||'<tr><td colspan="11" class="empty">Nenhum atleta individual encontrado.</td></tr>';
+}
 function renderReports(){const c=getCounts(),r=companyReservations(),s=stock();relResumo.innerHTML=`<p><b>Corrida:</b> ${c.corrida+c.pcd} confirmadas (incluindo ${c.pcd} PCD) + ${r.corrida} vagas empresariais reservadas = ${c.corrida+c.pcd+r.corrida} comprometidas de 1.000.</p><p><b>Corridinha:</b> ${c.infantil} confirmadas + ${r.infantil} vagas empresariais reservadas = ${c.infantil+r.infantil} comprometidas de ${s.infantil}.</p><p><b>PCD:</b> ${c.pcd} utilizadas de ${s.pcd}.</p><p><b>Bonificações:</b> ${c.bonus}.</p>`}
 function renderAudit(){const a=arr(AUDIT_KEY);tblAudit.innerHTML=a.map(x=>`<tr><td>${new Date(x.data).toLocaleString('pt-BR')}</td><td>${esc(x.action)}</td><td>${esc(x.detail)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Nenhuma ação registrada.</td></tr>'}
 function clearHomologationData(){if(!confirm('Limpar os dados de homologação deste navegador? Esta ação remove inscrições, empresas, patrocinadores, documentos e auditoria de teste, mas preserva os limites de vagas.'))return;['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas',COMPANY_KEY,SP_KEY,DOC_KEY,AUDIT_KEY].forEach(k=>localStorage.removeItem(k));audit('LIMPAR_HOMOLOGACAO','Dados de teste removidos; limites de vagas preservados.');refresh();renderIns();renderCompanies();renderSponsors();renderPayments();renderReports();renderAthletes();renderAudit();alert('Dados de homologação limpos com sucesso.')}
