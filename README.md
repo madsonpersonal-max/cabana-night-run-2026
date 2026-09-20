@@ -1,24 +1,13 @@
-# Cabana Night Run 2026 — V12.0 ADM Operacional
+# Cabana Night Run 2026 — V12.1 ADM Operacional
 
-Versão simplificada do painel administrativo para homologação.
+Consolidação operacional do ADM.
 
-Foco:
-- inscrições online e presenciais;
-- central de vagas;
-- compra/reserva de vagas por empresas;
-- baixa automática das vagas públicas quando uma empresa compra vagas;
-- liberação de vagas empresariais não utilizadas;
-- recibo/comprovante comercial de compra de vagas;
-- patrocínios e recibos;
-- pagamentos/resumo;
-- relatórios essenciais;
-- auditoria.
+- Controle de inscrições online e presenciais.
+- Relatório completo de atletas online/presenciais.
+- Empresas controladas por compra/reserva de vagas.
+- Listas de atletas das empresas armazenadas apenas como documentos anexados à empresa, com histórico de versões.
+- Recibo de compra de vagas empresariais.
+- Patrocínios com recibo.
+- PCD, bonificações, pagamentos, relatórios e auditoria.
 
-Removido deliberadamente nesta versão:
-- importação de lista de funcionários;
-- atualização de lista de atletas por empresa;
-- vínculo de atletas a lotes;
-- exportação de atletas por empresa;
-- gestão complexa de funcionários corporativos.
-
-A V12.0 é homologação em GitHub Pages/localStorage. Produção deverá usar banco de dados e API central.
+A V12.1 continua sendo uma homologação em armazenamento local. A integração por banco/API será feita posteriormente.
