@@ -195,10 +195,4 @@ function openModal(ok){modal.classList.add('open');modalOk.onclick=ok}
 function closeModal(){modal.classList.remove('open')}
 refresh();renderIns();renderCompanies();renderSponsors();renderPayments();renderReports();renderAthletes();renderAudit();
 </script>
-</body></html>function renderReports(){const c=getCounts(),r=companyReservations(),s=stock();relResumo.innerHTML=`<p><b>Corrida:</b> ${c.corrida} confirmadas + ${r.corrida} vagas empresariais reservadas = ${c.corrida+r.corrida} comprometidas de ${s.corrida}.</p><p><b>Corridinha:</b> ${c.infantil} confirmadas + ${r.infantil} vagas empresariais reservadas = ${c.infantil+r.infantil} comprometidas de ${s.infantil}.</p><p><b>PCD:</b> ${c.pcd} utilizadas de ${s.pcd}.</p><p><b>Bonificações:</b> ${c.bonus}.</p>`}
-function renderAudit(){const a=arr(AUDIT_KEY);tblAudit.innerHTML=a.map(x=>`<tr><td>${new Date(x.data).toLocaleString('pt-BR')}</td><td>${esc(x.action)}</td><td>${esc(x.detail)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Nenhuma ação registrada.</td></tr>'}
-function openModal(ok){modal.classList.add('open');modalOk.onclick=ok}
-function closeModal(){modal.classList.remove('open')}
-refresh();renderIns();renderCompanies();renderSponsors();renderPayments();renderReports();renderAthletes();renderAudit();
-</script>
 </body></html>
