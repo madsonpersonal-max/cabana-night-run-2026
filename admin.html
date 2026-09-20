@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cabana Night Run 2026 — ADM Operacional V12.2 CORRIGIDO</title>
+<title>Cabana Night Run 2026 — ADM Operacional V12.2 CORREÇÃO EMPRESAS</title>
 <style>
 :root{--bg:#0c0712;--panel:#171021;--panel2:#20152d;--line:#3a2850;--text:#f4f0f8;--muted:#bdb1c9;--green:#a8ff19;--purple:#7b3fb2;--danger:#ff6b6b;--warn:#ffc857}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
@@ -166,13 +166,75 @@ function stock(){let s=arrObj('cnr26_central_vagas_v24');return {corrida:{total:
 function audit(action,detail){const a=arr(AUDIT_KEY);a.unshift({data:new Date().toISOString(),action,detail});put(AUDIT_KEY,a.slice(0,500));renderAudit()}
 function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='dashboard')refresh();if(v==='inscricoes')renderIns();if(v==='vagas')renderVagas();if(v==='empresas')renderCompanies();if(v==='patrocinadores')renderSponsors();if(v==='pagamentos')renderPayments();if(v==='relatorios')renderReports();if(v==='auditoria')renderAudit()}
 document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>show(n.dataset.view));
-function refresh(){const s=stock(),c=getCounts(),r=companyReservations();dTotalCorrida.textContent='1.000';dCorrida.textContent=c.corrida+c.pcd;dEmpCorrida.textContent=r.corrida;dDispCorrida.textContent=Math.max(0,1000-c.corrida-c.pcd-r.corrida);dTotalInf.textContent=s.infantil;dInf.textContent=c.infantil;dEmpInf.textContent=r.infantil;dDispInf.textContent=Math.max(0,s.infantil-c.infantil-r.infantil);dPcd.textContent=c.pcd+' / 10';dBonus.textContent=c.bonus;dEmpresas.textContent=companies().filter(x=>String(x.status||'').toUpperCase()!=='ENCERRADO').length;dPatValor.textContent=money(arr(SP_KEY).reduce((a,x)=>a+Number(x.valor||0),0));}
+function refresh(){const s=stock(),c=getCounts(),r=companyReservations();dTotalCorrida.textContent='1.000';dCorrida.textContent=c.corrida+c.pcd;dEmpCorrida.textContent=r.corrida;dDispCorrida.textContent=Math.max(0,1000-c.corrida-c.pcd-r.corrida);dTotalInf.textContent=s.infantil.total;dInf.textContent=c.infantil;dEmpInf.textContent=r.infantil;dDispInf.textContent=Math.max(0,s.infantil.total-c.infantil-r.infantil);dPcd.textContent=c.pcd+' / 10';dBonus.textContent=c.bonus;dEmpresas.textContent=companies().filter(x=>String(x.status||'').toUpperCase()!=='ENCERRADO').length;dPatValor.textContent=money(arr(SP_KEY).reduce((a,x)=>a+Number(x.valor||0),0));}
 function renderIns(){let rows=regs().map(normReg);const q=(qIns.value||'').toLowerCase(),m=mIns.value,o=oIns.value,s=sIns.value;rows=rows.filter(x=>(!q||x.cpf.includes(normCpf(q))||x.nome.toLowerCase().includes(q))&&(!m||x.modalidade===m)&&(!o||x.origem===o)&&(!s||x.status===s));tblIns.innerHTML=rows.map(x=>`<tr><td>${esc(x.cpf)}</td><td>${esc(x.nome)}</td><td>${esc(x.modalidade)}</td><td>${esc(x.origem)}</td><td>${esc(x.pagamento)}</td><td><span class="badge">${esc(x.status||'—')}</span></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Nenhuma inscrição encontrada.</td></tr>'}
 [qIns,mIns,oIns,sIns].forEach(x=>x.addEventListener('input',renderIns));
-function renderVagas(){const s=stock(),c=getCounts(),r=companyReservations();limCorrida.value=1000;limInf.value=s.infantil;tblVagas.innerHTML=`<tr><td>Corrida 7 km</td><td>1.000</td><td>${c.corrida+c.pcd}</td><td>${r.corrida}</td><td class="green"><b>${Math.max(0,1000-c.corrida-c.pcd-r.corrida)}</b></td></tr><tr><td>Corridinha Infantil</td><td>${s.infantil}</td><td>${c.infantil}</td><td>${r.infantil}</td><td class="green"><b>${Math.max(0,s.infantil-c.infantil-r.infantil)}</b></td></tr>`}
-function saveLimits(){const s=stock(),c=getCounts(),r=companyReservations(),ni=Math.max(1,Number(limInf.value)||100);if(1000<c.corrida+c.pcd+r.corrida){alert('As vagas comprometidas da corrida não podem ultrapassar 1.000.');return}if(ni<c.infantil+r.infantil){alert('O limite da Corridinha não pode ficar abaixo das vagas já confirmadas ou reservadas.');return}put('cnr26_central_vagas_v24',{corrida:{label:'Corrida 7 km',total:1000,used:c.corrida+c.pcd},infantil:{label:'Corridinha Infantil',total:ni,used:c.infantil},pcd:{label:'PCD interno',total:10,used:c.pcd}});audit('ALTERAR_LIMITES',`Corrida fixada em 1.000; Infantil ${s.infantil}→${ni}; PCD interno fixado em 10`);renderVagas();refresh();alert('Limites atualizados. A corrida permanece com 1.000 vagas totais, incluindo as 10 vagas PCD.')}
+function renderVagas(){const s=stock(),c=getCounts(),r=companyReservations();limCorrida.value=1000;limInf.value=s.infantil.total;tblVagas.innerHTML=`<tr><td>Corrida 7 km</td><td>1.000</td><td>${c.corrida+c.pcd}</td><td>${r.corrida}</td><td class="green"><b>${Math.max(0,1000-c.corrida-c.pcd-r.corrida)}</b></td></tr><tr><td>Corridinha Infantil</td><td>${s.infantil.total}</td><td>${c.infantil}</td><td>${r.infantil}</td><td class="green"><b>${Math.max(0,s.infantil.total-c.infantil-r.infantil)}</b></td></tr>`}
+function saveLimits(){const s=stock(),c=getCounts(),r=companyReservations(),ni=Math.max(1,Number(limInf.value)||100);if(1000<c.corrida+c.pcd+r.corrida){alert('As vagas comprometidas da corrida não podem ultrapassar 1.000.');return}if(ni<c.infantil+r.infantil){alert('O limite da Corridinha não pode ficar abaixo das vagas já confirmadas ou reservadas.');return}put('cnr26_central_vagas_v24',{corrida:{label:'Corrida 7 km',total:1000,used:c.corrida+c.pcd},infantil:{label:'Corridinha Infantil',total:ni,used:c.infantil},pcd:{label:'PCD interno',total:10,used:c.pcd}});audit('ALTERAR_LIMITES',`Corrida fixada em 1.000; Infantil ${s.infantil.total}→${ni}; PCD interno fixado em 10`);renderVagas();refresh();alert('Limites atualizados. A corrida permanece com 1.000 vagas totais, incluindo as 10 vagas PCD.')}
 function clearCompany(){['empNome','empCnpj','empResp','empWhats','empEmail','empQtd','empValor','empData'].forEach(id=>document.getElementById(id).value='')}
-function addCompany(){const nome=empNome.value.trim(),cnpj=empCnpj.value.trim(),resp=empResp.value.trim(),wh=empWhats.value.trim(),mod=empMod.value,q=Math.max(1,Number(empQtd.value)||0),valor=Math.max(0,Number(empValor.value)||0);if(!nome||!cnpj||!resp||!wh||!q){alert('Preencha os campos obrigatórios.');return}const s=stock(),c=getCounts(),r=companyReservations(),key=/infantil|corridinha/i.test(mod)?'infantil':'corrida',avail=key==='corrida'?1000-c.corrida-c.pcd-r.corrida:s.infantil-c.infantil-r.infantil;if(q>avail){alert(`A compra excede as vagas disponíveis. Disponíveis: ${avail}.`);return}const v=companies();v.push({id:'LOT-'+Date.now(),empresa:nome,cnpj,responsavel:resp,whatsapp:wh,email:empEmail.value.trim(),modalidade:mod,contratadas:q,utilizadas:0,valor,status:empStatus.value,data:empData.value||new Date().toISOString().slice(0,10),formaPagamento:empPag.value});put(COMPANY_KEY,v);audit('COMPRA_VAGAS_EMPRESA',`${nome} — ${q} vagas — ${mod} — ${money(valor)}`);clearCompany();renderCompanies();refresh();alert('Compra de vagas registrada e abatida automaticamente da disponibilidade.')}
+function addCompany(){
+  const nome=document.getElementById('empNome').value.trim();
+  const cnpj=document.getElementById('empCnpj').value.trim();
+  const resp=document.getElementById('empResp').value.trim();
+  const wh=document.getElementById('empWhats').value.trim();
+  const email=document.getElementById('empEmail').value.trim();
+  const mod=document.getElementById('empMod').value;
+  const q=Number(document.getElementById('empQtd').value);
+  const valor=Number(document.getElementById('empValor').value);
+  const formaPagamento=document.getElementById('empPag').value;
+  const status=document.getElementById('empStatus').value;
+  const data=document.getElementById('empData').value || new Date().toISOString().slice(0,10);
+
+  if(!nome||!cnpj||!resp||!wh||!Number.isFinite(q)||q<1){
+    alert('Preencha corretamente os campos obrigatórios, incluindo a quantidade de vagas.');
+    return;
+  }
+  if(!Number.isFinite(valor)||valor<0){
+    alert('Informe um valor total negociado válido.');
+    return;
+  }
+
+  const s=stock();
+  const c=getCounts();
+  const r=companyReservations();
+  const key=/infantil|corridinha/i.test(mod)?'infantil':'corrida';
+  const totalDisponivel=key==='corrida' ? 1000 : Number(s.infantil.total||100);
+  const confirmadas=key==='corrida' ? (c.corrida+c.pcd) : c.infantil;
+  const reservadas=r[key]||0;
+  const avail=Math.max(0,totalDisponivel-confirmadas-reservadas);
+
+  if(q>avail){
+    alert(`A compra excede as vagas disponíveis. Disponíveis: ${avail}.`);
+    return;
+  }
+
+  const v=companies();
+  const lote={
+    id:'LOT-'+Date.now(),
+    empresa:nome,
+    cnpj:cnpj,
+    responsavel:resp,
+    whatsapp:wh,
+    email:email,
+    modalidade:mod,
+    contratadas:q,
+    utilizadas:0,
+    valor:valor,
+    status:status,
+    data:data,
+    formaPagamento:formaPagamento
+  };
+
+  v.push(lote);
+  put(COMPANY_KEY,v);
+  audit('COMPRA_VAGAS_EMPRESA',`${nome} — ${q} vagas — ${mod} — ${money(valor)}`);
+  clearCompany();
+  renderCompanies();
+  renderVagas();
+  renderPayments();
+  refresh();
+  alert(`Compra registrada com sucesso: ${q} vagas reservadas para ${nome}.`);
+}
 function companyDocs(id){return arr(DOC_KEY).filter(d=>d.companyId===id).sort((a,b)=>String(b.data||'').localeCompare(String(a.data||'')))}
 function renderCompanies(){const a=companies();tblEmp.innerHTML=a.map((x,i)=>{const rem=Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),vp=Number(x.contratadas||0)?Number(x.valor||0)/Number(x.contratadas):0,docs=companyDocs(x.id);return `<tr><td>${esc(x.empresa)}</td><td>${esc(x.modalidade)}</td><td>${x.contratadas}</td><td>${x.utilizadas||0}</td><td class="green">${rem}</td><td>${money(x.valor)}</td><td>${money(vp)}</td><td><span class="badge">${esc(x.status||'—')}</span></td><td><div class="actions"><button class="btn small" onclick="attachCompanyDoc(${i})">📎 Anexar lista</button><button class="btn small" onclick="viewCompanyDocs(${i})">Ver ${docs.length||0}</button></div></td><td class="actions"><button class="btn small" onclick="editCompany(${i})">Editar</button><button class="btn small" onclick="companyReceipt(${i})">Gerar recibo</button><button class="btn small" onclick="releaseCompany(${i})">Liberar vagas</button></td></tr>`}).join('')||'<tr><td colspan="10" class="empty">Nenhuma compra empresarial cadastrada.</td></tr>'}
 function attachCompanyDoc(i){const x=companies()[i];if(!x)return;modalTitle.textContent='Anexar lista de atletas — documento da empresa';modalBody.innerHTML=`<div class="notice"><b>${esc(x.empresa)}</b><br>${esc(x.modalidade)} · ${x.contratadas} vagas compradas.<br><small>O arquivo será apenas armazenado como documento. Os nomes da lista não serão cadastrados individualmente no ADM.</small></div><div class="formgrid" style="margin-top:12px"><div class="field full"><label>Arquivo da lista *</label><input id="docFile" type="file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx"></div><div class="field"><label>Observação</label><input id="docObs" placeholder="Ex.: lista atualizada pela empresa"></div></div>`;openModal(()=>{const f=docFile.files[0];if(!f){alert('Selecione um arquivo.');return}if(f.size>DOC_MAX){alert('Arquivo muito grande para a homologação. Limite: 3 MB.');return}const reader=new FileReader();reader.onload=()=>{const docs=arr(DOC_KEY);docs.push({id:'DOC-'+Date.now(),companyId:x.id,empresa:x.empresa,nome:f.name,tipo:f.type,tamanho:f.size,data:new Date().toISOString(),observacao:docObs.value.trim(),conteudo:reader.result});put(DOC_KEY,docs);audit('ANEXAR_LISTA_EMPRESA',`${x.empresa} — ${f.name}`);closeModal();renderCompanies();alert('Lista armazenada com sucesso.')};reader.readAsDataURL(f)})}
@@ -214,7 +276,7 @@ function renderAthletes(){
     return `<tr><td>${esc(r.nome)}</td><td>${esc(sexo)}</td><td>${esc(nascimento)}</td><td>${esc(r.cpf)}</td><td>${esc(camisa)}</td><td>${esc(equipe)}</td><td>${esc(categoria)}</td><td>${esc(email)}</td><td>${esc(celular)}</td><td>${esc(ageOf(nascimento))}</td><td>${esc(r.origem)}</td></tr>`;
   }).join('')||'<tr><td colspan="11" class="empty">Nenhum atleta individual encontrado.</td></tr>';
 }
-function renderReports(){const c=getCounts(),r=companyReservations(),s=stock();relResumo.innerHTML=`<p><b>Corrida:</b> ${c.corrida+c.pcd} confirmadas (incluindo ${c.pcd} PCD) + ${r.corrida} vagas empresariais reservadas = ${c.corrida+c.pcd+r.corrida} comprometidas de 1.000.</p><p><b>Corridinha:</b> ${c.infantil} confirmadas + ${r.infantil} vagas empresariais reservadas = ${c.infantil+r.infantil} comprometidas de ${s.infantil}.</p><p><b>PCD:</b> ${c.pcd} utilizadas de ${s.pcd}.</p><p><b>Bonificações:</b> ${c.bonus}.</p>`}
+function renderReports(){const c=getCounts(),r=companyReservations(),s=stock();relResumo.innerHTML=`<p><b>Corrida:</b> ${c.corrida+c.pcd} confirmadas (incluindo ${c.pcd} PCD) + ${r.corrida} vagas empresariais reservadas = ${c.corrida+c.pcd+r.corrida} comprometidas de 1.000.</p><p><b>Corridinha:</b> ${c.infantil} confirmadas + ${r.infantil} vagas empresariais reservadas = ${c.infantil+r.infantil} comprometidas de ${s.infantil.total}.</p><p><b>PCD:</b> ${c.pcd} utilizadas de ${s.pcd}.</p><p><b>Bonificações:</b> ${c.bonus}.</p>`}
 function renderAudit(){const a=arr(AUDIT_KEY);tblAudit.innerHTML=a.map(x=>`<tr><td>${new Date(x.data).toLocaleString('pt-BR')}</td><td>${esc(x.action)}</td><td>${esc(x.detail)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Nenhuma ação registrada.</td></tr>'}
 function clearHomologationData(){if(!confirm('Limpar os dados de homologação deste navegador? Esta ação remove inscrições, empresas, patrocinadores, documentos e auditoria de teste, mas preserva os limites de vagas.'))return;['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas',COMPANY_KEY,SP_KEY,DOC_KEY,AUDIT_KEY].forEach(k=>localStorage.removeItem(k));audit('LIMPAR_HOMOLOGACAO','Dados de teste removidos; limites de vagas preservados.');refresh();renderIns();renderCompanies();renderSponsors();renderPayments();renderReports();renderAthletes();renderAudit();alert('Dados de homologação limpos com sucesso.')}
 function openModal(ok){modal.classList.add('open');modalOk.onclick=ok}
