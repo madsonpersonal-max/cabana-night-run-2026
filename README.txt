@@ -1,7 +1,3 @@
-Cabana Night Run 2026 — V12.3 ADM CORRIGIDO
+Cabana Night Run 2026 — V12.4
 
-Correção crítica da V12.2: removido conteúdo JavaScript duplicado que estava sendo exibido na tela após o fechamento do HTML.
-
-Arquivo para publicar no GitHub Pages: admin.html
-Substituir somente o admin.html existente.
-Depois do commit, usar Ctrl+F5 no navegador.
+Central de vagas ajustada: Corrida 7 km = 1.000 vagas totais, incluindo até 10 vagas PCD gratuitas. A linha PCD foi removida da tabela da Central; PCD continua controlado internamente e desconta das 1.000 vagas.
