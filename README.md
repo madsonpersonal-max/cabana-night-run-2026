@@ -1,13 +1,7 @@
-# Cabana Night Run 2026 — V12.1 ADM Operacional
+# Cabana Night Run 2026 — V12.3.1 ADM Estável
 
-Consolidação operacional do ADM.
+Correção baseada na V12.3 estável. A versão V12.2 anterior estava truncada no final do JavaScript e por isso o navegador exibia código e travava a navegação.
 
-- Controle de inscrições online e presenciais.
-- Relatório completo de atletas online/presenciais.
-- Empresas controladas por compra/reserva de vagas.
-- Listas de atletas das empresas armazenadas apenas como documentos anexados à empresa, com histórico de versões.
-- Recibo de compra de vagas empresariais.
-- Patrocínios com recibo.
-- PCD, bonificações, pagamentos, relatórios e auditoria.
+Inclui limpeza controlada de dados de homologação em ADM > Auditoria, preservando os limites de vagas.
 
-A V12.1 continua sendo uma homologação em armazenamento local. A integração por banco/API será feita posteriormente.
+Homologação GitHub Pages: armazenamento local. Produção deve usar banco/API central.
