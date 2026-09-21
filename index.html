@@ -46,8 +46,6 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 .pix{font-family:monospace;word-break:break-all;background:#0a080d;border:1px dashed #5b4765;padding:12px;border-radius:10px}
 .footer{padding:28px 0 8px;text-align:center;color:#82798b;font-size:13px}
 @media(max-width:700px){.grid,.info,.row{grid-template-columns:1fr}.hero{padding:27px 20px}.actions button{width:100%}}
-
-.successHero{text-align:center;padding:8px 8px 16px}.successIcon{width:54px;height:54px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;background:#172c16;border:1px solid #5e9b4f;color:#a6ff00}.successHero h3{margin:0 0 7px;font-size:24px}.successHero p{margin:0 auto;max-width:560px}
 </style>
 </head>
 <body>
@@ -81,7 +79,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </section>
 
 <section class="notice">
-  <strong>Ambiente de homologação • V8.4 integração</strong>
+  <strong>Ambiente de homologação • V12.4 integração ADM</strong>
   <span class="muted">Este é um teste. Não realize pagamento real nem envie documentos reais.</span>
 </section>
 
@@ -133,8 +131,6 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 <select id="origem">
 <option>Online individual</option>
 <option>Sócio/equipe</option>
-<option>Empresa</option>
-<option>Bonificação</option>
 </select>
 <label for="equipe">Equipe (opcional)</label><input id="equipe">
 <p class="muted">PCD não aparece neste fluxo. As inscrições PCD são exclusivamente presenciais.</p>
@@ -156,11 +152,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </div>
 
 <div id="p5" class="hidden">
-<div class="successHero">
-  <div class="successIcon">✓</div>
-  <h3>Inscrição realizada com sucesso!</h3>
-  <p class="muted">Seu cadastro foi registrado. Agora siga para o pagamento e envie o comprovante para validação.</p>
-</div>
+<h3>Inscrição registrada para homologação</h3>
 <div class="summary">
   <div><span>CPF</span><b id="registrationCpf"></b></div>
   <div><span>Status</span><b>AGUARDANDO PAGAMENTO</b></div>
@@ -168,7 +160,6 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </div>
 <div class="notice"><strong>Próxima etapa</strong><span class="muted">Na versão conectada ao backend, esta etapa exibirá o QR Code PIX oficial e permitirá o envio do comprovante.</span></div>
 <div class="actions"><button type="button" class="primary" onclick="showPaymentDemo()">Ir para pagamento (teste)</button><button type="button" class="secondary" onclick="closeModal('inscricao')">Concluir</button></div>
-<div class="notice" style="margin-top:12px"><strong>Importante</strong><span class="muted">A inscrição somente será considerada confirmada após a validação do pagamento pela organização.</span></div>
 </div>
 
 </form>
@@ -186,7 +177,6 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
   <div><span>Valor</span><b id="payValue">-</b></div>
   <div><span>Status</span><b id="payStatus">AGUARDANDO PAGAMENTO</b></div>
 </div>
-<div id="paymentCorrectionNotice"></div>
 
 <h3>Pagamento via PIX</h3>
 <p class="muted">Na versão real, esta área receberá o QR Code PIX oficial/dinâmico. Para o teste, a chave abaixo é apenas informativa.</p>
@@ -195,10 +185,6 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 <label for="comprovante">Comprovante de pagamento *</label>
 <input id="comprovante" type="file" accept="image/*,.pdf">
 <p class="muted">Formatos de teste: imagem ou PDF. Nenhum arquivo real deve ser enviado neste ambiente.</p>
-<div class="notice" style="margin-top:10px">
-  <strong>Se a inscrição estiver em correção</strong>
-  <span class="muted">Selecione o novo comprovante e envie novamente. O novo arquivo substituirá o comprovante pendente na homologação.</span>
-</div>
 
 <div class="actions">
   <button type="button" class="primary" onclick="sendProofTest()">Enviar comprovante (teste)</button>
@@ -312,24 +298,68 @@ function confirmRegistration(){
   var cpf = document.getElementById("cpf").value.replace(/\D/g,"");
   if(cpf.length !== 11){ alert("Informe um CPF válido com 11 dígitos."); return; }
   var modalidade = document.getElementById("modalidade").value;
+  var origemLabel = document.getElementById("origem").value;
+  var origem = "ONLINE";
   var existing = getSavedState();
   if(existing && existing.cpf === cpf && existing.status !== "CANCELADA"){
     alert("Já existe uma inscrição de homologação para este CPF. Consulte pelo CPF para continuar.");
     return;
   }
-
   var state = {
+    id: "CNR-" + Date.now(),
     cpf: cpf,
     nome: document.getElementById("nome").value,
+    nascimento: document.getElementById("nascimento").value,
+    sexo: document.getElementById("sexo").value,
     whatsapp: document.getElementById("whatsapp").value,
+    celular: document.getElementById("whatsapp").value,
+    email: document.getElementById("email").value,
+    cidade: document.getElementById("cidade").value,
     modalidade: modalidade,
-    origem: document.getElementById("origem").value,
+    origem: origem,
+    origemLabel: origemLabel,
+    categoria: modalidade === "socio" ? "Sócio/equipe" : "Individual",
+    equipe: document.getElementById("equipe").value,
+    camiseta: document.getElementById("camisa").value,
     camisa: document.getElementById("camisa").value,
     status: "AGUARDANDO PAGAMENTO",
+    pagamento: "PIX",
     valor: modalidade === "socio" ? 100 : 110,
     createdAt: new Date().toISOString()
   };
   saveState(state);
+
+  // Integração com o ADM: o cadastro online também é gravado na coleção
+  // que o painel administrativo utiliza para relatórios e validação.
+  var registros = [];
+  try { registros = JSON.parse(localStorage.getItem("cnr26_registrations") || "[]"); } catch(e) { registros = []; }
+  if(!Array.isArray(registros)) registros = [];
+  var idx = registros.findIndex(function(r){ return String(r.cpf||"").replace(/\D/g,"") === cpf; });
+  var registro = {
+    id: state.id,
+    cpf: state.cpf,
+    nome: state.nome,
+    nascimento: state.nascimento,
+    sexo: state.sexo,
+    whatsapp: state.whatsapp,
+    celular: state.celular,
+    email: state.email,
+    cidade: state.cidade,
+    modalidade: state.modalidade,
+    origem: "ONLINE",
+    categoria: state.categoria,
+    equipe: state.equipe,
+    camiseta: state.camiseta,
+    camisa: state.camisa,
+    status: state.status,
+    pagamento: state.pagamento,
+    valor: state.valor,
+    createdAt: state.createdAt
+  };
+  if(idx >= 0) registros[idx] = Object.assign({}, registros[idx], registro);
+  else registros.push(registro);
+  localStorage.setItem("cnr26_registrations", JSON.stringify(registros));
+
   document.getElementById("registrationCpf").textContent = document.getElementById("cpf").value;
   document.getElementById("valor").textContent = modalidade === "socio" ? "R$ 100,00" : "R$ 110,00";
   goToStep(5);
@@ -347,11 +377,6 @@ function openPayment(state){
   document.getElementById("payStatus").textContent = state.status || "AGUARDANDO PAGAMENTO";
   document.getElementById("comprovante").value = "";
   document.getElementById("paymentResult").innerHTML = "";
-  document.getElementById("paymentCorrectionNotice").innerHTML =
-    state.status === "SOLICITAR CORREÇÃO" && state.paymentNote
-      ? '<div class="notice warning"><strong>Motivo da correção</strong><span class="muted">'+
-        escapeHtml(state.paymentNote)+'</span></div>'
-      : "";
   closeModal("inscricao");
   closeModal("consulta");
   openModal("pagamento");
@@ -367,7 +392,6 @@ function sendProofTest(){
   var file = document.getElementById("comprovante").files[0];
   if(!state || !state.cpf){ alert("Nenhuma inscrição salva para pagamento."); return; }
   if(!file){ alert("Selecione um comprovante de teste antes de enviar."); return; }
-  // Novo envio substitui o comprovante pendente para fins de homologação.
   state.previousProofName = state.proofName || null;
   state.status = "COMPROVANTE ENVIADO";
   state.paymentNote = "";
@@ -376,6 +400,22 @@ function sendProofTest(){
   state.proofSentAt = new Date().toISOString();
   state.proofVersion = Number(state.proofVersion || 0) + 1;
   saveState(state);
+
+  var registros=[];
+  try{ registros=JSON.parse(localStorage.getItem("cnr26_registrations")||"[]"); }catch(e){ registros=[]; }
+  if(!Array.isArray(registros)) registros=[];
+  var cpf=String(state.cpf||"").replace(/\D/g,"");
+  var idx=registros.findIndex(function(r){return String(r.cpf||"").replace(/\D/g,"")===cpf;});
+  if(idx>=0){
+    registros[idx].status=state.status;
+    registros[idx].proofName=state.proofName;
+    registros[idx].proofSize=state.proofSize;
+    registros[idx].proofSentAt=state.proofSentAt;
+    registros[idx].proofVersion=state.proofVersion;
+    registros[idx].paymentNote="";
+    localStorage.setItem("cnr26_registrations",JSON.stringify(registros));
+  }
+
   document.getElementById("payStatus").textContent = state.status;
   document.getElementById("paymentResult").innerHTML =
     '<div class="notice success"><strong>Comprovante recebido para homologação</strong><span class="muted">Arquivo: '+
@@ -387,19 +427,13 @@ function consultRegistration(){
   var cpf = document.getElementById("qcpf").value.replace(/\D/g,"");
   var result = document.getElementById("qresult");
   if(state && state.cpf === cpf){
-    var paymentButton = (state.status === "AGUARDANDO PAGAMENTO" || state.status === "SOLICITAR CORREÇÃO")
-      ? '<button type="button" class="primary" onclick="openPaymentForSaved()">'+
-        (state.status === "SOLICITAR CORREÇÃO" ? "Corrigir / enviar novo comprovante" : "Enviar comprovante de pagamento")+
-        '</button>' : '';
-    var correction = state.status === "SOLICITAR CORREÇÃO" && state.paymentNote
-      ? '<div class="notice warning"><strong>Motivo da correção</strong><span class="muted">'+escapeHtml(state.paymentNote)+
-        '</span></div>' : '';
+    var paymentButton = state.status === "AGUARDANDO PAGAMENTO"
+      ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>' : '';
     result.innerHTML =
-      '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">Atleta: '+
-      escapeHtml(state.nome||"Nome não informado")+'<br>CPF: '+escapeHtml(state.cpf)+'<br>Status: '+escapeHtml(state.status)+
+      '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">CPF: '+
+      escapeHtml(state.cpf)+'<br>Status: '+escapeHtml(state.status)+
       '<br>Modalidade: '+escapeHtml(state.modalidade||"Corrida 7 km")+
-      '<br>Camisa: '+escapeHtml(state.camisa)+'</span></div>'+correction+
-      '<div class="actions">'+paymentButton+'</div>';
+      '<br>Camisa: '+escapeHtml(state.camisa)+'</span><div class="actions">'+paymentButton+'</div></div>';
   }else{
     result.innerHTML = '<div class="alert">Nenhuma inscrição de homologação encontrada para este CPF.</div>';
   }
