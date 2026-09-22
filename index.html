@@ -470,8 +470,11 @@ function consultRegistration(){
   var paymentButton = status === "AGUARDANDO PAGAMENTO" && origem === "ONLINE"
     ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>' : '';
 
+  var nome = registro.nome || registro.name || registro.atleta || registro.nomeAtleta || registro.athleteName || "-";
+
   result.innerHTML =
-    '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">CPF: '+
+    '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">'+
+    '<strong>Atleta: '+escapeHtml(nome)+'</strong><br>CPF: '+
     escapeHtml(registro.cpf || cpf)+'<br>Status: '+escapeHtml(status)+
     '<br>Modalidade: '+escapeHtml(modalidade)+
     '<br>Camisa: '+escapeHtml(camisa)+
