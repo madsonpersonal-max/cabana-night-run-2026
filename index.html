@@ -80,7 +80,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </section>
 
 <section class="notice">
-  <strong>Ambiente de homologação • V12.5 — INDEX LIMPO / INTEGRAÇÃO ADM</strong>
+  <strong>Ambiente de homologação • V12.7 — CONSULTA ONLINE + PRESENCIAL / INTEGRAÇÃO ADM</strong>
   <span class="muted">Este é um teste. Não realize pagamento real nem envie documentos reais.</span>
 </section>
 
@@ -426,26 +426,57 @@ function sendProofTest(){
 function consultRegistration(){
   var cpf = document.getElementById("qcpf").value.replace(/\D/g,"");
   var result = document.getElementById("qresult");
-  var registros = [];
-  try { registros = JSON.parse(localStorage.getItem("cnr26_registrations") || "[]"); } catch(e) { registros = []; }
-  if(!Array.isArray(registros)) registros = [];
-  var registro = registros.find(function(r){ return String(r.cpf||"").replace(/\D/g,"") === cpf; });
-
-  if(registro){
-    var status = registro.status || "AGUARDANDO PAGAMENTO";
-    var paymentButton = status === "AGUARDANDO PAGAMENTO"
-      ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>' : '';
-    result.innerHTML =
-      '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">CPF: '+
-      escapeHtml(registro.cpf)+'<br>Status: '+escapeHtml(status)+
-      '<br>Modalidade: '+escapeHtml(registro.modalidade||"Corrida 7 km")+
-      '<br>Camisa: '+escapeHtml(registro.camisa||registro.camiseta||"-")+
-      '<br>Origem: '+escapeHtml(registro.origem||"ONLINE")+'</span><div class="actions">'+paymentButton+'</div></div>';
-  }else{
-    result.innerHTML = '<div class="alert">Nenhuma inscrição encontrada para este CPF.</div>';
+  if(cpf.length !== 11){
+    result.innerHTML = '<div class="alert">Informe um CPF válido com 11 dígitos.</div>';
+    return;
   }
-}
 
+  // A consulta pública precisa enxergar as mesmas fontes usadas pelo ADM.
+  // Ordem: base principal de inscrições e, em seguida, bases legadas/presenciais.
+  var keys = [
+    "cnr26_registrations",
+    "cnr26_inscricoes_v5",
+    "cnr26_inscricoes",
+    "cnr26_atletas"
+  ];
+  var candidatos = [];
+  keys.forEach(function(key){
+    try{
+      var arr = JSON.parse(localStorage.getItem(key) || "[]");
+      if(Array.isArray(arr)) candidatos = candidatos.concat(arr);
+    }catch(e){}
+  });
+
+  // Remove duplicidades por CPF, priorizando o registro mais completo/atual.
+  var encontrados = candidatos.filter(function(r){
+    return String(r && r.cpf || "").replace(/\D/g,"") === cpf;
+  });
+
+  if(!encontrados.length){
+    result.innerHTML = '<div class="alert">Nenhuma inscrição encontrada para este CPF.</div>';
+    return;
+  }
+
+  encontrados.sort(function(a,b){
+    var ta = Date.parse(a.createdAt || a.dataCadastro || a.updatedAt || "") || 0;
+    var tb = Date.parse(b.createdAt || b.dataCadastro || b.updatedAt || "") || 0;
+    return tb - ta;
+  });
+  var registro = encontrados[0];
+  var status = registro.status || registro.situacao || "AGUARDANDO PAGAMENTO";
+  var modalidade = registro.modalidade || registro.categoriaModalidade || "Corrida 7 km";
+  var camisa = registro.camisa || registro.camiseta || registro.tamanhoCamisa || "-";
+  var origem = registro.origem || registro.origin || "PRESENCIAL";
+  var paymentButton = status === "AGUARDANDO PAGAMENTO" && origem === "ONLINE"
+    ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>' : '';
+
+  result.innerHTML =
+    '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">CPF: '+
+    escapeHtml(registro.cpf || cpf)+'<br>Status: '+escapeHtml(status)+
+    '<br>Modalidade: '+escapeHtml(modalidade)+
+    '<br>Camisa: '+escapeHtml(camisa)+
+    '<br>Origem: '+escapeHtml(origem)+'</span><div class="actions">'+paymentButton+'</div></div>';
+}
 function escapeHtml(value){
   return String(value).replace(/[&<>"']/g,function(char){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char];
