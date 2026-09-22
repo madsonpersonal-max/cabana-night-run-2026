@@ -424,19 +424,25 @@ function sendProofTest(){
 }
 
 function consultRegistration(){
-  var state = getSavedState();
   var cpf = document.getElementById("qcpf").value.replace(/\D/g,"");
   var result = document.getElementById("qresult");
-  if(state && state.cpf === cpf){
-    var paymentButton = state.status === "AGUARDANDO PAGAMENTO"
+  var registros = [];
+  try { registros = JSON.parse(localStorage.getItem("cnr26_registrations") || "[]"); } catch(e) { registros = []; }
+  if(!Array.isArray(registros)) registros = [];
+  var registro = registros.find(function(r){ return String(r.cpf||"").replace(/\D/g,"") === cpf; });
+
+  if(registro){
+    var status = registro.status || "AGUARDANDO PAGAMENTO";
+    var paymentButton = status === "AGUARDANDO PAGAMENTO"
       ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>' : '';
     result.innerHTML =
       '<div class="notice success"><strong>Inscrição encontrada</strong><span class="muted">CPF: '+
-      escapeHtml(state.cpf)+'<br>Status: '+escapeHtml(state.status)+
-      '<br>Modalidade: '+escapeHtml(state.modalidade||"Corrida 7 km")+
-      '<br>Camisa: '+escapeHtml(state.camisa)+'</span><div class="actions">'+paymentButton+'</div></div>';
+      escapeHtml(registro.cpf)+'<br>Status: '+escapeHtml(status)+
+      '<br>Modalidade: '+escapeHtml(registro.modalidade||"Corrida 7 km")+
+      '<br>Camisa: '+escapeHtml(registro.camisa||registro.camiseta||"-")+
+      '<br>Origem: '+escapeHtml(registro.origem||"ONLINE")+'</span><div class="actions">'+paymentButton+'</div></div>';
   }else{
-    result.innerHTML = '<div class="alert">Nenhuma inscrição de homologação encontrada para este CPF.</div>';
+    result.innerHTML = '<div class="alert">Nenhuma inscrição encontrada para este CPF.</div>';
   }
 }
 
