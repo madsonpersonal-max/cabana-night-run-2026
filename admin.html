@@ -176,9 +176,12 @@ function numericTotal(v,fallback){
 }
 function stock(){
   const s=arrObj('cnr26_central_vagas_v24');
+  const infObj=s.infantil;
+  let infTotal=numericTotal(infObj,NaN);
+  if(!Number.isFinite(infTotal) || infTotal<=0) infTotal=100;
   return {
     corrida:{total:1000},
-    infantil:{total:numericTotal(s.infantil,100)},
+    infantil:{total:infTotal},
     pcd:{total:10}
   };
 }
@@ -209,7 +212,7 @@ function renderPayments(){const c=getCounts(),emps=companies(),empVal=emps.reduc
 function csvDownload(filename,rows){const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');const blob=new Blob(["\ufeff"+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function exportRegistrations(){const rows=[['NOME','CPF','MODALIDADE','ORIGEM','PAGAMENTO','STATUS','VALOR'],...regs().map(r=>{const x=normReg(r);return[x.nome,x.cpf,x.modalidade,x.origem,x.pagamento,x.status,x.valor]})];csvDownload('cabana_night_run_inscricoes.csv',rows)}
 function exportCompanies(){const rows=[['EMPRESA','CNPJ','MODALIDADE','VAGAS','UTILIZADAS','RESTANTES','VALOR TOTAL','VALOR/VAGA','STATUS'],...companies().map(x=>[x.empresa,x.cnpj,x.modalidade,x.contratadas,x.utilizadas,Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),x.valor,Number(x.contratadas||0)?Number(x.valor||0)/Number(x.contratadas):0,x.status])];csvDownload('cabana_night_run_empresas.csv',rows)}
-function renderReports(){const c=getCounts(),r=companyReservations(),s=stock();relResumo.innerHTML=`<p><b>Corrida:</b> ${c.corrida+c.pcd} confirmadas (incluindo ${c.pcd} PCD) + ${r.corrida} vagas empresariais reservadas = ${c.corrida+c.pcd+r.corrida} comprometidas de 1.000.</p><p><b>Corridinha:</b> ${c.infantil} confirmadas + ${r.infantil} vagas empresariais reservadas = ${c.infantil+r.infantil} comprometidas de ${s.infantil}.</p><p><b>PCD:</b> ${c.pcd} utilizadas de ${s.pcd}.</p><p><b>Bonificações:</b> ${c.bonus}.</p>`}
+function renderReports(){const c=getCounts(),r=companyReservations(),s=stock();relResumo.innerHTML=`<p><b>Corrida:</b> ${c.corrida+c.pcd} confirmadas (incluindo ${c.pcd} PCD) + ${r.corrida} vagas empresariais reservadas = ${c.corrida+c.pcd+r.corrida} comprometidas de 1.000.</p><p><b>Corridinha:</b> ${c.infantil} confirmadas + ${r.infantil} vagas empresariais reservadas = ${c.infantil+r.infantil} comprometidas de ${s.infantil}.</p><p><b>PCD:</b> ${c.pcd} utilizadas de ${s.pcd.total}.</p><p><b>Bonificações:</b> ${c.bonus}.</p>`}
 function renderAudit(){const a=arr(AUDIT_KEY);tblAudit.innerHTML=a.map(x=>`<tr><td>${new Date(x.data).toLocaleString('pt-BR')}</td><td>${esc(x.action)}</td><td>${esc(x.detail)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Nenhuma ação registrada.</td></tr>'}
 function clearHomologationData(){if(!confirm('Limpar os dados de homologação deste navegador? Esta ação remove inscrições, empresas, patrocinadores, documentos e auditoria de teste, mas preserva os limites de vagas.'))return;['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas',COMPANY_KEY,SP_KEY,DOC_KEY,AUDIT_KEY].forEach(k=>localStorage.removeItem(k));audit('LIMPAR_HOMOLOGACAO','Dados de teste removidos; limites de vagas preservados.');refresh();renderIns();renderCompanies();renderSponsors();renderPayments();renderReports();renderAthletes();renderAudit();alert('Dados de homologação limpos com sucesso.')}
 function openModal(ok){modal.classList.add('open');modalOk.onclick=ok}
