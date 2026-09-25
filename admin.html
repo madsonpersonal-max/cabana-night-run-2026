@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cabana Night Run 2026 — ADM Operacional V12.3 RELATÓRIO GERAL</title>
+<title>Cabana Night Run 2026 — ADM Operacional V12.2</title>
 <style>
 :root{--bg:#0c0712;--panel:#171021;--panel2:#20152d;--line:#3a2850;--text:#f4f0f8;--muted:#bdb1c9;--green:#a8ff19;--purple:#7b3fb2;--danger:#ff6b6b;--warn:#ffc857}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
@@ -132,7 +132,7 @@ input,select,textarea{width:100%;background:#0e0916;color:#fff;border:1px solid 
 
 <section id="relatorios" class="view">
 <h1>Relatórios</h1><div class="sub">Relatórios essenciais para a operação.</div>
-<div class="toolbar"><button class="btn primary" onclick="exportAthletes()">Exportar atletas completos CSV</button><button class="btn" onclick="exportRegistrations()">Exportar inscrições CSV</button><button class="btn" onclick="exportCompanies()">Exportar empresas CSV</button></div><div class="section"><h2>Relatório geral de atletas</h2><div class="sub">Somente atletas com inscrição individual no sistema: online e presencial. Atletas de empresas permanecem apenas nas listas anexadas à empresa.</div><div class="tablewrap"><table><thead><tr><th>Nome do atleta</th><th>Sexo</th><th>Nascimento</th><th>CPF</th><th>Camiseta</th><th>Equipe</th><th>Categoria</th><th>E-mail</th><th>Celular</th><th>Idade</th></tr></thead><tbody id="tblAthletes"></tbody></table></div></div>
+<div class="toolbar"><button class="btn primary" onclick="exportAthletes()">Exportar atletas completos CSV</button><button class="btn" onclick="exportRegistrations()">Exportar inscrições CSV</button><button class="btn" onclick="exportCompanies()">Exportar empresas CSV</button></div><div class="section"><h2>Relatório geral de atletas</h2><div class="sub">Somente atletas com inscrição individual no sistema: online e presencial. Atletas de empresas permanecem apenas nas listas anexadas à empresa.</div><div class="tablewrap"><table><thead><tr><th>Nome</th><th>Sexo</th><th>Nascimento</th><th>CPF</th><th>Camiseta</th><th>Equipe</th><th>Categoria</th><th>E-mail</th><th>Celular</th><th>Idade</th><th>Origem</th></tr></thead><tbody id="tblAthletes"></tbody></table></div></div>
 <div class="section"><h2>Resumo operacional</h2><div id="relResumo"></div></div>
 </section>
 
@@ -154,87 +154,24 @@ const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'B
 const normCpf=s=>String(s||'').replace(/\D/g,'');
 const DOC_MAX=3*1024*1024;
 function arr(k){try{const x=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
-function arrObj(k){try{const x=JSON.parse(localStorage.getItem(k)||'{}');return x&&typeof x==='object'&&!Array.isArray(x)?x:{} }catch(e){return{}}}
 function put(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function regs(){const out=[],seen=new Set();REG_KEYS.forEach(k=>arr(k).forEach(r=>{const cpf=normCpf(r.cpf||r.CPF||r.documento);const sig=cpf+'|'+(r.modalidade||r.modality||'')+'|'+(r.status||'');if(!seen.has(sig)){seen.add(sig);out.push(r)}}));return out}
 function normReg(r){return{raw:r,cpf:normCpf(r.cpf||r.CPF||r.documento),nome:r.nome||r.name||'',modalidade:/infantil|corridinha/i.test(r.modalidade||r.modality||'')?'Corridinha Infantil':/pcd/i.test(r.modalidade||r.modality||'')?'PCD presencial':'Corrida 7 km',origem:String(r.origem||r.origin||'ONLINE').toUpperCase(),pagamento:r.pagamento||r.paymentStatus||r.payment||'',status:r.status||r.situacao||'',valor:Number(r.valor||r.amount||0)||0}}
 function confirmed(r){return /CONFIRMADA|PAGAMENTO CONFIRMADO|APROVAD/i.test(String(r.status||r.situacao||r.paymentStatus||''))}
-function getCounts(){let c={corrida:0,infantil:0,pcd:0,bonus:0,individualValue:0};const seen=new Set();regs().forEach(raw=>{const r=normReg(raw);if(!confirmed(raw))return;const key=r.cpf+'|'+r.modalidade;if(r.cpf&&seen.has(key))return;if(r.cpf)seen.add(key);if(r.modalidade==='PCD presencial')c.pcd++;else if(r.modalidade==='Corridinha Infantil')c.infantil++;else c.corrida++;if(/BONIFIC/i.test(r.origem))c.bonus++;else if(r.valor)c.individualValue+=r.valor});return c}
+function getCounts(){let c={corrida:0,infantil:0,pcd:0,bonus:0,individualValue:0};const seen=new Set();regs().forEach(raw=>{const r=normReg(raw);if(!confirmed(raw))return;const key=r.cpf+'|'+r.modalidade;if(r.cpf&&seen.has(key))return;if(r.cpf)seen.add(key);const isPcd=/^PCD$/i.test(String(r.origem||''))||r.modalidade==='PCD presencial';if(isPcd)c.pcd++;else if(r.modalidade==='Corridinha Infantil')c.infantil++;else c.corrida++;if(/BONIFIC/i.test(r.origem))c.bonus++;else if(r.valor)c.individualValue+=r.valor});return c}
 function companies(){return arr(COMPANY_KEY)}
 function companyReservations(){let c={corrida:0,infantil:0};companies().forEach(x=>{if(String(x.status||'').toUpperCase()==='ENCERRADO')return;const rem=Math.max(0,Number(x.contratadas||x.qtd||0)-Number(x.utilizadas||0));if(/infantil|corridinha/i.test(x.modalidade||''))c.infantil+=rem;else c.corrida+=rem});return c}
 function stock(){let s=arrObj('cnr26_central_vagas_v24');return {corrida:{total:1000},infantil:{total:Number(s.infantil?.total??100)},pcd:{total:10}}}
 function audit(action,detail){const a=arr(AUDIT_KEY);a.unshift({data:new Date().toISOString(),action,detail});put(AUDIT_KEY,a.slice(0,500));renderAudit()}
-function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='dashboard')refresh();if(v==='inscricoes')renderIns();if(v==='vagas')renderVagas();if(v==='empresas')renderCompanies();if(v==='patrocinadores')renderSponsors();if(v==='pagamentos')renderPayments();if(v==='relatorios'){renderAthletes();renderReports();}if(v==='auditoria')renderAudit()}
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='dashboard')refresh();if(v==='inscricoes')renderIns();if(v==='vagas')renderVagas();if(v==='empresas')renderCompanies();if(v==='patrocinadores')renderSponsors();if(v==='pagamentos')renderPayments();if(v==='relatorios')renderReports();if(v==='auditoria')renderAudit()}
 document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>show(n.dataset.view));
-function refresh(){const s=stock(),c=getCounts(),r=companyReservations();dTotalCorrida.textContent='1.000';dCorrida.textContent=c.corrida+c.pcd;dEmpCorrida.textContent=r.corrida;dDispCorrida.textContent=Math.max(0,1000-c.corrida-c.pcd-r.corrida);dTotalInf.textContent=s.infantil.total;dInf.textContent=c.infantil;dEmpInf.textContent=r.infantil;dDispInf.textContent=Math.max(0,s.infantil.total-c.infantil-r.infantil);dPcd.textContent=c.pcd+' / 10';dBonus.textContent=c.bonus;dEmpresas.textContent=companies().filter(x=>String(x.status||'').toUpperCase()!=='ENCERRADO').length;dPatValor.textContent=money(arr(SP_KEY).reduce((a,x)=>a+Number(x.valor||0),0));}
+function refresh(){const s=stock(),c=getCounts(),r=companyReservations();dTotalCorrida.textContent='1.000';dCorrida.textContent=c.corrida+c.pcd;dEmpCorrida.textContent=r.corrida;dDispCorrida.textContent=Math.max(0,1000-c.corrida-c.pcd-r.corrida);dTotalInf.textContent=s.infantil;dInf.textContent=c.infantil;dEmpInf.textContent=r.infantil;dDispInf.textContent=Math.max(0,s.infantil-c.infantil-r.infantil);dPcd.textContent=c.pcd+' / 10';dBonus.textContent=c.bonus;dEmpresas.textContent=companies().filter(x=>String(x.status||'').toUpperCase()!=='ENCERRADO').length;dPatValor.textContent=money(arr(SP_KEY).reduce((a,x)=>a+Number(x.valor||0),0));}
 function renderIns(){let rows=regs().map(normReg);const q=(qIns.value||'').toLowerCase(),m=mIns.value,o=oIns.value,s=sIns.value;rows=rows.filter(x=>(!q||x.cpf.includes(normCpf(q))||x.nome.toLowerCase().includes(q))&&(!m||x.modalidade===m)&&(!o||x.origem===o)&&(!s||x.status===s));tblIns.innerHTML=rows.map(x=>`<tr><td>${esc(x.cpf)}</td><td>${esc(x.nome)}</td><td>${esc(x.modalidade)}</td><td>${esc(x.origem)}</td><td>${esc(x.pagamento)}</td><td><span class="badge">${esc(x.status||'—')}</span></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Nenhuma inscrição encontrada.</td></tr>'}
 [qIns,mIns,oIns,sIns].forEach(x=>x.addEventListener('input',renderIns));
-function renderVagas(){const s=stock(),c=getCounts(),r=companyReservations();limCorrida.value=1000;limInf.value=s.infantil.total;tblVagas.innerHTML=`<tr><td>Corrida 7 km</td><td>1.000</td><td>${c.corrida+c.pcd}</td><td>${r.corrida}</td><td class="green"><b>${Math.max(0,1000-c.corrida-c.pcd-r.corrida)}</b></td></tr><tr><td>Corridinha Infantil</td><td>${s.infantil.total}</td><td>${c.infantil}</td><td>${r.infantil}</td><td class="green"><b>${Math.max(0,s.infantil.total-c.infantil-r.infantil)}</b></td></tr>`}
-function saveLimits(){const s=stock(),c=getCounts(),r=companyReservations(),ni=Math.max(1,Number(limInf.value)||100);if(1000<c.corrida+c.pcd+r.corrida){alert('As vagas comprometidas da corrida não podem ultrapassar 1.000.');return}if(ni<c.infantil+r.infantil){alert('O limite da Corridinha não pode ficar abaixo das vagas já confirmadas ou reservadas.');return}put('cnr26_central_vagas_v24',{corrida:{label:'Corrida 7 km',total:1000,used:c.corrida+c.pcd},infantil:{label:'Corridinha Infantil',total:ni,used:c.infantil},pcd:{label:'PCD interno',total:10,used:c.pcd}});audit('ALTERAR_LIMITES',`Corrida fixada em 1.000; Infantil ${s.infantil.total}→${ni}; PCD interno fixado em 10`);renderVagas();refresh();alert('Limites atualizados. A corrida permanece com 1.000 vagas totais, incluindo as 10 vagas PCD.')}
+function renderVagas(){const s=stock(),c=getCounts(),r=companyReservations();limCorrida.value=1000;limInf.value=s.infantil;tblVagas.innerHTML=`<tr><td>Corrida 7 km</td><td>1.000</td><td>${c.corrida+c.pcd}</td><td>${r.corrida}</td><td class="green"><b>${Math.max(0,1000-c.corrida-c.pcd-r.corrida)}</b></td></tr><tr><td>Corridinha Infantil</td><td>${s.infantil}</td><td>${c.infantil}</td><td>${r.infantil}</td><td class="green"><b>${Math.max(0,s.infantil-c.infantil-r.infantil)}</b></td></tr>`}
+function saveLimits(){const s=stock(),c=getCounts(),r=companyReservations(),ni=Math.max(1,Number(limInf.value)||100);if(1000<c.corrida+c.pcd+r.corrida){alert('As vagas comprometidas da corrida não podem ultrapassar 1.000.');return}if(ni<c.infantil+r.infantil){alert('O limite da Corridinha não pode ficar abaixo das vagas já confirmadas ou reservadas.');return}put('cnr26_central_vagas_v24',{corrida:{label:'Corrida 7 km',total:1000,used:c.corrida+c.pcd},infantil:{label:'Corridinha Infantil',total:ni,used:c.infantil},pcd:{label:'PCD interno',total:10,used:c.pcd}});audit('ALTERAR_LIMITES',`Corrida fixada em 1.000; Infantil ${s.infantil}→${ni}; PCD interno fixado em 10`);renderVagas();refresh();alert('Limites atualizados. A corrida permanece com 1.000 vagas totais, incluindo as 10 vagas PCD.')}
 function clearCompany(){['empNome','empCnpj','empResp','empWhats','empEmail','empQtd','empValor','empData'].forEach(id=>document.getElementById(id).value='')}
-function addCompany(){
-  const nome=document.getElementById('empNome').value.trim();
-  const cnpj=document.getElementById('empCnpj').value.trim();
-  const resp=document.getElementById('empResp').value.trim();
-  const wh=document.getElementById('empWhats').value.trim();
-  const email=document.getElementById('empEmail').value.trim();
-  const mod=document.getElementById('empMod').value;
-  const q=Number(document.getElementById('empQtd').value);
-  const valor=Number(document.getElementById('empValor').value);
-  const formaPagamento=document.getElementById('empPag').value;
-  const status=document.getElementById('empStatus').value;
-  const data=document.getElementById('empData').value || new Date().toISOString().slice(0,10);
-
-  if(!nome||!cnpj||!resp||!wh||!Number.isFinite(q)||q<1){
-    alert('Preencha corretamente os campos obrigatórios, incluindo a quantidade de vagas.');
-    return;
-  }
-  if(!Number.isFinite(valor)||valor<0){
-    alert('Informe um valor total negociado válido.');
-    return;
-  }
-
-  const s=stock();
-  const c=getCounts();
-  const r=companyReservations();
-  const key=/infantil|corridinha/i.test(mod)?'infantil':'corrida';
-  const totalDisponivel=key==='corrida' ? 1000 : Number(s.infantil.total||100);
-  const confirmadas=key==='corrida' ? (c.corrida+c.pcd) : c.infantil;
-  const reservadas=r[key]||0;
-  const avail=Math.max(0,totalDisponivel-confirmadas-reservadas);
-
-  if(q>avail){
-    alert(`A compra excede as vagas disponíveis. Disponíveis: ${avail}.`);
-    return;
-  }
-
-  const v=companies();
-  const lote={
-    id:'LOT-'+Date.now(),
-    empresa:nome,
-    cnpj:cnpj,
-    responsavel:resp,
-    whatsapp:wh,
-    email:email,
-    modalidade:mod,
-    contratadas:q,
-    utilizadas:0,
-    valor:valor,
-    status:status,
-    data:data,
-    formaPagamento:formaPagamento
-  };
-
-  v.push(lote);
-  put(COMPANY_KEY,v);
-  audit('COMPRA_VAGAS_EMPRESA',`${nome} — ${q} vagas — ${mod} — ${money(valor)}`);
-  clearCompany();
-  renderCompanies();
-  renderVagas();
-  renderPayments();
-  refresh();
-  alert(`Compra registrada com sucesso: ${q} vagas reservadas para ${nome}.`);
-}
+function addCompany(){const nome=empNome.value.trim(),cnpj=empCnpj.value.trim(),resp=empResp.value.trim(),wh=empWhats.value.trim(),mod=empMod.value,q=Math.max(1,Number(empQtd.value)||0),valor=Math.max(0,Number(empValor.value)||0);if(!nome||!cnpj||!resp||!wh||!q){alert('Preencha os campos obrigatórios.');return}const s=stock(),c=getCounts(),r=companyReservations(),key=/infantil|corridinha/i.test(mod)?'infantil':'corrida',avail=key==='corrida'?1000-c.corrida-c.pcd-r.corrida:s.infantil-c.infantil-r.infantil;if(q>avail){alert(`A compra excede as vagas disponíveis. Disponíveis: ${avail}.`);return}const v=companies();v.push({id:'LOT-'+Date.now(),empresa:nome,cnpj,responsavel:resp,whatsapp:wh,email:empEmail.value.trim(),modalidade:mod,contratadas:q,utilizadas:0,valor,status:empStatus.value,data:empData.value||new Date().toISOString().slice(0,10),formaPagamento:empPag.value});put(COMPANY_KEY,v);audit('COMPRA_VAGAS_EMPRESA',`${nome} — ${q} vagas — ${mod} — ${money(valor)}`);clearCompany();renderCompanies();refresh();alert('Compra de vagas registrada e abatida automaticamente da disponibilidade.')}
 function companyDocs(id){return arr(DOC_KEY).filter(d=>d.companyId===id).sort((a,b)=>String(b.data||'').localeCompare(String(a.data||'')))}
 function renderCompanies(){const a=companies();tblEmp.innerHTML=a.map((x,i)=>{const rem=Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),vp=Number(x.contratadas||0)?Number(x.valor||0)/Number(x.contratadas):0,docs=companyDocs(x.id);return `<tr><td>${esc(x.empresa)}</td><td>${esc(x.modalidade)}</td><td>${x.contratadas}</td><td>${x.utilizadas||0}</td><td class="green">${rem}</td><td>${money(x.valor)}</td><td>${money(vp)}</td><td><span class="badge">${esc(x.status||'—')}</span></td><td><div class="actions"><button class="btn small" onclick="attachCompanyDoc(${i})">📎 Anexar lista</button><button class="btn small" onclick="viewCompanyDocs(${i})">Ver ${docs.length||0}</button></div></td><td class="actions"><button class="btn small" onclick="editCompany(${i})">Editar</button><button class="btn small" onclick="companyReceipt(${i})">Gerar recibo</button><button class="btn small" onclick="releaseCompany(${i})">Liberar vagas</button></td></tr>`}).join('')||'<tr><td colspan="10" class="empty">Nenhuma compra empresarial cadastrada.</td></tr>'}
 function attachCompanyDoc(i){const x=companies()[i];if(!x)return;modalTitle.textContent='Anexar lista de atletas — documento da empresa';modalBody.innerHTML=`<div class="notice"><b>${esc(x.empresa)}</b><br>${esc(x.modalidade)} · ${x.contratadas} vagas compradas.<br><small>O arquivo será apenas armazenado como documento. Os nomes da lista não serão cadastrados individualmente no ADM.</small></div><div class="formgrid" style="margin-top:12px"><div class="field full"><label>Arquivo da lista *</label><input id="docFile" type="file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx"></div><div class="field"><label>Observação</label><input id="docObs" placeholder="Ex.: lista atualizada pela empresa"></div></div>`;openModal(()=>{const f=docFile.files[0];if(!f){alert('Selecione um arquivo.');return}if(f.size>DOC_MAX){alert('Arquivo muito grande para a homologação. Limite: 3 MB.');return}const reader=new FileReader();reader.onload=()=>{const docs=arr(DOC_KEY);docs.push({id:'DOC-'+Date.now(),companyId:x.id,empresa:x.empresa,nome:f.name,tipo:f.type,tamanho:f.size,data:new Date().toISOString(),observacao:docObs.value.trim(),conteudo:reader.result});put(DOC_KEY,docs);audit('ANEXAR_LISTA_EMPRESA',`${x.empresa} — ${f.name}`);closeModal();renderCompanies();alert('Lista armazenada com sucesso.')};reader.readAsDataURL(f)})}
@@ -250,67 +187,9 @@ function sponsorReceipt(i){const x=sponsors()[i],w=window.open('','_blank');w.do
 function delSponsor(i){if(!confirm('Excluir este patrocinador da homologação?'))return;const a=sponsors();audit('EXCLUIR_PATROCINIO',a[i]?.empresa||'');a.splice(i,1);put(SP_KEY,a);renderSponsors();refresh()}
 function renderPayments(){const c=getCounts(),emps=companies(),empVal=emps.reduce((a,x)=>a+Number(x.valor||0),0);pIndCount.textContent=regs().filter(r=>confirmed(r)&&!(/EMPRESA|BONIFIC/i.test(String(r.origem||r.origin||'')))).length;pIndValor.textContent=money(c.individualValue);pEmpCount.textContent=emps.length;pEmpValor.textContent=money(empVal);payResumo.innerHTML=`<b>Inscrições individuais:</b> ${pIndCount.textContent} · ${pIndValor.textContent}<br><b>Compras empresariais:</b> ${pEmpCount.textContent} · ${pEmpValor.textContent}<br><b>Patrocínios:</b> ${sponsors().length} · ${money(sponsors().reduce((a,x)=>a+Number(x.valor||0),0))}`}
 function csvDownload(filename,rows){const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');const blob=new Blob(["\ufeff"+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function exportAthletes(){
-  const rows=[['NOME DO ATLETA','SEXO','NASCIMENTO','CPF','CAMISETA','EQUIPE','CATEGORIA','E-MAIL','CELULAR','IDADE']];
-  athleteReportRows().forEach(r=>{
-    const f=athleteFields(r);
-    rows.push([f.nome,f.sexo,formatDateBR(f.nascimento),f.cpf,f.camiseta,f.equipe,f.categoria,f.email,f.celular,calcAge2026(f.nascimento)]);
-  });
-  csvDownload('cabana_night_run_relatorio_geral_atletas.csv',rows);
-  audit('EXPORTAR_RELATORIO_ATLETAS',`${rows.length-1} atletas exportados`);
-}
 function exportRegistrations(){const rows=[['NOME','CPF','MODALIDADE','ORIGEM','PAGAMENTO','STATUS','VALOR'],...regs().map(r=>{const x=normReg(r);return[x.nome,x.cpf,x.modalidade,x.origem,x.pagamento,x.status,x.valor]})];csvDownload('cabana_night_run_inscricoes.csv',rows)}
 function exportCompanies(){const rows=[['EMPRESA','CNPJ','MODALIDADE','VAGAS','UTILIZADAS','RESTANTES','VALOR TOTAL','VALOR/VAGA','STATUS'],...companies().map(x=>[x.empresa,x.cnpj,x.modalidade,x.contratadas,x.utilizadas,Math.max(0,Number(x.contratadas||0)-Number(x.utilizadas||0)),x.valor,Number(x.contratadas||0)?Number(x.valor||0)/Number(x.contratadas):0,x.status])];csvDownload('cabana_night_run_empresas.csv',rows)}
-function athleteReportRows(){
-  const allowed=new Set(['ONLINE','PRESENCIAL','BONIFICACAO','PCD']);
-  const excluded=new Set(['CANCELADA','REEMBOLSADA','INSCRIÇÃO RECUSADA','INSCRICAO RECUSADA']);
-  return regs().map(normReg).filter(r=>{
-    if(!allowed.has(r.origem))return false;
-    const st=String(r.status||'').toUpperCase();
-    return !excluded.has(st);
-  });
-}
-function formatDateBR(v){
-  if(!v)return '';
-  const s=String(v);
-  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m?`${m[3]}/${m[2]}/${m[1]}`:s;
-}
-function calcAge2026(v){
-  if(!v)return '';
-  const s=String(v);
-  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(!m)return '';
-  const y=Number(m[1]),mo=Number(m[2]),d=Number(m[3]);
-  let age=2026-y;
-  if(mo>12 || (mo===12 && d>31)) age--;
-  return age;
-}
-function athleteFields(r){
-  const x=r.raw||{};
-  return {
-    nome:r.nome||'',
-    sexo:x.sexo||x.genero||x.gender||'',
-    nascimento:x.nascimento||x.dataNascimento||x.data_nascimento||x.birthDate||x.birth_date||'',
-    cpf:r.cpf||'',
-    camiseta:x.camiseta||x.camisa||x.shirt||x.tamanhoCamisa||x.tamanho_camiseta||'',
-    equipe:x.equipe||x.assessoria||x.team||x.nomeEquipe||'',
-    categoria:x.categoria||x.category||x.faixaCategoria||'',
-    email:x.email||'',
-    celular:x.whatsapp||x.celular||x.telefone||x.phone||''
-  };
-}
-function renderAthletes(){
-  const rows=athleteReportRows();
-  const body=document.getElementById('tblAthletes');
-  if(!body)return;
-  body.innerHTML=rows.map(r=>{
-    const f=athleteFields(r);
-    return `<tr><td>${esc(f.nome)}</td><td>${esc(f.sexo)}</td><td>${esc(formatDateBR(f.nascimento))}</td><td>${esc(f.cpf)}</td><td>${esc(f.camiseta)}</td><td>${esc(f.equipe)}</td><td>${esc(f.categoria)}</td><td>${esc(f.email)}</td><td>${esc(f.celular)}</td><td>${esc(calcAge2026(f.nascimento))}</td></tr>`;
-  }).join('')||'<tr><td colspan="10" class="empty">Nenhum atleta individual encontrado.</td></tr>';
-}
-
-function renderReports(){const c=getCounts(),r=companyReservations(),s=stock(),ar=athleteReportRows();relResumo.innerHTML=`<p><b>Corrida:</b> ${c.corrida+c.pcd} confirmadas (incluindo ${c.pcd} PCD) + ${r.corrida} vagas empresariais reservadas = ${c.corrida+c.pcd+r.corrida} comprometidas de 1.000.</p><p><b>Corridinha:</b> ${c.infantil} confirmadas + ${r.infantil} vagas empresariais reservadas = ${c.infantil+r.infantil} comprometidas de ${s.infantil.total}.</p><p><b>PCD:</b> ${c.pcd} utilizadas de ${s.pcd.total}.</p><p><b>Bonificações:</b> ${c.bonus}.</p><p><b>Atletas individuais no relatório:</b> ${ar.length}. Empresas permanecem somente como lotes.</p>`}
+function renderReports(){const c=getCounts(),r=companyReservations(),s=stock();relResumo.innerHTML=`<p><b>Corrida:</b> ${c.corrida+c.pcd} confirmadas (incluindo ${c.pcd} PCD) + ${r.corrida} vagas empresariais reservadas = ${c.corrida+c.pcd+r.corrida} comprometidas de 1.000.</p><p><b>Corridinha:</b> ${c.infantil} confirmadas + ${r.infantil} vagas empresariais reservadas = ${c.infantil+r.infantil} comprometidas de ${s.infantil}.</p><p><b>PCD:</b> ${c.pcd} utilizadas de ${s.pcd}.</p><p><b>Bonificações:</b> ${c.bonus}.</p>`}
 function renderAudit(){const a=arr(AUDIT_KEY);tblAudit.innerHTML=a.map(x=>`<tr><td>${new Date(x.data).toLocaleString('pt-BR')}</td><td>${esc(x.action)}</td><td>${esc(x.detail)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Nenhuma ação registrada.</td></tr>'}
 function clearHomologationData(){if(!confirm('Limpar os dados de homologação deste navegador? Esta ação remove inscrições, empresas, patrocinadores, documentos e auditoria de teste, mas preserva os limites de vagas.'))return;['cnr26_inscricoes_v5','cnr26_registrations','cnr26_inscricoes','cnr26_atletas',COMPANY_KEY,SP_KEY,DOC_KEY,AUDIT_KEY].forEach(k=>localStorage.removeItem(k));audit('LIMPAR_HOMOLOGACAO','Dados de teste removidos; limites de vagas preservados.');refresh();renderIns();renderCompanies();renderSponsors();renderPayments();renderReports();renderAthletes();renderAudit();alert('Dados de homologação limpos com sucesso.')}
 function openModal(ok){modal.classList.add('open');modalOk.onclick=ok}
