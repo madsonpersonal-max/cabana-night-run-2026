@@ -154,6 +154,7 @@ const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'B
 const normCpf=s=>String(s||'').replace(/\D/g,'');
 const DOC_MAX=3*1024*1024;
 function arr(k){try{const x=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+function arrObj(k){try{const x=JSON.parse(localStorage.getItem(k)||'{}');return x&&typeof x==='object'&&!Array.isArray(x)?x:{}}catch(e){return{}}}
 function put(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function regs(){const out=[],seen=new Set();REG_KEYS.forEach(k=>arr(k).forEach(r=>{const cpf=normCpf(r.cpf||r.CPF||r.documento);const sig=cpf+'|'+(r.modalidade||r.modality||'')+'|'+(r.status||'');if(!seen.has(sig)){seen.add(sig);out.push(r)}}));return out}
 function normReg(r){return{raw:r,cpf:normCpf(r.cpf||r.CPF||r.documento),nome:r.nome||r.name||'',modalidade:/infantil|corridinha/i.test(r.modalidade||r.modality||'')?'Corridinha Infantil':/pcd/i.test(r.modalidade||r.modality||'')?'PCD presencial':'Corrida 7 km',origem:String(r.origem||r.origin||'ONLINE').toUpperCase(),pagamento:r.pagamento||r.paymentStatus||r.payment||'',status:r.status||r.situacao||'',valor:Number(r.valor||r.amount||0)||0}}
