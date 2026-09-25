@@ -177,6 +177,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
   <div><span>CPF</span><b id="payCpf">-</b></div>
   <div><span>Valor</span><b id="payValue">-</b></div>
   <div><span>Status</span><b id="payStatus">AGUARDANDO PAGAMENTO</b></div>
+<p id="paymentInstruction" class="muted">Selecione o comprovante para enviar.</p>
 </div>
 
 <h3>Pagamento via PIX</h3>
@@ -375,7 +376,14 @@ function showPaymentDemo(){
 function openPayment(state){
   document.getElementById("payCpf").textContent = state.cpf || "-";
   document.getElementById("payValue").textContent = state.valor === 100 ? "R$ 100,00" : "R$ 110,00";
-  document.getElementById("payStatus").textContent = state.status || "AGUARDANDO PAGAMENTO";
+  var currentStatus = String(state.status || "AGUARDANDO PAGAMENTO").toUpperCase();
+  document.getElementById("payStatus").textContent = currentStatus;
+  var instruction = document.getElementById("paymentInstruction");
+  if(instruction){
+    instruction.textContent = (currentStatus === "SOLICITAR CORREÇÃO" || currentStatus === "PAGAMENTO NÃO IDENTIFICADO")
+      ? "A organização solicitou um novo comprovante. Selecione o arquivo correto e envie novamente."
+      : "Selecione o comprovante para enviar.";
+  }
   document.getElementById("comprovante").value = "";
   document.getElementById("paymentResult").innerHTML = "";
   closeModal("inscricao");
@@ -467,8 +475,12 @@ function consultRegistration(){
   var modalidade = registro.modalidade || registro.categoriaModalidade || "Corrida 7 km";
   var camisa = registro.camisa || registro.camiseta || registro.tamanhoCamisa || "-";
   var origem = registro.origem || registro.origin || "PRESENCIAL";
-  var paymentButton = status === "AGUARDANDO PAGAMENTO" && origem === "ONLINE"
-    ? '<button type="button" class="primary" onclick="openPaymentForSaved()">Enviar comprovante de pagamento</button>' : '';
+  var podeEnviarComprovante = origem === "ONLINE" && ["AGUARDANDO PAGAMENTO","SOLICITAR CORREÇÃO","PAGAMENTO NÃO IDENTIFICADO"].indexOf(String(status).toUpperCase()) >= 0;
+  var rotuloComprovante = String(status).toUpperCase() === "AGUARDANDO PAGAMENTO"
+    ? "Enviar comprovante de pagamento"
+    : "Enviar novo comprovante";
+  var paymentButton = podeEnviarComprovante
+    ? '<button type="button" class="primary" onclick="openPaymentForSaved()">'+rotuloComprovante+'</button>' : '';
 
   var nome = registro.nome || registro.name || registro.atleta || registro.nomeAtleta || registro.athleteName || "-";
 
