@@ -188,7 +188,7 @@ function stock(){
 function audit(action,detail){const a=arr(AUDIT_KEY);a.unshift({data:new Date().toISOString(),action,detail});put(AUDIT_KEY,a.slice(0,500));renderAudit()}
 function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));if(v==='dashboard')refresh();if(v==='inscricoes')renderIns();if(v==='vagas')renderVagas();if(v==='empresas')renderCompanies();if(v==='patrocinadores')renderSponsors();if(v==='pagamentos')renderPayments();if(v==='relatorios')renderReports();if(v==='auditoria')renderAudit()}
 document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>show(n.dataset.view));
-function refresh(){const s=stock(),c=getCounts(),r=companyReservations();dTotalCorrida.textContent='1.000';dCorrida.textContent=c.corrida+c.pcd;dEmpCorrida.textContent=r.corrida;dDispCorrida.textContent=Math.max(0,1000-c.corrida-c.pcd-r.corrida);dTotalInf.textContent=s.infantil;dInf.textContent=c.infantil;dEmpInf.textContent=r.infantil;dDispInf.textContent=Math.max(0,s.infantil-c.infantil-r.infantil);dPcd.textContent=c.pcd+' / 10';dBonus.textContent=c.bonus;dEmpresas.textContent=companies().filter(x=>String(x.status||'').toUpperCase()!=='ENCERRADO').length;dPatValor.textContent=money(arr(SP_KEY).reduce((a,x)=>a+Number(x.valor||0),0));}
+function refresh(){const s=stock(),c=getCounts(),r=companyReservations();dTotalCorrida.textContent='1.000';dCorrida.textContent=c.corrida+c.pcd;dEmpCorrida.textContent=r.corrida;dDispCorrida.textContent=Math.max(0,1000-c.corrida-c.pcd-r.corrida);dTotalInf.textContent=Number(s.infantil.total)||100;dInf.textContent=c.infantil;dEmpInf.textContent=r.infantil;dDispInf.textContent=Math.max(0,s.infantil-c.infantil-r.infantil);dPcd.textContent=c.pcd+' / 10';dBonus.textContent=c.bonus;dEmpresas.textContent=companies().filter(x=>String(x.status||'').toUpperCase()!=='ENCERRADO').length;dPatValor.textContent=money(arr(SP_KEY).reduce((a,x)=>a+Number(x.valor||0),0));}
 function renderIns(){let rows=regs().map(normReg);const q=(qIns.value||'').toLowerCase(),m=mIns.value,o=oIns.value,s=sIns.value;rows=rows.filter(x=>(!q||x.cpf.includes(normCpf(q))||x.nome.toLowerCase().includes(q))&&(!m||x.modalidade===m)&&(!o||x.origem===o)&&(!s||x.status===s));tblIns.innerHTML=rows.map(x=>`<tr><td>${esc(x.cpf)}</td><td>${esc(x.nome)}</td><td>${esc(x.modalidade)}</td><td>${esc(x.origem)}</td><td>${esc(x.pagamento)}</td><td><span class="badge">${esc(x.status||'—')}</span></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Nenhuma inscrição encontrada.</td></tr>'}
 [qIns,mIns,oIns,sIns].forEach(x=>x.addEventListener('input',renderIns));
 function renderVagas(){const s=stock(),c=getCounts(),r=companyReservations();limCorrida.value=1000;limInf.value=s.infantil;tblVagas.innerHTML=`<tr><td>Corrida 7 km</td><td>1.000</td><td>${c.corrida+c.pcd}</td><td>${r.corrida}</td><td class="green"><b>${Math.max(0,1000-c.corrida-c.pcd-r.corrida)}</b></td></tr><tr><td>Corridinha Infantil</td><td>${s.infantil}</td><td>${c.infantil}</td><td>${r.infantil}</td><td class="green"><b>${Math.max(0,s.infantil-c.infantil-r.infantil)}</b></td></tr>`}
@@ -216,12 +216,19 @@ function exportCompanies(){const rows=[['EMPRESA','CNPJ','MODALIDADE','VAGAS','U
 function athleteRows(){
   const out=[];
   const latestByCpf=new Map();
-  regs().forEach(raw=>{
+  regs().forEach((raw,idx)=>{
     const x=normReg(raw);
     if(!x.cpf) return;
-    const ts=new Date(raw.updatedAt||raw.proofSentAt||raw.createdAt||raw.data||raw.timestamp||0).getTime()||0;
+    const rawStatus=String(raw.status||raw.situacao||raw.paymentStatus||'').toUpperCase();
+    const tsRaw=raw.updatedAt||raw.proofSentAt||raw.createdAt||raw.data||raw.timestamp||'';
+    const ts=new Date(tsRaw).getTime();
+    const effectiveTs=Number.isFinite(ts)?ts:0;
     const prev=latestByCpf.get(x.cpf);
-    if(!prev || ts >= prev.ts) latestByCpf.set(x.cpf,{raw,ts});
+    const priority=/SOLICITAR CORREÇÃO|PAGAMENTO NÃO IDENTIFICADO|CANCELADA|REEMBOLS|RECUSADA|AGUARDANDO PAGAMENTO|COMPROVANTE ENVIADO|EM VALIDAÇÃO/i.test(rawStatus)?1:2;
+    const prevPriority=prev?prev.priority:0;
+    if(!prev || effectiveTs>prev.ts || (effectiveTs===prev.ts && (priority>prevPriority || idx>prev.idx))){
+      latestByCpf.set(x.cpf,{raw,ts:effectiveTs,priority,idx});
+    }
   });
   latestByCpf.forEach(({raw})=>{
     const x=normReg(raw);
@@ -244,10 +251,7 @@ function athleteRows(){
         if(md<0 || (md===0 && ref.getDate()<d.getDate())) idade--;
       }
     }
-    out.push({
-      nome:x.nome, sexo, nascimento, cpf:x.cpf, camiseta:camisa,
-      equipe, categoria, email, celular, idade
-    });
+    out.push({nome:x.nome,sexo,nascimento,cpf:x.cpf,camiseta:camisa,equipe,categoria,email,celular,idade});
   });
   return out;
 }
