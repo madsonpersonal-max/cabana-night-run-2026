@@ -80,7 +80,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </section>
 
 <section class="notice">
-  <strong>Ambiente de homologação • V13.2 — CONSULTA ONLINE + PRESENCIAL / INTEGRAÇÃO ADM</strong>
+  <strong>Ambiente de homologação • V13.3 — CONSULTA ONLINE + PRESENCIAL / INTEGRAÇÃO ADM</strong>
   <span class="muted">Este é um teste. Não realize pagamento real nem envie documentos reais.</span>
 </section>
 
@@ -133,7 +133,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 <option>Online individual</option>
 <option>Sócio/equipe</option>
 </select>
-<label for="equipe">Equipe (opcional)</label><input id="equipe">
+<label for="equipe">Equipe (opcional)</label><input id="equipe" oninput="atualizarValorEquipe()"><p id="equipeNote" class="muted">Se informar uma equipe, o valor da inscrição será R$ 100,00 (equipe/membros), conforme o regulamento.</p>
 <p class="muted">PCD não aparece neste fluxo. As inscrições PCD são exclusivamente presenciais.</p>
 <div class="actions"><button type="button" class="secondary" onclick="goToStep(1)">Voltar</button><button type="button" class="primary" onclick="nextStep(3)">Continuar</button></div>
 </div>
@@ -269,19 +269,29 @@ function nextStep(step){
   if(step === 4){
     renderReview();
   }
+  if(step === 3){
+    atualizarValorEquipe();
+  }
 
   goToStep(step);
 }
 
+function atualizarValorEquipe(){
+  var equipe = document.getElementById("equipe").value.trim();
+  var el = document.getElementById("valor");
+  if(el) el.textContent = equipe ? "R$ 100,00" : "R$ 110,00";
+}
+
 function renderReview(){
   var modalidade = document.getElementById("modalidade").value;
-  var valor = modalidade === "socio" ? "R$ 100,00" : "R$ 110,00";
+  var equipe = document.getElementById("equipe").value.trim();
+  var valor = (modalidade === "socio" || equipe) ? "R$ 100,00" : "R$ 110,00";
 
   document.getElementById("review").innerHTML =
     "<div><span>Nome</span><b>"+escapeHtml(document.getElementById("nome").value)+"</b></div>"+
     "<div><span>CPF</span><b>"+escapeHtml(document.getElementById("cpf").value)+"</b></div>"+
     "<div><span>WhatsApp</span><b>"+escapeHtml(document.getElementById("whatsapp").value)+"</b></div>"+
-    "<div><span>Modalidade</span><b>"+(modalidade === "socio" ? "Sócio/equipe" : "Corrida 7 km")+"</b></div>"+
+    "<div><span>Modalidade</span><b>Corrida 7 km</b></div>"+
     "<div><span>Origem</span><b>"+escapeHtml(document.getElementById("origem").value)+"</b></div>"+
     "<div><span>Camisa</span><b>"+escapeHtml(document.getElementById("camisa").value)+"</b></div>"+
     "<div><span>Valor</span><b>"+valor+"</b></div>";
@@ -320,13 +330,13 @@ function confirmRegistration(){
     modalidade: modalidade,
     origem: origem,
     origemLabel: origemLabel,
-    categoria: modalidade === "socio" ? "Sócio/equipe" : "Individual",
+    categoria: (modalidade === "socio" || document.getElementById("equipe").value.trim()) ? "Sócio/equipe" : "Individual",
     equipe: document.getElementById("equipe").value,
     camiseta: document.getElementById("camisa").value,
     camisa: document.getElementById("camisa").value,
     status: "AGUARDANDO PAGAMENTO",
     pagamento: "PIX",
-    valor: modalidade === "socio" ? 100 : 110,
+    valor: (modalidade === "socio" || document.getElementById("equipe").value.trim()) ? 100 : 110,
     createdAt: new Date().toISOString()
   };
   saveState(state);
@@ -363,7 +373,7 @@ function confirmRegistration(){
   localStorage.setItem("cnr26_registrations", JSON.stringify(registros));
 
   document.getElementById("registrationCpf").textContent = document.getElementById("cpf").value;
-  document.getElementById("valor").textContent = modalidade === "socio" ? "R$ 100,00" : "R$ 110,00";
+  document.getElementById("valor").textContent = (modalidade === "socio" || document.getElementById("equipe").value.trim()) ? "R$ 100,00" : "R$ 110,00";
   goToStep(5);
 }
 
