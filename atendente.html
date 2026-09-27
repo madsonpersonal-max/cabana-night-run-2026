@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Atendente — Cabana Night Run 2026 V12.5</title>
+<title>Atendente — Cabana Night Run 2026 V13.1</title>
 <style>
 :root{--bg:#100b16;--card:#191222;--line:#3b2a49;--text:#f5f0f7;--muted:#b9adbf;--green:#b8ff3d;--purple:#9b5cff;--danger:#ff6577;--yellow:#ffd35a;--ok:#77ffc4}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0c0910,#171020 55%,#100b16);font-family:Arial,Helvetica,sans-serif;color:var(--text)}
@@ -13,13 +13,13 @@ h1,h2{margin:0 0 8px}.muted{color:var(--muted)}.toolbar{display:flex;gap:10px;fl
 button{border:0;border-radius:11px;padding:11px 15px;font-weight:800;cursor:pointer}.primary{background:var(--green);color:#10130a}.secondary{background:#2a2033;color:var(--text);border:1px solid var(--line)}.danger{background:#5a202b;color:#fff}.yellow{background:var(--yellow);color:#17120a}.ok{background:#123e2b;color:var(--ok)}
 .metric{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}.metric:last-child{border-bottom:0}.metric b{font-size:22px}.notice{padding:14px;border-radius:12px;background:#120d18;border:1px solid var(--line);margin-top:14px}.notice strong{display:block;margin-bottom:5px}
 .item{background:#120d18;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}.item.active{border-color:var(--purple)}.itemhead{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.pill{display:inline-block;padding:6px 9px;border-radius:999px;font-size:11px;font-weight:800}.p-ok{background:#123e2b;color:var(--ok)}.p-review{background:#263d13;color:var(--green)}.p-error{background:#451e27;color:#ff9eaa}.p-wait{background:#3b2e10;color:var(--yellow)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.field{background:#191222;border:1px solid var(--line);border-radius:10px;padding:10px}.field small{display:block;color:var(--muted);margin-bottom:4px}.field b{font-size:14px;word-break:break-word}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.empty{padding:35px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}.audit{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6;max-height:220px;overflow:auto;white-space:pre-wrap}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.field{background:#191222;border:1px solid var(--line);border-radius:10px;padding:10px}.field small{display:block;color:var(--muted);margin-bottom:4px}.field b{font-size:14px;word-break:break-word}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.proof-view{display:inline-flex;align-items:center;gap:6px}.empty{padding:35px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}.audit{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6;max-height:220px;overflow:auto;white-space:pre-wrap}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.modal.open{display:flex}.modalbox{width:min(900px,96vw);max-height:90vh;overflow:auto;background:#191222;border:1px solid var(--line);border-radius:18px;padding:22px}.modalgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.modalgrid label{font-size:13px;color:var(--muted)}.modalgrid input,.modalgrid select{margin-top:6px;width:100%;background:#120d18;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px}.full{grid-column:1/-1}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.row,.modalgrid{grid-template-columns:1fr}.full{grid-column:auto}}
 </style>
 </head>
 <body>
-<header><div class="logo">CABANA <span>NIGHT RUN 2026</span> — Painel do Atendente</div><div class="tag">V12.5 • HOMOLOGAÇÃO</div></header>
+<header><div class="logo">CABANA <span>NIGHT RUN 2026</span> — Painel do Atendente</div><div class="tag">V13.1 • HOMOLOGAÇÃO</div></header>
 <main>
 <div class="grid">
 <section class="card">
@@ -27,7 +27,7 @@ button{border:0;border-radius:11px;padding:11px 15px;font-weight:800;cursor:poin
 <p class="muted">Este painel lê a mesma base de inscrições usada pelo ADM: <b>cnr26_registrations</b>. O CPF identifica o atleta; IDs técnicos ficam apenas para controle interno.</p>
 <div class="toolbar">
 <input id="q" class="search" placeholder="Buscar por CPF ou nome" oninput="render()">
-<select id="statusFilter" class="select" onchange="render()"><option value="">Todos os status</option><option>COMPROVANTE ENVIADO</option><option>EM VALIDAÇÃO</option><option>PAGAMENTO CONFIRMADO</option><option>INSCRIÇÃO CONFIRMADA</option><option>SOLICITAR CORREÇÃO</option><option>PAGAMENTO NÃO IDENTIFICADO</option></select>
+<select id="statusFilter" class="select" onchange="render()"><option value="">Todos os status</option><option value="COMPROVANTE ENVIADO">COMPROVANTE RECEBIDO</option><option>EM VALIDAÇÃO</option><option>PAGAMENTO CONFIRMADO</option><option>INSCRIÇÃO CONFIRMADA</option><option>SOLICITAR CORREÇÃO</option><option>PAGAMENTO NÃO IDENTIFICADO</option></select>
 <select id="originFilter" class="select" onchange="render()"><option value="">Todas as origens</option><option>ONLINE</option><option>PRESENCIAL</option><option>BONIFICACAO</option><option>PCD</option></select>
 </div>
 <div class="toolbar"><button class="primary" onclick="openModal()">+ Nova inscrição presencial</button><button class="secondary" onclick="render()">Atualizar</button></div>
@@ -47,11 +47,6 @@ button{border:0;border-radius:11px;padding:11px 15px;font-weight:800;cursor:poin
 </div>
 <section class="card" style="margin-top:18px"><h2>Auditoria do atendente</h2><div id="audit" class="audit muted">Nenhum evento registrado.</div></section>
 </main>
-
-<div id="correctionModal" class="modal"><div class="modalbox"><h2>Solicitar correção</h2><p class="muted">Informe exatamente o que o atleta precisa corrigir ou reenviar.</p>
-<label style="display:block;color:var(--muted);font-size:13px">Observação da correção
-<textarea id="correctionNote" rows="5" style="margin-top:6px;width:100%;background:#120d18;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px;resize:vertical" placeholder="Ex.: Comprovante ilegível. Favor enviar uma foto mais nítida mostrando valor, data e identificação do pagamento."></textarea></label>
-<div class="actions"><button class="yellow" onclick="saveCorrection()">Solicitar correção</button><button class="secondary" onclick="closeCorrectionModal()">Cancelar</button></div></div></div>
 
 <div id="modal" class="modal"><div class="modalbox"><h2>Nova inscrição presencial</h2><p class="muted">Cadastro operacional pelo atendente. A inscrição será gravada em <b>cnr26_registrations</b>.</p>
 <div class="modalgrid">
@@ -80,6 +75,7 @@ function normalize(r){r.status=(r.status||'').toUpperCase();r.origem=(r.origem||
 function isCanceled(r){return ['CANCELADA','CANCELADA/REEMBOLSADA','INSCRIÇÃO RECUSADA'].includes(r.status)}
 function isConfirmed(r){return ['PAGAMENTO CONFIRMADO','INSCRIÇÃO CONFIRMADA'].includes(r.status)}
 function isPending(r){return ['COMPROVANTE ENVIADO','EM VALIDAÇÃO'].includes(r.status)}
+function displayStatus(st){return st==='COMPROVANTE ENVIADO'?'COMPROVANTE RECEBIDO':st}
 function statusPill(st){let c='p-wait';if(isConfirmed(st?{status:st}:{}))c='p-ok';else if(isPending({status:st}))c='p-review';else if(['SOLICITAR CORREÇÃO','PAGAMENTO NÃO IDENTIFICADO'].includes(st))c='p-error';return `<span class="pill ${c}">${esc(st||'SEM STATUS')}</span>`}
 function mergeOldProof(regs){
   let old={};try{old=JSON.parse(localStorage.getItem(OLD_KEY)||'{}')}catch(e){return regs}
@@ -111,32 +107,37 @@ function card(r){
   if(pending) actions=`<button class="ok" onclick="confirmPayment('${esc(r.id||r.cpf)}')">Confirmar pagamento</button><button class="yellow" onclick="requestCorrection('${esc(r.id||r.cpf)}')">Solicitar correção</button><button class="danger" onclick="notIdentified('${esc(r.id||r.cpf)}')">Pagamento não identificado</button>`;
   else if(confirmed) actions='<span class="muted">Pagamento já confirmado.</span>';
   else actions=`<button class="secondary" onclick="validate('${esc(r.id||r.cpf)}')">Colocar em validação</button>`;
-  const correctionBox = (String(r.status||'').toUpperCase()==='SOLICITAR CORREÇÃO' && r.correctionObservation)
-    ? `<div class="notice" style="margin-top:14px"><strong>Observação da correção</strong><span class="muted">${esc(r.correctionObservation)}</span></div>` : '';
+  const proofButton=r.proofDataUrl ? `<button class="secondary" type="button" onclick="viewProof('${esc(r.id||r.cpf)}')">Visualizar comprovante</button>` : '';
+  const note=(r.status==='SOLICITAR CORREÇÃO' || r.status==='PAGAMENTO NÃO IDENTIFICADO') && r.paymentNote ? `<div class="notice"><strong>${r.status==='SOLICITAR CORREÇÃO'?'Observação da correção':'Observação do pagamento não identificado'}</strong><span class="muted">${esc(r.paymentNote)}</span></div>` : '';
   return `<div class="item"><div class="itemhead"><div><b>${esc(r.nome||'Sem nome')}</b><div class="muted">CPF ${esc(r.cpf||'')} • ${esc(r.origem||'ONLINE')} • ${esc(r.modalidade||'')}</div></div>${statusPill(r.status)}</div>
   <div class="row"><div class="field"><small>Valor esperado</small><b>R$ ${Number(r.valor||0).toFixed(2).replace('.',',')}</b></div><div class="field"><small>Pagamento</small><b>${esc(r.pagamento||r.paymentMethod||'—')}</b></div><div class="field"><small>Camiseta</small><b>${esc(r.camiseta||r.camisa||'—')}</b></div><div class="field"><small>Comprovante</small><b>${esc(r.proofName||'—')}</b></div><div class="field"><small>Equipe</small><b>${esc(r.equipe||'—')}</b></div><div class="field"><small>Celular</small><b>${esc(r.whatsapp||r.celular||'—')}</b></div></div>
-  ${correctionBox}<div class="actions">${actions}</div></div>`;
+  ${r.proofName ? `<div class="actions">${proofButton}</div>` : ''}
+  ${note}
+  <div class="actions">${actions}</div></div>`;
+}
+function findRegObject(id){const a=readRegs().map(normalize);return a.find(r=>String(r.id||r.cpf)===String(id));}
+function viewProof(id){
+  const r=findRegObject(id);
+  if(!r || !r.proofDataUrl){alert('O comprovante foi recebido, mas esta versão ainda não possui o arquivo visualizável armazenado. Envie um novo comprovante após a atualização.');return;}
+  const w=window.open('', '_blank');
+  if(!w){alert('O navegador bloqueou a abertura do comprovante. Permita pop-ups para este site.');return;}
+  const mime=String(r.proofMimeType||'');
+  const title=esc(r.proofName||'Comprovante');
+  if(mime==='application/pdf' || /\.pdf$/i.test(r.proofName||'')) w.document.write(`<title>${title}</title><iframe src="${r.proofDataUrl}" style="width:100vw;height:100vh;border:0"></iframe>`);
+  else w.document.write(`<title>${title}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${r.proofDataUrl}" alt="${title}" style="max-width:100%;max-height:100vh;object-fit:contain"></body>`);
+  w.document.close();
 }
 function findReg(id){let a=readRegs().map(normalize);return a.findIndex(r=>String(r.id||r.cpf)===String(id));}
 function updateReg(id,patch,action,detail){let a=readRegs().map(normalize);const i=findReg(id);if(i<0)return alert('Inscrição não encontrada em cnr26_registrations.');Object.assign(a[i],patch,{updatedAt:new Date().toISOString()});saveRegs(a);audit(action,detail||a[i].nome||a[i].cpf);syncOld(a[i]);render();}
 function syncOld(r){let s={};try{s=JSON.parse(localStorage.getItem(OLD_KEY)||'{}')}catch(e){};if(String(s.cpf||'').replace(/\D/g,'')===String(r.cpf||'').replace(/\D/g,'')){s.status=r.status;s.paymentStatus=r.status;s.lastUpdated=new Date().toISOString();localStorage.setItem(OLD_KEY,JSON.stringify(s));}}
 function validate(id){updateReg(id,{status:'EM VALIDAÇÃO',paymentStatus:'EM VALIDAÇÃO'},'VALIDAR_PAGAMENTO','Pagamento colocado em validação')}
 function confirmPayment(id){updateReg(id,{status:'INSCRIÇÃO CONFIRMADA',paymentStatus:'PAGAMENTO CONFIRMADO',confirmedAt:new Date().toISOString(),confirmedBy:'ATENDENTE'},'CONFIRMAR_PAGAMENTO','Pagamento confirmado e inscrição confirmada')}
-let correctionTargetId='';
 function requestCorrection(id){
-  correctionTargetId=id;
-  const i=findReg(id), a=readRegs().map(normalize), r=i>=0?a[i]:null;
-  document.getElementById('correctionNote').value=(r&&r.correctionObservation)||'';
-  document.getElementById('correctionModal').classList.add('open');
-}
-function closeCorrectionModal(){document.getElementById('correctionModal').classList.remove('open');correctionTargetId='';}
-function saveCorrection(){
-  const note=document.getElementById('correctionNote').value.trim();
-  if(!note)return alert('Informe a observação da correção.');
-  const id=correctionTargetId;
-  if(!id)return closeCorrectionModal();
-  updateReg(id,{status:'SOLICITAR CORREÇÃO',paymentStatus:'SOLICITAR CORREÇÃO',correctionObservation:note,correctionAt:new Date().toISOString(),correctionBy:'ATENDENTE'},'SOLICITAR_CORRECAO',note);
-  closeCorrectionModal();
+  const note=prompt('Informe a correção necessária para o atleta (obrigatório):');
+  if(note===null)return;
+  const reason=String(note).trim();
+  if(!reason){alert('A observação da correção é obrigatória.');return;}
+  updateReg(id,{status:'SOLICITAR CORREÇÃO',paymentStatus:'SOLICITAR CORREÇÃO',paymentNote:reason,correctionRequestedAt:new Date().toISOString(),correctionCount:0},'SOLICITAR_CORRECAO','Comprovante/dados precisam de correção — Observação: '+reason);
 }
 function notIdentified(id){updateReg(id,{status:'PAGAMENTO NÃO IDENTIFICADO',paymentStatus:'PAGAMENTO NÃO IDENTIFICADO'},'PAGAMENTO_NAO_IDENTIFICADO','Pagamento não identificado')}
 function openModal(){document.getElementById('modal').classList.add('open');updateForm()}
