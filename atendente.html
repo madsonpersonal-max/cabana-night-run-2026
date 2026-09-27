@@ -48,6 +48,11 @@ button{border:0;border-radius:11px;padding:11px 15px;font-weight:800;cursor:poin
 <section class="card" style="margin-top:18px"><h2>Auditoria do atendente</h2><div id="audit" class="audit muted">Nenhum evento registrado.</div></section>
 </main>
 
+<div id="correctionModal" class="modal"><div class="modalbox"><h2>Solicitar correção</h2><p class="muted">Informe exatamente o que o atleta precisa corrigir ou reenviar.</p>
+<label style="display:block;color:var(--muted);font-size:13px">Observação da correção
+<textarea id="correctionNote" rows="5" style="margin-top:6px;width:100%;background:#120d18;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px;resize:vertical" placeholder="Ex.: Comprovante ilegível. Favor enviar uma foto mais nítida mostrando valor, data e identificação do pagamento."></textarea></label>
+<div class="actions"><button class="yellow" onclick="saveCorrection()">Solicitar correção</button><button class="secondary" onclick="closeCorrectionModal()">Cancelar</button></div></div></div>
+
 <div id="modal" class="modal"><div class="modalbox"><h2>Nova inscrição presencial</h2><p class="muted">Cadastro operacional pelo atendente. A inscrição será gravada em <b>cnr26_registrations</b>.</p>
 <div class="modalgrid">
 <label>CPF *<input id="fCpf" inputmode="numeric"></label><label>Nome completo *<input id="fNome"></label>
@@ -106,16 +111,33 @@ function card(r){
   if(pending) actions=`<button class="ok" onclick="confirmPayment('${esc(r.id||r.cpf)}')">Confirmar pagamento</button><button class="yellow" onclick="requestCorrection('${esc(r.id||r.cpf)}')">Solicitar correção</button><button class="danger" onclick="notIdentified('${esc(r.id||r.cpf)}')">Pagamento não identificado</button>`;
   else if(confirmed) actions='<span class="muted">Pagamento já confirmado.</span>';
   else actions=`<button class="secondary" onclick="validate('${esc(r.id||r.cpf)}')">Colocar em validação</button>`;
+  const correctionBox = (String(r.status||'').toUpperCase()==='SOLICITAR CORREÇÃO' && r.correctionObservation)
+    ? `<div class="notice" style="margin-top:14px"><strong>Observação da correção</strong><span class="muted">${esc(r.correctionObservation)}</span></div>` : '';
   return `<div class="item"><div class="itemhead"><div><b>${esc(r.nome||'Sem nome')}</b><div class="muted">CPF ${esc(r.cpf||'')} • ${esc(r.origem||'ONLINE')} • ${esc(r.modalidade||'')}</div></div>${statusPill(r.status)}</div>
   <div class="row"><div class="field"><small>Valor esperado</small><b>R$ ${Number(r.valor||0).toFixed(2).replace('.',',')}</b></div><div class="field"><small>Pagamento</small><b>${esc(r.pagamento||r.paymentMethod||'—')}</b></div><div class="field"><small>Camiseta</small><b>${esc(r.camiseta||r.camisa||'—')}</b></div><div class="field"><small>Comprovante</small><b>${esc(r.proofName||'—')}</b></div><div class="field"><small>Equipe</small><b>${esc(r.equipe||'—')}</b></div><div class="field"><small>Celular</small><b>${esc(r.whatsapp||r.celular||'—')}</b></div></div>
-  <div class="actions">${actions}</div></div>`;
+  ${correctionBox}<div class="actions">${actions}</div></div>`;
 }
 function findReg(id){let a=readRegs().map(normalize);return a.findIndex(r=>String(r.id||r.cpf)===String(id));}
 function updateReg(id,patch,action,detail){let a=readRegs().map(normalize);const i=findReg(id);if(i<0)return alert('Inscrição não encontrada em cnr26_registrations.');Object.assign(a[i],patch,{updatedAt:new Date().toISOString()});saveRegs(a);audit(action,detail||a[i].nome||a[i].cpf);syncOld(a[i]);render();}
 function syncOld(r){let s={};try{s=JSON.parse(localStorage.getItem(OLD_KEY)||'{}')}catch(e){};if(String(s.cpf||'').replace(/\D/g,'')===String(r.cpf||'').replace(/\D/g,'')){s.status=r.status;s.paymentStatus=r.status;s.lastUpdated=new Date().toISOString();localStorage.setItem(OLD_KEY,JSON.stringify(s));}}
 function validate(id){updateReg(id,{status:'EM VALIDAÇÃO',paymentStatus:'EM VALIDAÇÃO'},'VALIDAR_PAGAMENTO','Pagamento colocado em validação')}
 function confirmPayment(id){updateReg(id,{status:'INSCRIÇÃO CONFIRMADA',paymentStatus:'PAGAMENTO CONFIRMADO',confirmedAt:new Date().toISOString(),confirmedBy:'ATENDENTE'},'CONFIRMAR_PAGAMENTO','Pagamento confirmado e inscrição confirmada')}
-function requestCorrection(id){updateReg(id,{status:'SOLICITAR CORREÇÃO',paymentStatus:'SOLICITAR CORREÇÃO'},'SOLICITAR_CORRECAO','Comprovante/dados precisam de correção')}
+let correctionTargetId='';
+function requestCorrection(id){
+  correctionTargetId=id;
+  const i=findReg(id), a=readRegs().map(normalize), r=i>=0?a[i]:null;
+  document.getElementById('correctionNote').value=(r&&r.correctionObservation)||'';
+  document.getElementById('correctionModal').classList.add('open');
+}
+function closeCorrectionModal(){document.getElementById('correctionModal').classList.remove('open');correctionTargetId='';}
+function saveCorrection(){
+  const note=document.getElementById('correctionNote').value.trim();
+  if(!note)return alert('Informe a observação da correção.');
+  const id=correctionTargetId;
+  if(!id)return closeCorrectionModal();
+  updateReg(id,{status:'SOLICITAR CORREÇÃO',paymentStatus:'SOLICITAR CORREÇÃO',correctionObservation:note,correctionAt:new Date().toISOString(),correctionBy:'ATENDENTE'},'SOLICITAR_CORRECAO',note);
+  closeCorrectionModal();
+}
 function notIdentified(id){updateReg(id,{status:'PAGAMENTO NÃO IDENTIFICADO',paymentStatus:'PAGAMENTO NÃO IDENTIFICADO'},'PAGAMENTO_NAO_IDENTIFICADO','Pagamento não identificado')}
 function openModal(){document.getElementById('modal').classList.add('open');updateForm()}
 function closeModal(){document.getElementById('modal').classList.remove('open')}
