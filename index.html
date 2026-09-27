@@ -80,7 +80,7 @@ input,select{width:100%;padding:13px;border-radius:11px;border:1px solid #4a3554
 </section>
 
 <section class="notice">
-  <strong>Ambiente de homologação • V13.1 — CONSULTA ONLINE + PRESENCIAL / INTEGRAÇÃO ADM</strong>
+  <strong>Ambiente de homologação • V13.2 — CONSULTA ONLINE + PRESENCIAL / INTEGRAÇÃO ADM</strong>
   <span class="muted">Este é um teste. Não realize pagamento real nem envie documentos reais.</span>
 </section>
 
@@ -398,28 +398,49 @@ function openPaymentForSaved(){
 
 function sendProofTest(){
   var state = getSavedState();
-  var file = document.getElementById("comprovante").files[0];
-  if(!state || !state.cpf){ alert("Nenhuma inscrição salva para pagamento."); return; }
-  if(!file){ alert("Selecione um comprovante de teste antes de enviar."); return; }
-  var reader=new FileReader();
-  reader.onload=function(){
-    state.previousProofName = state.proofName || null;
-    state.status = "COMPROVANTE ENVIADO";
-    state.paymentNote = "";
-    state.proofName = file.name;
-    state.proofSize = file.size;
-    state.proofMimeType = file.type || (/.pdf$/i.test(file.name)?"application/pdf":"image/*");
-    state.proofDataUrl = reader.result;
-    state.proofSentAt = new Date().toISOString();
-    state.proofVersion = Number(state.proofVersion || 0) + 1;
-    saveState(state);
+  var input = document.getElementById("comprovante");
+  var file = input && input.files ? input.files[0] : null;
+  var btn = document.querySelector('#pagamento button[onclick="sendProofTest()"]');
 
-    var registros=[];
-    try{ registros=JSON.parse(localStorage.getItem("cnr26_registrations")||"[]"); }catch(e){ registros=[]; }
-    if(!Array.isArray(registros)) registros=[];
-    var cpf=String(state.cpf||"").replace(/\D/g,"");
-    var idx=registros.findIndex(function(r){return String(r.cpf||"").replace(/\D/g,"")==cpf;});
-    if(idx>=0){
+  if(!state || !state.cpf){ alert("Nenhuma inscrição salva para pagamento."); return; }
+  if(!file){ alert("Selecione um comprovante antes de enviar."); return; }
+  if(file.size > 3 * 1024 * 1024){
+    alert("Para este ambiente de homologação, use um arquivo de até 3 MB.");
+    return;
+  }
+
+  if(btn){ btn.disabled=true; btn.textContent="Enviando comprovante..."; }
+
+  var reader = new FileReader();
+  reader.onload = function(){
+    try{
+      var now = new Date().toISOString();
+      var cpf = String(state.cpf||"").replace(/\D/g,"");
+      var proofDataUrl = reader.result;
+      var nextVersion = Number(state.proofVersion || 0) + 1;
+
+      state.previousProofName = state.proofName || null;
+      state.status = "COMPROVANTE ENVIADO";
+      state.paymentNote = "";
+      state.proofName = file.name;
+      state.proofSize = file.size;
+      state.proofMimeType = file.type || (/.pdf$/i.test(file.name)?"application/pdf":"image/*");
+      state.proofDataUrl = proofDataUrl;
+      state.proofSentAt = now;
+      state.proofVersion = nextVersion;
+
+      /* Atualiza a inscrição principal primeiro. */
+      var registros=[];
+      try{ registros=JSON.parse(localStorage.getItem("cnr26_registrations")||"[]"); }catch(e){ registros=[]; }
+      if(!Array.isArray(registros)) registros=[];
+      var idx=registros.findIndex(function(r){
+        return String(r.cpf||"").replace(/\D/g,"")===cpf;
+      });
+
+      if(idx<0){
+        throw new Error("Inscrição não encontrada na base principal para este CPF.");
+      }
+
       registros[idx].status=state.status;
       registros[idx].proofName=state.proofName;
       registros[idx].proofSize=state.proofSize;
@@ -429,17 +450,30 @@ function sendProofTest(){
       registros[idx].proofVersion=state.proofVersion;
       registros[idx].paymentNote="";
       localStorage.setItem("cnr26_registrations",JSON.stringify(registros));
-    }
 
-    document.getElementById("payStatus").textContent = state.status;
-    document.getElementById("paymentResult").innerHTML =
-      '<div class="notice success"><strong>Comprovante recebido para homologação</strong><span class="muted">Arquivo: '+
-      escapeHtml(file.name)+'<br>Status: COMPROVANTE ENVIADO<br>Na versão real, o comprovante será armazenado com segurança e encaminhado para validação do atendente.</span></div>';
+      /* Mantém a consulta pública sincronizada. */
+      localStorage.setItem("cnr26_homologacao", JSON.stringify(state));
+
+      document.getElementById("payStatus").textContent = state.status;
+      document.getElementById("paymentResult").innerHTML =
+        '<div class="notice success"><strong>Comprovante enviado com sucesso.</strong><span class="muted">Arquivo: '+
+        escapeHtml(file.name)+'<br>Status: COMPROVANTE ENVIADO<br>Versão do comprovante: '+
+        state.proofVersion+'<br>O atendente já pode visualizar este comprovante.</span></div>';
+
+      input.value="";
+    }catch(err){
+      console.error(err);
+      alert("Não foi possível enviar o comprovante: " + (err && err.message ? err.message : "erro de armazenamento"));
+    }finally{
+      if(btn){ btn.disabled=false; btn.textContent="Enviar comprovante (teste)"; }
+    }
   };
-  reader.onerror=function(){alert("Não foi possível ler o comprovante para o teste.")};
+  reader.onerror=function(){
+    if(btn){ btn.disabled=false; btn.textContent="Enviar comprovante (teste)"; }
+    alert("Não foi possível ler o arquivo selecionado.");
+  };
   reader.readAsDataURL(file);
 }
-
 function consultRegistration(){
   var cpf = document.getElementById("qcpf").value.replace(/\D/g,"");
   var result = document.getElementById("qresult");
