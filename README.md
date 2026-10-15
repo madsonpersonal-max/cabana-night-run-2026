@@ -1,19 +1,19 @@
-# Cabana Night Run ADM V1.3 — Correções para teste
+# Cabana Night Run ADM V1.4 — BM pago e PCD
 
-## Ajustes desta versão
-- Anexo de lista de atletas limitado a 2 MB para reduzir falhas de quota do localStorage.
-- Botão para baixar novamente a lista anexada ao cadastro empresarial.
-- Rótulos mais claros para vagas contratadas, utilizadas e não utilizadas.
-- Recibo empresarial discrimina vagas utilizadas e não utilizadas.
-- Um BM só pode ser marcado como PAGO quando houver data de recebimento.
-- Tratamento de erro quando o armazenamento local está cheio.
-- Dashboard diferencia BMs recebidos e BMs pendentes cadastrados; se nenhum BM foi lançado, indica isso explicitamente.
+## Correções
+- Cada BM não pago agora possui botão **Marcar pago** no histórico.
+- Ao marcar pago, solicita data de recebimento; altera status para PAGO e registra ação na auditoria.
+- Dashboard passa a refletir o BM como recebido após salvar.
+- Vagas PCD utilizadas são descontadas do saldo da corrida, pois o usuário confirmou que estão fora do contador de inscrições online, mas continuam dentro do limite total de 1.000 vagas.
+- Mantém lista de atletas anexada e botão de download da versão anterior.
 
-## Regras mantidas
-- Corrida 7 km: 1.000 vagas totais, incluindo até 10 PCD.
-- Corridinha infantil: 100 vagas totais, 50 liberadas inicialmente.
-- Lista de atletas é anexo documental, não cria inscrições individuais automaticamente.
-- Recibos são administrativos, não fiscais e não comprovam entrada bancária.
+## Como testar
+1. No GitHub, substitua `index.html` pelo arquivo deste pacote e aguarde GitHub Pages.
+2. Entre em Empresas > BMs no lote de teste.
+3. Localize o BM-001 em status ENVIADO e clique **Marcar pago**.
+4. Informe a data do recebimento. O status deve mudar para PAGO.
+5. Confira o Dashboard: valor deve sair de BM pendente e entrar em BM recebido; confira também Auditoria.
+6. Na Central de Vagas, se online=30 e PCD=5, o saldo da corrida deve descontar as 35 vagas (além de outras ocupações/reservas).
 
 ## Limitações
-Dados e anexos ficam no navegador atual. Não há base compartilhada, autenticação de servidor ou integração com o sistema de inscrições. Testar em homologação; não usar em produção.
+Protótipo de homologação em GitHub Pages/localStorage. Os dados não são compartilhados entre computadores e não há confirmação bancária automática. Recibo é administrativo, não fiscal.
