@@ -1,5 +1,9 @@
-# Cabana Night Run ADM V1.6 — Correção de data do BM
+# Cabana Night Run ADM V1.5 — Identidade visual
 
-Correção: ao marcar um Boletim de Medição como pago, o sistema agora aceita a data no formato AAAA-MM-DD ou DD/MM/AAAA e valida se a data existe. As duas logos e os recursos anteriores foram mantidos.
+Inclui as duas logos fornecidas:
+- Cabana Night Run
+- Cabana Clube 40 anos
 
-Protótipo de homologação: os dados ficam no armazenamento local do navegador e não são compartilhados entre computadores. Faça backup antes de substituir o arquivo publicado.
+As logos aparecem no painel administrativo, nos recibos de patrocínio, nos recibos de compra/reserva de vagas e na janela de Boletins de Medição Mensal. As imagens estão incorporadas ao HTML, portanto não dependem de arquivos de imagem externos.
+
+Para testar, faça backup/exportação dos dados atuais, substitua o index.html no GitHub pelo deste pacote e aguarde o GitHub Pages atualizar. As logos não alteram os dados existentes. O protótipo continua usando armazenamento local e não é um sistema de produção compartilhado.
