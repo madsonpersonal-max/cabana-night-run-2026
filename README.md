@@ -1,9 +1,19 @@
-# Cabana Night Run ADM V1.2 — Recibos e anexos
+# Cabana Night Run ADM V1.3 — Correções para teste
 
-- Patrocínios: cadastro, forma de pagamento, BM/parcelamento e recibo administrativo imprimível.
-- Empresas: cadastro de lotes, pagamento, BM, recibo administrativo e anexo de lista de atletas em XLSX, XLS, CSV, ODS ou PDF.
-- Arquivos anexados ficam no localStorage do navegador, com limite de 8 MB por arquivo nesta versão.
-- É possível baixar novamente a lista anexada.
-- A lista é apenas anexo documental: não cria inscrições individuais automaticamente.
-- Regras: corrida 7 km = 1.000 vagas incluindo até 10 PCD; corridinha = 100 totais, 50 liberadas inicialmente.
-- Protótipo de homologação: dados e anexos não são compartilhados entre computadores e podem ser perdidos ao limpar os dados do navegador. Não usar em produção sem backend, banco, autenticação e armazenamento privado.
+## Ajustes desta versão
+- Anexo de lista de atletas limitado a 2 MB para reduzir falhas de quota do localStorage.
+- Botão para baixar novamente a lista anexada ao cadastro empresarial.
+- Rótulos mais claros para vagas contratadas, utilizadas e não utilizadas.
+- Recibo empresarial discrimina vagas utilizadas e não utilizadas.
+- Um BM só pode ser marcado como PAGO quando houver data de recebimento.
+- Tratamento de erro quando o armazenamento local está cheio.
+- Dashboard diferencia BMs recebidos e BMs pendentes cadastrados; se nenhum BM foi lançado, indica isso explicitamente.
+
+## Regras mantidas
+- Corrida 7 km: 1.000 vagas totais, incluindo até 10 PCD.
+- Corridinha infantil: 100 vagas totais, 50 liberadas inicialmente.
+- Lista de atletas é anexo documental, não cria inscrições individuais automaticamente.
+- Recibos são administrativos, não fiscais e não comprovam entrada bancária.
+
+## Limitações
+Dados e anexos ficam no navegador atual. Não há base compartilhada, autenticação de servidor ou integração com o sistema de inscrições. Testar em homologação; não usar em produção.
