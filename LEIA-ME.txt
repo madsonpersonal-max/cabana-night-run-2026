@@ -1,18 +1,18 @@
-CABANA NIGHT RUN 2026 — ADM V1.5 CORRIGIDO
+CABANA NIGHT RUN 2026 — ADM V1.6
 
-Alterações nesta versão:
-- Cadastro de patrocínio com previsão de pagamento e data do recebimento.
-- Status financeiro separado do status comercial.
-- Botão “Marcar pago” na tabela de patrocínios.
-- Anexo de comprovante PDF, JPG ou PNG (limite de 2 MB nesta versão).
-- Botão para baixar comprovante anexado.
-- Dashboard com valores de patrocínios recebidos e pendentes.
+Novidades:
+- Ao informar quantidade de parcelas, valor e primeiro vencimento, exibe uma prévia automática das parcelas mensais.
+- Distribui o valor total entre as parcelas, incluindo eventuais centavos restantes.
+- A tabela de Patrocínios mostra quantas parcelas foram pagas, o próximo vencimento e o valor recebido/pendente.
+- Botão Parcelas permite registrar o pagamento de cada parcela separadamente, com data de recebimento e comprovante PDF/JPG/PNG (até 2 MB).
+- Parcelas vencidas e não pagas aparecem como INADIMPLENTE.
+- Dashboard soma recebimentos/pendências por parcela e mostra a quantidade de parcelas inadimplentes.
 
-Publicação:
-1. Faça backup/exportação dos dados da versão atual antes de substituir arquivos.
-2. Substitua o index.html no repositório GitHub Pages pelo index.html deste pacote.
-3. Aguarde a publicação e recarregue a página com Ctrl+F5.
-4. Verifique os dados existentes e teste um patrocinador de teste antes de usar em operação.
+PUBLICAÇÃO SEGURA:
+1. Antes de substituir o index.html do GitHub, clique em Exportar dados no sistema publicado e guarde o JSON.
+2. Substitua apenas o index.html pelo arquivo deste pacote, mantendo o mesmo repositório e a mesma chave localStorage.
+3. Depois da publicação, use Ctrl+F5 e confira os cadastros.
+4. Teste primeiro com um patrocinador de homologação.
 
-Importante:
-Este é um protótipo de homologação que usa localStorage no navegador. Os dados e anexos não são compartilhados entre computadores e podem atingir o limite de armazenamento. Exporte um backup antes da atualização. Não armazene dados sensíveis reais em produção sem backend, autenticação e armazenamento privado.
+IMPORTANTE:
+Este é um protótipo estático. Os dados e anexos ficam no armazenamento local do navegador e não são compartilhados entre computadores. Exportar um backup antes da atualização é essencial. Confirme os pagamentos com a conciliação bancária.
