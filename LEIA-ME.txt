@@ -1,14 +1,18 @@
-CABANA NIGHT RUN 2026 — ADM V1.4
-Atualização do controle financeiro de patrocínios.
+CABANA NIGHT RUN 2026 — ADM V1.5 CORRIGIDO
 
-Inclui:
-- Dashboard com valor negociado, recebido e pendente de patrocínios.
-- Campo de previsão de pagamento.
-- Campo de data do recebimento.
-- Botão “Marcar pago” com confirmação e registro na auditoria.
-- Anexo de comprovante PDF/JPG/PNG de até 1 MB e botão para baixar.
-- Separação entre status comercial e status de pagamento.
+Alterações nesta versão:
+- Cadastro de patrocínio com previsão de pagamento e data do recebimento.
+- Status financeiro separado do status comercial.
+- Botão “Marcar pago” na tabela de patrocínios.
+- Anexo de comprovante PDF, JPG ou PNG (limite de 2 MB nesta versão).
+- Botão para baixar comprovante anexado.
+- Dashboard com valores de patrocínios recebidos e pendentes.
 
-Instalação: faça backup pelo botão Exportar dados. Substitua o index.html no repositório GitHub Pages pelo index.html deste pacote. Depois de publicar, use Ctrl+F5.
+Publicação:
+1. Faça backup/exportação dos dados da versão atual antes de substituir arquivos.
+2. Substitua o index.html no repositório GitHub Pages pelo index.html deste pacote.
+3. Aguarde a publicação e recarregue a página com Ctrl+F5.
+4. Verifique os dados existentes e teste um patrocinador de teste antes de usar em operação.
 
-Limitações: protótipo de homologação. Os anexos e dados ficam no localStorage deste navegador e podem atingir o limite de armazenamento; não há conexão bancária, validação automática do comprovante nem compartilhamento entre computadores. Não use como sistema financeiro de produção.
+Importante:
+Este é um protótipo de homologação que usa localStorage no navegador. Os dados e anexos não são compartilhados entre computadores e podem atingir o limite de armazenamento. Exporte um backup antes da atualização. Não armazene dados sensíveis reais em produção sem backend, autenticação e armazenamento privado.
