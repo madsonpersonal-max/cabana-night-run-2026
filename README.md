@@ -1,19 +1,17 @@
-# Cabana Night Run ADM V1.4 — BM pago e PCD
+# Cabana Night Run ADM — V1.7 Relatório de Parcelas
 
-## Correções
-- Cada BM não pago agora possui botão **Marcar pago** no histórico.
-- Ao marcar pago, solicita data de recebimento; altera status para PAGO e registra ação na auditoria.
-- Dashboard passa a refletir o BM como recebido após salvar.
-- Vagas PCD utilizadas são descontadas do saldo da corrida, pois o usuário confirmou que estão fora do contador de inscrições online, mas continuam dentro do limite total de 1.000 vagas.
-- Mantém lista de atletas anexada e botão de download da versão anterior.
+## Novidade
+- Dashboard inclui relatório financeiro detalhado de parcelas de patrocínios.
+- Exibe patrocinador, cota, parcela, valor, vencimento, status e data de recebimento.
+- Status calculado por parcela: PAGO, PENDENTE ou INADIMPLENTE.
+- Botão para exportar relatório em CSV, compatível com Excel.
 
-## Como testar
-1. No GitHub, substitua `index.html` pelo arquivo deste pacote e aguarde GitHub Pages.
-2. Entre em Empresas > BMs no lote de teste.
-3. Localize o BM-001 em status ENVIADO e clique **Marcar pago**.
-4. Informe a data do recebimento. O status deve mudar para PAGO.
-5. Confira o Dashboard: valor deve sair de BM pendente e entrar em BM recebido; confira também Auditoria.
-6. Na Central de Vagas, se online=30 e PCD=5, o saldo da corrida deve descontar as 35 vagas (além de outras ocupações/reservas).
+## Atualização no GitHub Pages
+1. Exporte e guarde o backup dos dados antes de substituir arquivos.
+2. Substitua somente o `index.html` no mesmo repositório/branch usado atualmente.
+3. Aguarde a publicação do GitHub Pages e pressione Ctrl+F5.
+4. Abra o Dashboard e confira a seção “Relatório financeiro de parcelas”.
+5. Teste o botão “Exportar relatório CSV”.
 
 ## Limitações
-Protótipo de homologação em GitHub Pages/localStorage. Os dados não são compartilhados entre computadores e não há confirmação bancária automática. Recibo é administrativo, não fiscal.
+Esta é uma versão de homologação com dados armazenados no navegador via localStorage. O relatório não sincroniza automaticamente entre computadores e não confirma recebimentos bancários. Preserve o backup dos dados.
