@@ -1,17 +1,15 @@
-# Cabana Night Run ADM — V1.7 Relatório de Parcelas
+# Cabana Night Run 2026 — ADM V1.8
 
-## Novidade
-- Dashboard inclui relatório financeiro detalhado de parcelas de patrocínios.
-- Exibe patrocinador, cota, parcela, valor, vencimento, status e data de recebimento.
-- Status calculado por parcela: PAGO, PENDENTE ou INADIMPLENTE.
-- Botão para exportar relatório em CSV, compatível com Excel.
+## Atualização
+1. Faça backup pelo botão **Exportar dados** no sistema atual.
+2. Substitua somente o `index.html` no mesmo repositório/branch do GitHub Pages.
+3. Aguarde a publicação e atualize com `Ctrl + F5`.
+4. Confira Dashboard > Relatório financeiro de parcelas, Patrocínios, Parcelas, BMs e recibos.
 
-## Atualização no GitHub Pages
-1. Exporte e guarde o backup dos dados antes de substituir arquivos.
-2. Substitua somente o `index.html` no mesmo repositório/branch usado atualmente.
-3. Aguarde a publicação do GitHub Pages e pressione Ctrl+F5.
-4. Abra o Dashboard e confira a seção “Relatório financeiro de parcelas”.
-5. Teste o botão “Exportar relatório CSV”.
+## Alteração desta versão
+- Datas exibidas no formato brasileiro `DD/MM/AAAA` no relatório de parcelas, resumo de patrocínios, histórico de BMs, CSV de parcelas e recibos administrativos.
+- Datas continuam armazenadas internamente em ISO (`AAAA-MM-DD`) para manter a compatibilidade com os campos de data e os cálculos.
+- Prompt de baixa de BM orienta a informar a data em `DD/MM/AAAA`.
 
-## Limitações
-Esta é uma versão de homologação com dados armazenados no navegador via localStorage. O relatório não sincroniza automaticamente entre computadores e não confirma recebimentos bancários. Preserve o backup dos dados.
+## Atenção
+Esta é uma versão de homologação. O protótipo armazena dados no navegador; mantenha um backup e valide os registros após a atualização. O código não deve ser considerado produção compartilhada entre computadores.
