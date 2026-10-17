@@ -1,6 +1,9 @@
-# Cabana Night Run ADM V1.8.1 — Correção do status comercial
+# Cabana Night Run ADM V1.8.2 — Correção de gravação
 
-Ao salvar um patrocínio editado, o registro é atualizado pelo ID, o status é incluído na auditoria e o sistema confere se o valor foi gravado no armazenamento local antes de fechar o formulário.
+- Ao falhar a gravação, tenta novamente reduzindo o histórico antigo de auditoria antes de desistir.
+- O formulário de patrocínio só fecha depois de confirmar a gravação e a persistência do status.
+- Se o armazenamento continuar cheio, informa que anexos podem estar ocupando a cota local.
 
-## Publicação
-Faça backup dos dados, substitua o `index.html` no mesmo repositório/branch do GitHub Pages e teste alterando o status, salvando e atualizando a página. Este protótipo usa armazenamento local do navegador e não compartilha dados entre computadores.
+Publicação: faça backup/exportação dos dados, substitua o `index.html` no repositório/branch publicado pelo GitHub Pages e teste a alteração de status comercial após atualizar a página.
+
+Limitação: o protótipo ainda armazena dados e anexos no navegador. Esta correção não transforma o protótipo em banco compartilhado nem substitui armazenamento de arquivos no servidor.
